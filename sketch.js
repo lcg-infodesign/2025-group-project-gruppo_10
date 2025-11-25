@@ -1,67 +1,139 @@
+// variabili di Stato
 let scrollAmount = 0;
 let targetScrollAmount = 0;
 
-// testi fasi di scroll
+// testi
 const texts = [
-    "che cos'è la libertà per te?",
-    "che cos'è la libertà per Freedom House?",
-    "libertà"
+    "What is freedom to you?", 
+    "What is freedom to FreedomHouse?", 
+    "freedom"
 ];
 
-// testi fasi di scroll
-const phase1Start = 300;   // inizio cancellazione "per te?"
-const phase1End = 650;     // fine cancellazione
-const phase2Start = 650;   // inizio aggiunta "per Freedom House?"
-const phase2End = 1000;    // fine aggiunta
-const phase3Start = 1200;  // inizio cancellazione resto del testo
+// fasi di scroll 
+const PHASE_WRITE_1_END = 300;     // fine scrittura del primo testo
+const PHASE_DELETE_END = 400;      // fine cancellazione "you?"
+const PHASE_WRITE_2_END = 700;     // fine scrittura "FreedomHouse?"
+const PHASE_ISOLATE_START = 1000;  // inizio transizione finale
+const MAX_SCROLL = 1600;           // limite massimo dello scroll
 
+const BASE_FONT_SIZE = 64;         // dimensione base del font
+
+
+// FUNZIONI DI TRASFORMAZIONE DEL TESTO
+function deleteText(text, progress) {
+    const stablePart = "What is freedom to ";
+    const toDelete = "you?";
+    // cancellazione è un inversione della scrittura -> si mostrano i caratteri rimanenti
+    let charsToKeep = toDelete.length - Math.floor(toDelete.length * progress);
+    let result = stablePart + toDelete.substring(0, charsToKeep);
+    return result;
+}
+
+function addNewText(text1, text2, progress) {
+    const stablePart = "What is freedom to ";
+    const toAdd = "FreedomHouse?";
+    
+    let addCharsShown = Math.floor(toAdd.length * progress);
+    let result = stablePart + toAdd.substring(0, addCharsShown);
+    return result;
+}
+
+
+// SKETCH P5
 function sketch(p) {
 
     p.setup = function() {
         let canvas = p.createCanvas(p.windowWidth, p.windowHeight);
         canvas.parent('p5-canvas-container'); 
+        p.textAlign(p.CENTER, p.CENTER); 
+        p.smooth();
     };
 
     p.draw = function() {
-        p.background(10, 14, 39);
-
-        // smoothing dello scroll 
+        p.background(0, 0, 0);
+        
+        // smoothing dello scroll
         scrollAmount += (targetScrollAmount - scrollAmount) * 0.1;
 
-        let displayText = texts[0];
+        let displayText = ""; // stringa vuota
+        let showCursor = true; // cursore è sempre attivo tranne x animazione finale
+        let x = p.width / 2;
+        let y = p.height / 2;
+        
+        let currentFontSize = BASE_FONT_SIZE;
 
-        // SCROLL DEL TESTO
-        if (scrollAmount < phase1Start) {
-            displayText = texts[0];
-        } else if (scrollAmount < phase1End) {
-            // FASE 1: cancella "per te?"
-            let deleteProgress = (scrollAmount - phase1Start) / (phase1End - phase1Start);
-            displayText = deleteText(texts[0], deleteProgress);
-        } else if (scrollAmount < phase2End) {
-            // FASE 2: aggiunge "per Freedom House?"
-            let addProgress = (scrollAmount - phase2Start) / (phase2End - phase2Start);
-            displayText = addNewText(texts[0], texts[1], addProgress);
-        } else if (scrollAmount < phase3Start) {
-            // FASE 3: testo completo, in attesa della transizione finale
+        //  FASI SCROLL
+        if (scrollAmount < PHASE_WRITE_1_END) {
+            // FASE 1 ->  scrivere "What is freedom to you?"
+            let progress = p.map(scrollAmount, 0, PHASE_WRITE_1_END, 0, 1);
+            let charsToShow = p.floor(texts[0].length * progress);
+            displayText = texts[0].substring(0, charsToShow);
+            
+            if (progress >= 1.0) showCursor = false; // cursore è visibile finché la scrittura non è finita
+            
+        } else if (scrollAmount < PHASE_DELETE_END) {
+            // FASE 2: cancellare "you?"
+            let progress = p.map(scrollAmount, PHASE_WRITE_1_END, PHASE_DELETE_END, 0, 1);
+            displayText = deleteText(texts[0], progress);
+            
+        } else if (scrollAmount < PHASE_WRITE_2_END) {
+            // FASE 3: scrivere "FreedomHouse?"
+            let progress = p.map(scrollAmount, PHASE_DELETE_END, PHASE_WRITE_2_END, 0, 1);
+            displayText = addNewText(texts[0], texts[1], progress);
+            
+            if (progress >= 1.0) showCursor = false;
+            
+        } else if (scrollAmount < PHASE_ISOLATE_START) {
+            // FASE 4: testo completo fisso in attesa
             displayText = texts[1];
+            showCursor = false;
+            
         } else {
-            // FASE 4: morfizza a "libertà"
-            let morphProgress = p.min((scrollAmount - phase3Start) / 400, 1);
-            displayText = morphToSingle(texts[1], texts[2], morphProgress);
+            // FASE 5: morfizza a "freedom" 
+            showCursor = false; // cursore spento
+            let morphProgress = p.min((scrollAmount - PHASE_ISOLATE_START) / 400, 1);
+            
+            // dissolvenza
+            let opacityLong = p.map(morphProgress, 0.0, 0.7, 255, 0);
+            let opacityShort = p.map(morphProgress, 0.3, 1.0, 0, 255);
+            
+            let baseSize = p.windowWidth > 768 ? BASE_FONT_SIZE : 40;
+            let currentBaseSize = p.constrain(baseSize * (p.width / 1200), 30, 80);
+            let finalWordSize = p.map(morphProgress, 0.5, 1.0, currentBaseSize, currentBaseSize * 1.8);
+
+            // disegno del testo lungo in dissolvenza
+            if (morphProgress < 0.7) {
+                p.fill(255, p.constrain(opacityLong, 0, 255));
+                p.textSize(currentBaseSize);
+                p.text(texts[1], x, y);
+            }
+            
+            // "freedom" in apparizione
+            if (morphProgress > 0.3) {
+                p.fill(255, p.constrain(opacityShort, 0, 255));
+                p.textSize(finalWordSize);
+                p.text(texts[2], x, y);
+            }
+            
+            return; 
         }
 
-        // OUTPUT DEL TESTO
+        // CURSORE -> acceso se in fase di scrittura 
+        if (showCursor && p.frameCount % 30 < 15) {
+            displayText += '|';
+        }
+
+        // OUTPUT DEL TESTO FINALE
         p.fill(255);
         p.textAlign(p.CENTER, p.CENTER);
+        // auto-ridimensionamento di base
+        let baseSize = p.windowWidth > 768 ? BASE_FONT_SIZE : 40;
+        currentFontSize = p.constrain(baseSize * (p.width / 1200), 30, 80);
         
-        // ridimensionamento del testo in base alla larghezza della finestra
-        let baseSize = p.windowWidth > 768 ? 64 : 40;
-        let textSizeToUse = p.constrain(baseSize * (p.windowWidth / 1200), 30, 80);
+        p.textSize(currentFontSize);
+        p.textFont('Arial, sans-serif');
         
-        p.textSize(textSizeToUse);
-        
-        // disegna il testo al centro del canvas
-        p.text(displayText, p.width / 2, p.height / 2);
+        p.text(displayText, x, y);
     };
 
     p.windowResized = function() {
@@ -69,67 +141,23 @@ function sketch(p) {
     };
 }
 
-// funzioni di trasformazione del testo
-
-function deleteText(text, progress) {
-    // text = "che cos'è la libertà per te?"
-    const stablePart = "che cos'è la libertà ";
-    const toDelete = "per te?";
-    
-    // numero di caratteri da rimuovere (da sinistra a destra della parte da cancellare)
-    let deleteCharsLeft = Math.floor(toDelete.length * progress);
-    
-    // mostra la parte stabile + quello che rimane della parte da cancellare
-    let result = stablePart + toDelete.substring(deleteCharsLeft);
-    return result;
-}
-
-function addNewText(text1, text2, progress) {
-    // text1 = testo base (cancellato)
-    // text2 = testo finale
-    const stablePart = "che cos'è la libertà ";
-    const toAdd = "per Freedom House?";
-    
-    // numero di caratteri da aggiungere
-    let addCharsShown = Math.floor(toAdd.length * progress);
-    
-    // mostra la parte stabile + i nuovi caratteri
-    let result = stablePart + toAdd.substring(0, addCharsShown);
-    return result;
-}
-
-function morphToSingle(fullText, singleWord, progress) {
-    // morfizza da testo lungo a "libertà"
-    if (progress < 0.5) {
-        // nella prima metà della transizione, scompare il testo
-        return fullText;
-    } else {
-        // nella seconda metà, appare solo la parola
-        return singleWord;
-    }
-}
-
-// inizializza l'istanza p5.js
 new p5(sketch);
 
-// gestione dell'interazione con lo scroll
-
-const MAX_SCROLL = 1600; // limite massimo dello scroll
-
+// GESTIONE DELL'INTERAZIONE CON LO SCROLL
 window.addEventListener('wheel', (e) => {
     e.preventDefault();
     targetScrollAmount += e.deltaY * 0.5;
     targetScrollAmount = Math.max(0, Math.min(targetScrollAmount, MAX_SCROLL));
 }, { passive: false });
 
-// supporto Touch
+// touch
 let touchStartY = 0;
 window.addEventListener('touchstart', (e) => {
     touchStartY = e.touches[0].clientY;
 });
 
 window.addEventListener('touchmove', (e) => {
-    e.preventDefault(); // previene lo scroll nativo su touch
+    e.preventDefault(); 
     const touchEndY = e.touches[0].clientY;
     const diff = touchStartY - touchEndY;
     targetScrollAmount += diff * 0.5;
