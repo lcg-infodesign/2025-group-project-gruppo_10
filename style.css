@@ -1,8 +1,49 @@
-html, body {
-  margin: 0;
-  padding: 0;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-canvas {
-  display: block;
+body {
+    /* sfondo e font di base */
+    background: #0a0e27;
+    color: #fff;
+    font-family: 'Neue Haas Grotesk Display Pro' 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    
+    /* rimuove lo scroll nativo, gestito da JS */
+    overflow: hidden; 
+    height: 100vh;
+    width: 100%;
+}
+
+/* contenitore della tela p5.js */
+#p5-canvas-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    /* centratura Flexbox per il canvas all'interno del contenitore */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* stile per il suggerimento di scroll */
+.scroll-hint {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.9rem;
+    opacity: 0.5;
+    animation: bounce 2s infinite;
+    z-index: 100;
+    pointer-events: none;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-10px); }
 }
