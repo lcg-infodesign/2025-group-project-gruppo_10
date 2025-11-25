@@ -30,6 +30,14 @@ function preload() {
   mioFontBold = loadFont("fonts/OpenSans-Bold.ttf");
 }
 
+//NORMALIZZARE I NOMI così legge tutto 
+function normalizeCountryName(name) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]/g, ""); // tiene solo lettere e numeri
+}
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
@@ -42,12 +50,9 @@ function setup() {
   colorRuleLaw = color(209, 191, 220);
   colorPersonalAutonomy = color(244, 201, 184);
 
-
   fill(textColor);
   textSize(14);
   textFont(mioFont);
-
-
 
   // prendi il paese dalla query string
   let urlParams = getURLParams();
@@ -60,29 +65,37 @@ function setup() {
     return;
   }
 
+// normalizzo il nome che arriva dall’URL
+let countryKey = normalizeCountryName(rawCountryName);
+countryName = rawCountryName; // lo tengo per scriverlo grande nel titolo
+
   // filtra tutti i dati per il paese selezionato
-    for (let i = 0; i < data.getRowCount(); i++) {
-    let countryCSV = data.getString(i, "Country/Territory").trim();
-    if (countryCSV.toLowerCase() === countryName.toLowerCase()) {
-      countryData.push({
-        year: data.getString(i, "Edition").trim(),
-        ElectoralProcess: parseFloat(data.getString(i, "Total A")) || 0,
-        PoliticalPluralism: parseFloat(data.getString(i, "Total B")) || 0,
-        FunctioningofGovernement: parseFloat(data.getString(i, "Total C")) || 0,
-        FreedomofExpression: parseFloat(data.getString(i, "Total D")) || 0,
-        AssociationRights: parseFloat(data.getString(i, "Total E")) || 0,
-        RuleofLaw: parseFloat(data.getString(i, "Total F")) || 0,
-        IndividualRights: parseFloat(data.getString(i, "Total G")) || 0,
-      });
-    }
-  countryData.reverse();
+for (let i = 0; i < data.getRowCount(); i++) {
+  let countryCSV = data.getString(i, "Country/Territory").trim();
+  let csvKey = normalizeCountryName(countryCSV);
+
+  if (csvKey === countryKey) {
+    countryData.push({
+      year: data.getString(i, "Edition").trim(),
+      ElectoralProcess: parseFloat(data.getString(i, "Total A")) || 0,
+      PoliticalPluralism: parseFloat(data.getString(i, "Total B")) || 0,
+      FunctioningofGovernement: parseFloat(data.getString(i, "Total C")) || 0,
+      FreedomofExpression: parseFloat(data.getString(i, "Total D")) || 0,
+      AssociationRights: parseFloat(data.getString(i, "Total E")) || 0,
+      RuleofLaw: parseFloat(data.getString(i, "Total F")) || 0,
+      IndividualRights: parseFloat(data.getString(i, "Total G")) || 0,
+    });
   }
+}
+
+// Ordina per anno crescente
+countryData.sort((a, b) => parseInt(a.year) - parseInt(b.year));
+
 }
 
 function draw() {
   background(24,23,20);
 
-  
   textSize(15)
   fill(textColor);
   if (!countryData || countryData.length === 0) {
@@ -92,14 +105,12 @@ function draw() {
     text("Nessun dato disponibile per questo paese", width / 2, height / 2);
     return;
   }
-
-  
+ 
   drawBarChart(countryData, params, padding, barWidth, spacing);
   drawLegendTitle();
   fill(textColor);
   textSize(goBackTextSize);
   textFont(mioFontBold);
-  text("< Go Back", goBackTextX, goBackTextY);
   drawGoBackButton();
 }
 
@@ -119,10 +130,7 @@ function drawBarChart(data, params, padding, barWidth, spacing) {
   colorRuleLaw,
   colorPersonalAutonomy
   ];
-
-
   
-
   // Tacche asse y
   for (let t = 0; t <= 100; t += 10) {
     let ty = map(t, 0, 100, 0, maxHeight);
@@ -228,7 +236,6 @@ function drawLegendTitle(){
   text(countryName, padding , padding);
 }
 
-
 function drawGoBackButton() {
   textFont(mioFontBold);
   textSize(goBackTextSize);
@@ -250,8 +257,6 @@ function drawGoBackButton() {
   };
 }
 
-
-
 function mousePressed() {
   // Controlla se il mouse è sopra il bottone
   if (
@@ -263,8 +268,3 @@ function mousePressed() {
     window.location.href = "index.html"; // torna alla pagina principale
   }
 }
-
-
-
-
-

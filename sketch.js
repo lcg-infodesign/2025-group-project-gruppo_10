@@ -13,21 +13,31 @@ function preload() {
   mioFontBold = loadFont("fonts/OpenSans-Bold.ttf");
 }
 
+//stessa cosa del dettaglio, metto una cosa per omologare
+function normalizeCountryName(name) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]/g, ""); // tiene solo lettere e numeri
+}
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
   textSize(14);
-
   textFont(mioFont)
 
   let seen = {}; // oggetto per evitare duplicati
 
   for (let i = 0; i < data.getRowCount(); i++) {
-    let edition = data.getString(i, "Edition").trim(); // togli spazi
+    let edition = data.getString(i, "Edition").trim();
     let country = data.getString(i, "Country/Territory").trim();
 
     if (edition === "2025" && !seen[country]) {
-      countries.push({ name: country });
-      seen[country] = true; // marca come già visto
+      countries.push({
+        name: country,                       // nome leggibile
+        slug: normalizeCountryName(country)  // chiave “pulita”
+      });
+      seen[country] = true;
     }
   }
 
@@ -47,15 +57,20 @@ function drawGrid() {
   let colCount = 0;
   let rowCount = 0;
 
+  function drawGrid() {
+  let cols = floor((width - 2 * outerPadding) / (itemSize + padding));
+  hoveredCountry = null;
+  let colCount = 0;
+  let rowCount = 0;
+
   for (let i = 0; i < countries.length; i++) {
     let xPos = outerPadding + colCount * (itemSize + padding);
     let yPos = topPadding + rowCount * (itemSize + padding);
 
-    
     if (mouseX > xPos && mouseX < xPos + itemSize &&
         mouseY > yPos && mouseY < yPos + itemSize) {
       fill(180);
-      hoveredCountry = { ...countries[i], xPos, yPos };
+      hoveredCountry = { ...countries[i], xPos, yPos }; // name + slug
     } else {
       fill(200);
     }
@@ -69,6 +84,7 @@ function drawGrid() {
       rowCount++;
     }
   }
+  }
 }
 
 function drawTooltip() {
@@ -80,8 +96,8 @@ function drawTooltip() {
 
 function mousePressed() {
   if (hoveredCountry) {
-    
-    window.location.href = "detail.html?country=" + encodeURIComponent(hoveredCountry.name);
+    window.location.href =
+      "detail.html?country=" + encodeURIComponent(hoveredCountry.slug);
   }
 }
 
