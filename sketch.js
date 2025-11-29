@@ -9,13 +9,12 @@ let mioFont;
 let mioFontBold;
 
 function preload() {
-  
   data = loadTable("assets/FH_dataset.csv", "csv", "header");
   mioFont = loadFont("fonts/OpenSans-Regular.ttf");
   mioFontBold = loadFont("fonts/OpenSans-Bold.ttf");
 }
 
-//stessa cosa del dettaglio, metto una cosa per omologare
+// stessa cosa del dettaglio, funzione per normalizzare i nomi
 function normalizeCountryName(name) {
   return name
     .toLowerCase()
@@ -26,26 +25,29 @@ function normalizeCountryName(name) {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   textSize(14);
-  textFont(mioFont)
+  textFont(mioFont);
 
-  let seen = {}; // oggetto per evitare duplicati
+  let seen = {}; // per evitare duplicati (usiamo lo slug come chiave)
 
   for (let i = 0; i < data.getRowCount(); i++) {
-    let edition = data.getString(i, "Edition").trim();
     let country = data.getString(i, "Country/Territory").trim();
+    let slug = normalizeCountryName(country);
 
-    if (edition === "2025" && !seen[country]) {
+    // 🔹 se vuoi filtrare solo un anno (es. 2025), decommenta queste righe:
+    // let edition = data.getString(i, "Edition").trim();
+    // if (edition !== "2025") continue;
+
+    if (!seen[slug]) {
       countries.push({
-        name: country,                       // nome leggibile
-        slug: normalizeCountryName(country)  // chiave “pulita”
+        name: country, // nome leggibile da mostrare nel tooltip
+        slug: slug     // slug normalizzato da passare nell'URL
       });
-      seen[country] = true;
+      seen[slug] = true;
     }
   }
 
-  console.log("Paesi 2025:", countries.length);
+  console.log("Paesi / territori trovati:", countries.length);
 }
-
 
 function draw() {
   background(220);
@@ -55,25 +57,29 @@ function draw() {
 
 function drawGrid() {
   let cols = floor((width - 2 * outerPadding) / (itemSize + padding));
+  if (cols < 1) cols = 1;
+
   hoveredCountry = null;
   let colCount = 0;
   let rowCount = 0;
 
-
+  noStroke();
 
   for (let i = 0; i < countries.length; i++) {
     let xPos = outerPadding + colCount * (itemSize + padding);
     let yPos = topPadding + rowCount * (itemSize + padding);
 
-    if (mouseX > xPos && mouseX < xPos + itemSize &&
-        mouseY > yPos && mouseY < yPos + itemSize) {
+    // hitbox per hover
+    if (
+      mouseX > xPos && mouseX < xPos + itemSize &&
+      mouseY > yPos && mouseY < yPos + itemSize
+    ) {
       fill(180);
-      hoveredCountry = { ...countries[i], xPos, yPos }; // name + slug
+      hoveredCountry = { ...countries[i], xPos, yPos }; // aggiungo xPos, yPos per il tooltip
     } else {
       fill(200);
     }
 
-    noStroke();
     rect(xPos, yPos, itemSize, itemSize);
 
     colCount++;
@@ -82,20 +88,30 @@ function drawGrid() {
       rowCount++;
     }
   }
-  }
-
+}
 
 function drawTooltip() {
   if (hoveredCountry) {
     fill(0);
-    text(hoveredCountry.name, hoveredCountry.xPos + 35, hoveredCountry.yPos + 15);
+    textFont(mioFont);
+    textSize(14);
+    text(
+      hoveredCountry.name,
+      hoveredCountry.xPos + 35,
+      hoveredCountry.yPos + 15
+    );
   }
 }
 
 function mousePressed() {
   if (hoveredCountry) {
+    // vai alla pagina di dettaglio con lo slug come parametro
     window.location.href =
-      "detail.html?country=" + encodeURIComponent(hoveredCountry.slug);
+      "dettagliopallini.html?country=" +
+      encodeURIComponent(hoveredCountry.slug);
   }
 }
-ugwdf2ui3h 
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
