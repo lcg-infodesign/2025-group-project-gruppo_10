@@ -38,6 +38,12 @@ let suggerimentoSelezionato = -1;
 // variabile per memorizzare il massimo numero di paesi per regione
 let maxPaesiPerRegione = {};
 
+// variabili per l'interazione con le torce
+let regioneHover = null;
+let areeTorce = []; // Array per memorizzare le aree cliccabili delle torce
+let opacitaRegioni = {}; // Oggetto per memorizzare l'opacità di ogni regione
+let velocitaTransizione = 0.1; // Velocità della transizione (0-1, più alto = più veloce)
+
 // colori per status con gradienti
 let coloriStatus = {
   'F': ["#c76351", "#d58d3e", "#26231d"], // Libero (Free)
@@ -128,49 +134,64 @@ function creaBarraRicerca() {
   let yPos = 30; 
   
   containerRicerca.position(xPos, yPos);
-  containerRicerca.style('position', 'absolute'); // Assicura che sia posizionato correttamente sul DOM
+  containerRicerca.style('position', 'absolute');
   containerRicerca.style('width', larghezzaBarra + 'px');
   containerRicerca.style('z-index', '1000');
+  
+  // Wrapper per input e icona
+  let inputWrapper = createDiv();
+  inputWrapper.parent(containerRicerca);
+  inputWrapper.style('position', 'relative');
+  inputWrapper.style('width', '100%');
+  
+  // Icona lente di ingrandimento (SVG)
+  let iconaLente = createDiv();
+  iconaLente.parent(inputWrapper);
+  iconaLente.html(`
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0f0f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"></circle>
+      <path d="m21 21-4.35-4.35"></path>
+    </svg>
+  `);
+  iconaLente.style('position', 'absolute');
+  iconaLente.style('left', '20px');
+  iconaLente.style('top', '50%');
+  iconaLente.style('transform', 'translateY(-50%)');
+  iconaLente.style('pointer-events', 'none');
+  iconaLente.style('z-index', '1');
+  iconaLente.style('display', 'flex');
+  iconaLente.style('align-items', 'center');
   
   // Input di ricerca
   inputRicerca = createInput('');
   inputRicerca.attribute('placeholder', 'LIBERTY ENLIGHTENING THE WORLD');
-  inputRicerca.parent(containerRicerca);
+  inputRicerca.parent(inputWrapper);
   inputRicerca.style('width', '100%');
-  inputRicerca.style('padding', '18px 20px');
-  inputRicerca.style('font-size', '15px');
+  inputRicerca.style('padding', '20px 20px 18px 50px'); // Aumentato padding a sinistra per l'icona
+  inputRicerca.style('font-size', '20px');
   inputRicerca.style('border', '1px solid #f0f0f0');
   inputRicerca.style('border-radius', '30px');
   inputRicerca.style('background-color', '#26231d');
   inputRicerca.style('color', '#f0f0f0');
   inputRicerca.style('outline', 'none');
   inputRicerca.style('box-sizing', 'border-box');
-  
-  // --- AGGIUNGI QUI LO STILE FONT PER LA BARRA DI RICERCA ---
-  // Usiamo il nome del file del font Regular come font-family
   inputRicerca.style('font-family', 'NeueHaasGrotDisp-55Roman, sans-serif'); 
-  // O, se vuoi il Bold (ma sconsigliato per l'input):
-  // inputRicerca.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
-  // --- FINE STILE FONT ---
   
   // Div per i suggerimenti
   suggerimentiDiv = createDiv();
   suggerimentiDiv.parent(containerRicerca);
   suggerimentiDiv.style('position', 'absolute');
-  suggerimentiDiv.style('top', '50px');
+  suggerimentiDiv.style('top', '60px');
   suggerimentiDiv.style('width', '100%');
   suggerimentiDiv.style('max-height', '300px');
   suggerimentiDiv.style('overflow-y', 'auto');
   suggerimentiDiv.style('background-color', '#26231d');
   suggerimentiDiv.style('border', '1px solid #f0f0f0');
-  suggerimentiDiv.style('border-radius', '15px');
+  suggerimentiDiv.style('border-radius', '30px');
   suggerimentiDiv.style('display', 'none');
   suggerimentiDiv.style('z-index', '1001');
   suggerimentiDiv.style('box-sizing', 'border-box');
-  
-  // --- AGGIUNGI QUI LO STILE FONT PER I SUGGERIMENTI ---
   suggerimentiDiv.style('font-family', 'NeueHaasGrotDisp-55Roman, sans-serif');
-  // --- FINE STILE FONT ---
   
   // Eventi per l'input
   inputRicerca.input(mostraSuggerimenti);
@@ -246,14 +267,15 @@ function mostraSuggerimenti() {
   paesiFiltrati.slice(0, 8).forEach((paese, index) => {
     let suggDiv = createDiv(paese);
     suggDiv.parent(suggerimentiDiv);
-    suggDiv.style('padding', '12px 20px');
+    suggDiv.style('padding', '15px 20px 12px 20px');
     suggDiv.style('cursor', 'pointer');
     suggDiv.style('color', '#f0f0f0');
-    suggDiv.style('font-size', '15px');
+    suggDiv.style('font-size', '18px');
     suggDiv.style('border-bottom', '1px solid #444');
     suggerimentiDiv.style('border-radius', '30px');
-    suggerimentiDiv.style('top', '60px'); 
+    suggerimentiDiv.style('top', '70px'); 
     suggDiv.attribute('data-index', index);
+    suggDiv.style('font-family', 'NeueHaasGrotDisp-55Roman, sans-serif'); 
     
     // Hover effect
     suggDiv.mouseOver(() => {
@@ -293,6 +315,14 @@ function vaiAPaginaPaese(paese) {
   let paeseEncoded = encodeURIComponent(paese);
   // Reindirizza alla pagina del paese, assumendo esista un file 'paese.html'
   window.location.href = `paese.html?country=${paeseEncoded}`; 
+}
+
+// funzione per navigare alla pagina della regione
+function vaiAPaginaRegione(regione) {
+  // Codifica il nome della regione per l'URL
+  let regioneEncoded = encodeURIComponent(regione);
+  // Reindirizza alla pagina della regione passando anche l'anno corrente
+  window.location.href = `regioni.html?region=${regioneEncoded}&year=${annoCorrente}`; 
 }
 
 // calcola il massimo numero di paesi per ogni regione attraverso tutti gli anni e status
@@ -349,7 +379,7 @@ function creaBottone(testo, x, y, colori, tipo) {
   // AUMENTA IL PADDING PER INCLUDERE LO SPESSORE DEL BORDO SFUMATO
   // Il padding esterno deve essere aumentato del valore del bordo (es. 2px). 
   // Da '2px 30px' a '4px 32px' per mantenere lo spazio originale.
-  bottone.style('padding', '4px 32px'); 
+  bottone.style('padding', '4px 32px 2px 32px'); 
   bottone.style('font-size', '16px');
   bottone.style('font-weight', 'bold');
   
@@ -400,8 +430,8 @@ function creaBottone(testo, x, y, colori, tipo) {
 
 // funzione per creare i bottoni filtro
 function creaBottoniFiltro() {
-  let yPos = 41.25; // Posizione Y fissa in alto
-  let spaziatura = 10; // Spazio fisso tra i bottoni
+  let yPos = 47; // Posizione Y fissa in alto
+  let spaziatura = 15; // Spazio fisso tra i bottoni
   
   // --- FASE 1: Creazione e Misurazione (Posizione temporanea) ---
   // Creiamo i bottoni a una posizione temporanea (es. 0) per poter misurare la loro larghezza effettiva
@@ -420,7 +450,7 @@ function creaBottoniFiltro() {
   // --- FASE 3: Calcolo della Posizione Iniziale (Centraggio) ---
   // Calcola il nuovo punto di partenza (xInizio) per centrare il blocco 
   // nell'area del grafico (graficoWidth)
-  let xInizio = graficoWidth - larghezzaTotaleBlocco - 80;
+  let xInizio = graficoWidth - larghezzaTotaleBlocco - 75;
   
   // --- FASE 4: Assegnazione della Posizione Finale (Ridisposizione) ---
   // Bottone FREE (Inizia dal punto centrato)
@@ -547,6 +577,7 @@ function disegnaBarraSingola(xBarra, riga, larghezzaBarra) {
   let gradient = creaGradiente(xBarra, yCimaBarra, yBarra, larghezzaBarra, coloriStatus[status]);
   drawingContext.fillStyle = gradient;
   rect(xBarra, yBarra, larghezzaBarra, -altezzaBarra - incremento);
+  arc(xBarra + larghezzaBarra / 2, yCimaBarra, larghezzaBarra, larghezzaBarra, PI, TWO_PI);
   
   // Disegna il cerchio in cima
   push();
@@ -555,6 +586,7 @@ function disegnaBarraSingola(xBarra, riga, larghezzaBarra) {
   pop();
 }
 
+// costruzione delle barre raggruppate per regione con livelli sovrapposti
 // costruzione delle barre raggruppate per regione con livelli sovrapposti
 function disegnaBarre() { 
   noStroke();
@@ -576,7 +608,7 @@ function disegnaBarre() {
   // Calcola larghezze dinamiche
   let margineIniziale = 80;
   let margineFinale = margineIniziale;
-  let spazioDisponibile = graficoWidth - margineIniziale - margineFinale; // usa graficoWidth invece di width
+  let spazioDisponibile = graficoWidth - margineIniziale - margineFinale;
 
   // MODIFICATO: Calcola il totale di barre basato sui MASSIMI per regione
   let totaleBarre = 0;
@@ -586,10 +618,10 @@ function disegnaBarre() {
   
   // Calcola la larghezza ottimale per barre e spazi
   let numeroGruppi = regioni.length;
-  let spazioTraGruppi = min(50, spazioDisponibile * 0.1); // Massimo 100px o 10% dello spazio
+  let spazioTraGruppi = min(50, spazioDisponibile * 0.1);
   let spazioTotaleGruppi = spazioTraGruppi * (numeroGruppi - 1);
   let spazioPerBarre = spazioDisponibile - spazioTotaleGruppi;
-  let larghezzaBarra = max(2, min(15, spazioPerBarre / totaleBarre)); // Tra 2 e 15 pixel
+  let larghezzaBarra = max(2, min(15, spazioPerBarre / totaleBarre));
   
   // Array per salvare le posizioni delle etichette e delle torce
   let etchetteRegioni = [];
@@ -613,6 +645,12 @@ function disegnaBarre() {
   if (filtroF) {
     xCorrente = margineIniziale;
     for (let regione of regioni) {
+      // Determina l'opacità per questa regione
+      push();
+      if (regioneHover !== null && regioneHover !== regione) {
+        drawingContext.globalAlpha = 0.3; // Trasparenza per regioni non in hover
+      }
+      
       let paesiInRegione = datiPerRegione[regione];
       let numPaesiF = paesiInRegione.filter(r => r.getString('Status') === 'F').length;
       let larghezzaTotaleF = numPaesiF * larghezzaBarra;
@@ -631,6 +669,8 @@ function disegnaBarre() {
         }
       }
       
+      pop();
+      
       // MODIFICATO: Avanza usando il massimo per regione
       xCorrente += maxPaesiPerRegione[regione] * larghezzaBarra + spazioTraGruppi;
     }
@@ -640,6 +680,12 @@ function disegnaBarre() {
   if (filtroPF) {
     xCorrente = margineIniziale;
     for (let regione of regioni) {
+      // Determina l'opacità per questa regione
+      push();
+      if (regioneHover !== null && regioneHover !== regione) {
+        drawingContext.globalAlpha = 0.3; // Trasparenza per regioni non in hover
+      }
+      
       let paesiInRegione = datiPerRegione[regione];
       let numPaesiPF = paesiInRegione.filter(r => r.getString('Status') === 'PF').length;
       let larghezzaTotalePF = numPaesiPF * larghezzaBarra;
@@ -658,6 +704,8 @@ function disegnaBarre() {
         }
       }
       
+      pop();
+      
       xCorrente += maxPaesiPerRegione[regione] * larghezzaBarra + spazioTraGruppi;
     }
   }
@@ -666,6 +714,12 @@ function disegnaBarre() {
   if (filtroNF) {
     xCorrente = margineIniziale;
     for (let regione of regioni) {
+      // Determina l'opacità per questa regione
+      push();
+      if (regioneHover !== null && regioneHover !== regione) {
+        drawingContext.globalAlpha = 0.3; // Trasparenza per regioni non in hover
+      }
+      
       let paesiInRegione = datiPerRegione[regione];
       let numPaesiNF = paesiInRegione.filter(r => r.getString('Status') === 'NF').length;
       let larghezzaTotaleNF = numPaesiNF * larghezzaBarra;
@@ -684,9 +738,14 @@ function disegnaBarre() {
         }
       }
       
+      pop();
+      
       xCorrente += maxPaesiPerRegione[regione] * larghezzaBarra + spazioTraGruppi;
     }
   }
+  
+  // Resetta l'array delle aree torce
+  areeTorce = [];
   
   // Disegna le torce sotto ogni regione, centrate con larghezza fissa basata sul massimo
   push();
@@ -703,42 +762,53 @@ function disegnaBarre() {
     let yIniziaTorcia = yBarra;
     let altezzaTorcia = height - yIniziaTorcia;
     
+    // Determina l'opacità in base all'hover
+    let opacita = 255;
+    if (regioneHover !== null && regioneHover !== regione) {
+      opacita = 80; // Trasparenza per le torce non in hover
+    }
+    
+    // Applica l'opacità
+    tint(255, opacita);
+    
     // Disegna l'immagine della torcia centrata con larghezza massima assoluta
     image(torcia, centroRegione, yIniziaTorcia + altezzaTorcia/2, larghezzaMassima*1.1, altezzaTorcia);
+    
+    // Salva l'area cliccabile della torcia
+    areeTorce.push({
+      regione: regione,
+      x: centroRegione - (larghezzaMassima*1.1)/2,
+      y: yIniziaTorcia,
+      w: larghezzaMassima*1.1,
+      h: altezzaTorcia
+    });
   }
+  noTint(); // Rimuovi il tint per gli elementi successivi
   pop();
   
   // Disegna le etichette delle regioni alla fine (sopra tutti i livelli e sopra le torce)
-push();
-fill("#26231d"); // Sfondo scuro del canvas
-noStroke();
-textAlign(CENTER, CENTER);
-// NOTA: Ho modificato fontBold in fontRegular in base alla tua preload, 
-// ma se avevi un font 'Medium' specifico, sostituiscilo
-textFont(fontMedium); 
-textSize(20); // Riduci la dimensione per adattarla meglio
-const altezzaEtichetta = 50; // Altezza massima della casella di testo
-const yEtichetta = yBarra + 52; // Posizione Y del centro della casella
+  push();
+  fill("#26231d");
+  noStroke();
+  textAlign(CENTER, CENTER);
+  textFont(fontMedium); 
+  textSize(20);
+  const altezzaEtichetta = 50;
+  const yEtichetta = yBarra + 52;
 
-for (let etichetta of etchetteRegioni) {
-    
-    // 1. Calcola la larghezza della casella di testo basata sulla larghezza del gruppo
-    // Usiamo la larghezza calcolata precedentemente per il gruppo di barre.
-    const larghezzaCasella = etichetta.larghezza * 1.2; // 1.2 per un po' di margine
-    
-    // 2. Calcola la posizione X di inizio della casella per centrarla
+  for (let etichetta of etchetteRegioni) {
+    const larghezzaCasella = etichetta.larghezza * 1.2;
     const xInizioCasella = etichetta.x - (larghezzaCasella / 2);
 
-    // 3. Usa la funzione text() con quattro argomenti (x, y, larghezza, altezza)
     text(
         etichetta.regione, 
         xInizioCasella, 
-        yEtichetta - (altezzaEtichetta / 2), // Regola Y per l'inizio del testo
+        yEtichetta - (altezzaEtichetta / 2),
         larghezzaCasella, 
         altezzaEtichetta
     );
-}
-pop();
+  }
+  pop();
 }
 
 function disegnaEtichettaAnno() {
@@ -766,4 +836,64 @@ function disegnaEtichettaAnno() {
   text(annoCorrente, 0, -30); 
 
   pop(); // Ripristina il sistema di coordinate pre-esistente
+}
+
+// Funzione per gestire il movimento del mouse
+function mouseMoved() {
+  // Controlla se il mouse è sopra una torcia
+  let nuovaRegioneHover = null;
+  
+  for (let area of areeTorce) {
+    if (mouseX >= area.x && mouseX <= area.x + area.w &&
+        mouseY >= area.y && mouseY <= area.y + area.h) {
+      nuovaRegioneHover = area.regione;
+      cursor(HAND);
+      break;
+    }
+  }
+  
+  // Aggiorna regioneHover solo se è cambiata
+  if (nuovaRegioneHover !== regioneHover) {
+    regioneHover = nuovaRegioneHover;
+  }
+  
+  // Se non c'è hover, ripristina il cursore
+  if (regioneHover === null) {
+    cursor(ARROW);
+  }
+}
+
+// Funzione per aggiornare gradualmente le opacità
+function aggiornaOpacita(regioni) {
+  for (let regione of regioni) {
+    // Inizializza l'opacità se non esiste
+    if (opacitaRegioni[regione] === undefined) {
+      opacitaRegioni[regione] = 1.0;
+    }
+    
+    // Determina l'opacità target
+    let targetOpacita;
+    if (regioneHover === null) {
+      targetOpacita = 1.0; // Nessun hover: tutte visibili
+    } else if (regioneHover === regione) {
+      targetOpacita = 1.0; // Regione in hover: completamente visibile
+    } else {
+      targetOpacita = 0.3; // Altre regioni: trasparenti
+    }
+    
+    // Interpola gradualmente verso il target
+    opacitaRegioni[regione] = lerp(opacitaRegioni[regione], targetOpacita, velocitaTransizione);
+  }
+}
+
+// Funzione per gestire il click del mouse
+function mousePressed() {
+  // Controlla se è stato cliccato su una torcia
+  for (let area of areeTorce) {
+    if (mouseX >= area.x && mouseX <= area.x + area.w &&
+        mouseY >= area.y && mouseY <= area.y + area.h) {
+      vaiAPaginaRegione(area.regione);
+      break;
+    }
+  }
 }
