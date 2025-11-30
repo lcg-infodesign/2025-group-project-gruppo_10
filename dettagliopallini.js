@@ -46,6 +46,9 @@ let palliniInfo = [];
 let animT = 0;
 const diametroPallino = 44;
 
+//VARIABILE HOVER PER CATEGORIA 
+let hoveredCatIndex = null; 
+
 // CARICO LE COSE 
 function preload() {
   data = loadTable("assets/FH_dataset.csv", "csv", "header");
@@ -95,34 +98,48 @@ function drawPalliniGrigi(){
 
     let indicePallino = 0; //parto dal basso a sinistra 
 
+    let hovering = (hoveredCatIndex !== null); //capisco se c'è una categoria in hover 
+
     //ciclo che genera i pallini 
     for (let r=0; r<righeQuadrato; r++) { //indice di riga
       for(let c=0; c<colonne; c++) { //indice di colonna
         let x = startX + c*(diametro+spazio);
         let y = startY + (righeQuadrato - 1 - r) * (diametro + spazio);
 
-        let catIndex = categoriaPerIndice(indicePallino);
+      let catIndex = categoriaPerIndice(indicePallino);
+      let rCerchio = diametroPallino;  // niente hover di grandezza
 
-        if (catIndex === null) { // nessuna categoria: pallino grigio
-        fill(60);
-      } else { // pallino colorato con il colore della categoria
-        fill(coloriCategorie[catIndex]);
-      }
+  if (catIndex === null) { // nessuna categoria: pallino grigio
+  fill(60);
+} else {
+  // pallini colorati: se una categoria è in hover
+  let baseCol = coloriCategorie[catIndex];
+  let cCol = color(baseCol);
 
-        circle(x,y,diametro);
+  if (hovering && catIndex !== hoveredCatIndex) {
+    // altri pallini di altre categorie: "spenti"
+    cCol.setAlpha(90);
+  } else {
+    // categoria sotto il mouse, oppure nessun hover
+    cCol.setAlpha(255);
+  }
+  fill(cCol);
+}
 
-        palliniInfo.push({ //salvo tutte le info legate al pallino
+noStroke();
+circle(x, y, rCerchio); 
+
+      palliniInfo.push({ //salvo tutte le info legate al pallino
         index: indicePallino,
         x: x,
         y: y,
         catIndex: catIndex,
         type: "pos" //pos per i positivi, neg negativi 
-    });
+      });
 
-
-        indicePallino++; // passo al pallino successivo
+      indicePallino++; // passo al pallino successivo
     }
-}
+  } 
 
 //inserisco la LINEA BIANCA di separazione 
 let lineY = startY + grigliaAltezza -15;
@@ -146,7 +163,8 @@ noStroke();
 
 for (let c = 0; c < colonne; c++) { //uso solo c
   let x = startX + c * (diametro + spazio);
-  circle(x, yExtra, diametro);
+  
+  circle(x, yExtra, diametroPallino);
 
   //faccio la stessa cosa di prima, associo pallino a degli elementi fissi per riconoscerlo 
   //gli associo le sue caratteristiche 
@@ -161,11 +179,28 @@ indicePallino++;
   }
 };
 
+//FUNZIONE HOVER PER CATEGORIA (mi aiuta per quella sotto)
+function updateHoverCategory() {
+  hoveredCatIndex = null; //nessuna categoria in hover
+
+  for (let p of palliniInfo) {
+    // considero solo i pallini positivi e con categoria (no grigi, no negativi)
+    if (p.type === "pos" && p.catIndex !== null) {
+      let d = dist(mouseX, mouseY, p.x, p.y);
+      if (d < diametroPallino / 2) {
+        hoveredCatIndex = p.catIndex; // salvo la categoria
+        break; // mi basta il primo
+      }
+    }
+  }
+}
+
+
 //DISEGNO LA LEGENDA 
 function drawLegenda() {
   let x0 = 575;   // posizione X della legenda
   let y0 = 270;   // posizione Y della legenda
-  let passo = 30; // distanza verticale tra le righe
+  let passo = 20; // distanza verticale tra le righe
   let dimCerchio = 16;
 
   let valA = int(totaliCategorie[0]);
@@ -178,15 +213,15 @@ function drawLegenda() {
 
   fill(textColor);
   textFont(mioFontBold);
-  textSize(22);
+  textSize(20);
   text("Political Rights", x0, y0);
 
   // 1) Electoral Process
   fill(coloriLegenda.electoralProcess);
-  circle(x0+8, y0 + 38, dimCerchio);
+  circle(x0+8, y0 + 28, dimCerchio);
   fill(textColor);
   textFont(mioFont);
-  textSize(18);
+  textSize(14);
   text("Electoral Process", x0 + 70, y0 + passo + 6);
   textFont(mioFontBold);
   textSize(12);
@@ -195,10 +230,10 @@ function drawLegenda() {
 
   // 2) Political pluralism
   fill(coloriLegenda.politicalPluralism);
-  circle(x0+8, y0 + 68, dimCerchio);
+  circle(x0+8, y0 + 48, dimCerchio);
   fill(textColor);
   textFont(mioFont);
-  textSize(18);
+  textSize(14);
   text("Political pluralism and participation", x0 + 70, y0 + passo*2 + 6);
   textFont(mioFontBold);
   textSize(12);
@@ -206,10 +241,10 @@ function drawLegenda() {
 
   // 3) Functioning of government
   fill(coloriLegenda.functioningGovernment);
-  circle(x0+8, y0 + 98, dimCerchio);
+  circle(x0+8, y0 + 68, dimCerchio);
   fill(textColor);
   textFont(mioFont);
-  textSize(18);
+  textSize(14);
   text("Functioning of government", x0 + 70, y0 + passo*3 + 6);
   textFont(mioFontBold);
   textSize(12);
@@ -224,9 +259,9 @@ function drawLegenda() {
   let valQneg = -valQ;
 
   stroke(coloriLegenda.addQ);
-  strokeWeight(3);
+  strokeWeight(2);
   noFill();
-  circle(x0+8, y0 + 128, dimCerchio);
+  circle(x0+8, y0 + 88, dimCerchio);
 
   noStroke();
   fill(textColor);
@@ -238,80 +273,80 @@ function drawLegenda() {
  noStroke();
   fill("#C51A1A");
   textFont(mioFont);
-  textSize(18);
-  text("Add Q: sottrae punti agli altri parametri", x0 + 70, y0 + passo*4 + 6);
+  textSize(14);
+  text("Additional Question: sottrae punti agli altri parametri", x0 + 70, y0 + passo*4 + 6);
 
 //AddA
   fill(coloriLegenda.addA);
   noStroke();
-  circle(x0+8, y0 + 158, dimCerchio);
+  circle(x0+8, y0 + 108, dimCerchio);
 
   fill(textColor);
   textFont(mioFont);
-  textSize(18);
-  text("Add A", x0 + 70, y0 + passo*5 + 6);
+  textSize(14);
+  fill("#1f863fff");
+  text("Additional Answer: aggiunge punti oltre i 100", x0 + 70, y0 + passo*5 + 6);
   let maxA = 4;
   let valAc = int(addAVal);
   fill(textColor);
   textFont(mioFontBold);
-  textSize(14);
+  textSize(12);
+  fill("#1f863fff");
   text(valAc + "/" + maxA, x0 + passo, y0 + passo*5 + 6);
 
 
   //SPAZIO//
-  let yLib = y0 + passo*6;
+  let yLib = y0 + passo*6 +20;
 
   textFont(mioFontBold);
   fill(textColor);
-  textSize(22);
+  textSize(20);
   text("Civil Liberties", x0, yLib+10);
 
   // 5) Freedom Expression
   fill(coloriLegenda.freedomExpression);
-  circle(x0+8, yLib + 48, dimCerchio);
+  circle(x0+8, yLib + 38, dimCerchio);
   fill(textColor);
   textFont(mioFont);
-  textSize(18);
-  textFont(mioFont);
-  textSize(18);
+  textSize(14);
   text("Freedom of expression and belief", x0 + 70, yLib + passo + 16);
   textFont(mioFontBold);
   textSize(12);
-  text(valD + "/" + maxCategorie[4], x0 + 30, yLib + passo + 16);
+  text(valD + "/" + maxCategorie[4], x0 + passo, yLib + passo + 16);
 
   // 6) Associational rights
   fill(coloriLegenda.associationalRights);
-  circle(x0+8, yLib + 78, dimCerchio);
+  circle(x0+8, yLib + 58, dimCerchio);
   fill(textColor);
   textFont(mioFont);
-  textSize(18);
+  textSize(14);
   text("Associational and organizational right", x0 + 70, yLib + passo*2 + 16);
   textFont(mioFontBold);
   textSize(12);
-  text(valE + "/" + maxCategorie[5], x0 + 30, yLib + passo*2 + 16);
+  text(valE + "/" + maxCategorie[5], x0 + passo, yLib + passo*2 + 16);
 
   // 7) Rule of Law
   fill(coloriLegenda.ruleOfLaw);
-  circle(x0+8, yLib + 108, dimCerchio);
+  circle(x0+8, yLib + 78, dimCerchio);
   fill(textColor);
   textFont(mioFont);
-  textSize(18);
+  textSize(14);
   text("Rule of Law", x0 + 70, yLib + passo*3 + 16);
   textFont(mioFontBold);
   textSize(12);
-  text(valF + "/" + maxCategorie[6], x0 + 30, yLib + passo*3 + 16);
+  text(valF + "/" + maxCategorie[6], x0 + passo, yLib + passo*3 + 16);
 
 
   // 8) Personal Autonomy
   fill(coloriLegenda.personalAutonomy);
-  circle(x0+8, yLib + 138, dimCerchio);
+  circle(x0+8, yLib + 98, dimCerchio);
   fill(textColor);
   textFont(mioFont);
-  textSize(18);
+  textSize(14);
   text("Personal autonomy and individual rights", x0 + 70, yLib + passo*4 + 16);
   textFont(mioFontBold);
   textSize(12);
-  text(valG + "/" + maxCategorie[7], x0 + 30, yLib + passo*4 + 16);
+  text(valG + "/" + maxCategorie[7], x0 + passo, yLib + passo*4 + 16);
 
 
 }
@@ -328,7 +363,7 @@ function drawAddQOverlay() {
   let alphaInner = map(cos(animT), -1, 1, 0, 255);
   //variabile globale che incremento ad ogni frame nel draw 
   //cos oscilla sempre tra -1 e 1
-  //oscillazione che viene mappata in un opacità (60 molto trasparente, 230 poco opaco)
+  //oscillazione che viene mappata in un opacità 
 
   let colpiti = 0; //quanti pallini fanno questa cosa?
 
@@ -366,9 +401,11 @@ function drawAddQOverlay() {
   //se ho già cerchiato il numero di pallini giusto, ok 
   //se no procedo a fare anche quetso pallino 
 
+   let rCerchio = diametroPallino;
+    
     noStroke();
     fill(0);                      // stesso colore del background
-    circle(p.x, p.y, diametroPallino);
+    circle(p.x, p.y, rCerchio);
 
 
     //INTERNO di un pallino con bordo rosso 
@@ -377,10 +414,11 @@ function drawAddQOverlay() {
     let baseCol = coloriCategorie[p.catIndex];
     let c = color(baseCol);
     c.setAlpha(alphaInner);
+
     
     noStroke();
     fill(c);
-    circle(p.x, p.y, diametroPallino);
+    circle(p.x, p.y, rCerchio);
 
     //pallino negativo sotto la linea 
   } else if (p.type === "neg") {
@@ -388,14 +426,14 @@ function drawAddQOverlay() {
     let c = color(60, 60, 60, alphaInner);
     noStroke();
     fill(c);
-    circle(p.x, p.y, diametroPallino);
+    circle(p.x, p.y, rCerchio);
   }
 
   //BORDO ROSSO FISSO
   noFill(); //vuoto
   stroke(197, 26, 26);   // rosso pieno
   strokeWeight(5);
-  circle(p.x, p.y, diametroPallino );  // anello più grande
+  circle(p.x, p.y, rCerchio );  // anello più grande
 
 
   colpiti++;
@@ -614,7 +652,7 @@ function draw() {
   // NOME DELLO STATO 
   textSize(50);
   textAlign(LEFT, TOP);
-  text(countryName, 60,30);
+  text(countryName, 60,40);
 
   //TOTAL 
   textSize(72);
@@ -634,6 +672,7 @@ function draw() {
   textFont(mioFont);
   text(punteggioTotale,1020, 95);
 
+  updateHoverCategory(); //capisco dove sta il mouse 
 
  drawPalliniGrigi();
 
