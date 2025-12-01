@@ -44,6 +44,10 @@ let areeTorce = []; // Array per memorizzare le aree cliccabili delle torce
 let opacitaRegioni = {}; // Oggetto per memorizzare l'opacità di ogni regione
 let velocitaTransizione = 0.1; // Velocità della transizione (0-1, più alto = più veloce)
 
+// variabili per i nuovi bottoni in alto a destra
+let bottoneUS;
+let bottoneFH;
+
 // colori per status con gradienti
 let coloriStatus = {
   'F': ["#c76351", "#d58d3e", "#26231d"], // Libero (Free)
@@ -69,7 +73,7 @@ function setup() {
   
   // variabili per disegnare le barre
   altezzaMassimaBarra = windowHeight * 0.5; 
-  yBarra = windowHeight - windowHeight * 0.25; 
+  yBarra = windowHeight * 0.75; 
   
   // calcola il massimo numero di paesi per ogni regione
   calcolaMaxPaesiPerRegione();
@@ -114,6 +118,9 @@ function setup() {
 
   // crea i bottoni filtro per gli status
   creaBottoniFiltro();
+
+  // CHIAMA LA NUOVA FUNZIONE PER CREARE I BOTTONI DI NAVIGAZIONE
+  creaBottoniNavigazione();
 }
 
 // funzione per estrarre tutti i paesi unici dal dataset
@@ -772,7 +779,7 @@ function disegnaBarre() {
     tint(255, opacita);
     
     // Disegna l'immagine della torcia centrata con larghezza massima assoluta
-    image(torcia, centroRegione, yIniziaTorcia + altezzaTorcia/2, larghezzaMassima*1.1, altezzaTorcia);
+    image(torcia, centroRegione, yIniziaTorcia + altezzaTorcia/2, larghezzaMassima*1.15, altezzaTorcia);
     
     // Salva l'area cliccabile della torcia
     areeTorce.push({
@@ -896,4 +903,74 @@ function mousePressed() {
       break;
     }
   }
+}
+
+// funzione per creare i bottoni di navigazione in alto a destra
+function creaBottoniNavigazione() {
+  
+  // Calcola il diametro del cerchio in base all'altezza della barra di ricerca
+  // L'altezza della barra è data dal padding verticale (20px + 18px) + font-size (20px) + border (2px)
+  // Utilizziamo 60px come riferimento di altezza/diametro (circa 20+20+18+2)
+  const diametroBottone = 60;
+  const raggio = diametroBottone / 2;
+  
+  // Posizionamento
+  // L'area del grafico è graficoWidth, l'area dell'anno è annoWidth
+  // Vogliamo posizionarli all'interno dell'area annoWidth o al confine con essa.
+  // Usiamo graficoWidth come riferimento iniziale per l'area di destra.
+  const margineDestro = 50; 
+  const yPos = 30; // Stessa altezza verticale della barra di ricerca
+  const spaziaturaTraBottoni = 20;
+
+  // Calcolo della posizione X del secondo bottone (FH)
+  let xFH = width - diametroBottone - 25;
+  
+  // Calcolo della posizione X del primo bottone (US)
+  let xUS = xFH - diametroBottone - spaziaturaTraBottoni; 
+  
+  // --- Bottone Freedom House (FH) ---
+  bottoneFH = createButton('FH');
+  bottoneFH.position(xFH, yPos);
+  
+  // Stile del bottone
+  bottoneFH.style('width', diametroBottone + 'px');
+  bottoneFH.style('height', diametroBottone + 'px');
+  bottoneFH.style('border-radius', '50%'); // Rende il bottone circolare
+  bottoneFH.style('background-color', '#26231d'); 
+  bottoneFH.style('color', '#f0f0f0');
+  bottoneFH.style('border', '1px solid #f0f0f0');
+  bottoneFH.style('text-align', 'center');
+  bottoneFH.style('line-height', diametroBottone + 'px'); // Centra il testo verticalmente
+  bottoneFH.style('font-size', '18px');
+  bottoneFH.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
+  bottoneFH.style('cursor', 'pointer');
+  bottoneFH.style('z-index', '1000');
+  
+  // Link
+  bottoneFH.mousePressed(() => {
+    window.location.href = 'freedomhouse.html';
+  });
+  
+  // --- Bottone USA (US) ---
+  bottoneUS = createButton('US');
+  bottoneUS.position(xUS, yPos);
+  
+  // Stile del bottone (uguale al precedente)
+  bottoneUS.style('width', diametroBottone + 'px');
+  bottoneUS.style('height', diametroBottone + 'px');
+  bottoneUS.style('border-radius', '50%'); 
+  bottoneUS.style('background-color', '#26231d'); 
+  bottoneUS.style('color', '#f0f0f0');
+  bottoneUS.style('border', '1px solid #f0f0f0');
+  bottoneUS.style('text-align', 'center');
+  bottoneUS.style('line-height', diametroBottone + 'px'); 
+  bottoneUS.style('font-size', '18px');
+  bottoneUS.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
+  bottoneUS.style('cursor', 'pointer');
+  bottoneUS.style('z-index', '1000');
+
+  // Link
+  bottoneUS.mousePressed(() => {
+    window.location.href = 'us.html';
+  });
 }
