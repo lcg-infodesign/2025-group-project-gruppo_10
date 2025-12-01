@@ -22,6 +22,19 @@ let punteggioTotale = 0;
 let totaliCategorie = [0,0,0,0,0,0,0,0];
 let maxCategorie = [12, 16, 12, 4, 16, 12, 16, 16];
 
+let questionColumns = [ //per ogni categoria mi associa le colonne del mio dataset che contengono i valori delle domande 
+  ["Question A1", "Question A2", "Question A3"], // 0:A
+  ["Question B1", "Question B2", "Question B3", "Question B4"], // 1:B
+  ["Question C1", "Question C2", "Question C3"],  // 2:C
+  null,   //Add A che non ha nessuna colonna associata 
+  ["Question D1", "Question D2", "Question D3", "Question D4"], // 4:D
+  ["Question E1", "Question E2", "Question E3"], // 5:E
+  ["Question F1", "Question F2", "Question F3", "Question F4"], // 6:F
+  ["Question G1", "Question G2", "Question G3", "Question G4"]  // 7:G
+];
+
+let questionScores = []; //contiene il punteggio da 0 a 4 di ciascuna Domanda 
+
 //leganda colori 
 let coloriLegenda = {
   electoralProcess: "#D9D97A",
@@ -48,6 +61,74 @@ const diametroPallino = 44;
 
 //VARIABILE HOVER PER CATEGORIA 
 let hoveredCatIndex = null; 
+//VARIABILE CATEGORIA CLICCATA 
+let selectedCatIndex = null;
+
+//VARIABILI TITOLO (7 parametri)
+let panelTitles = [
+  "Electoral process",
+  "Political pluralism and participation",
+  "Functioning of government",
+  "Additional Answer",
+  "Freedom of expression and belief",
+  "Associational and organizational rights",
+  "Rule of Law",
+  "Personal autonomy and individual rights"
+];
+
+//per  ogni categoria del mio array creo un array con le domande 
+let panelQuestions = [
+  [ //Electoral process
+    "Was the current head of government or other chief national\nauthority elected through free and fair elections? ",
+    "Were the current national legislative representatives elected\nthrough free and fair elections?",
+    "Are the electoral laws and framework fair, and are they implemented\nimpartially by the relevant election management bodies? ",
+  ],
+  //Political pluralism and participation
+  [
+    "Do the people have the right to organize in different political parties\nor other competitivepolitical groupings of their choice, and is the system free\nof undue obstacles to the rise and fall of these competing parties or groupings?",
+    "Is there a realistic opportunity for the opposition to increase\nits support or gain power through elections?",
+    "Are the people's political choices free from domination by forces that are external\nto the political sphere, or by political forces that employ extrapolitical means?",
+    "Do various segments of the population (including ethnic, racial, religious, gender,\nLGBT+, and other relevant groups) have full political rights and electoral opportunities?"
+  ],
+  // Functioning of government
+  [
+    "Do the freely elected head of government and national legislative\nrepresentatives determine the policies of the government?",
+    "Are safeguards against official corruption strong and effective?",
+    "Does the government operate with openness and transparency?",
+  ],
+  // Add A
+  [
+    
+  ],
+  // Freedom of expression and belief
+  [
+    "Are there free and independent media?",
+    "Are individuals free to practice and express their religious faith\nor nonbelief in public and private?",
+    "Is there academic freedom, and is the educational system free\nfrom extensive political indoctrination?",
+    "Are individuals free to express their personal views on political or other sensitive\ntopics without fear of surveillance or retribution?"
+  ],
+  // Associational and organizational rights
+  [
+    "Is there freedom of assembly?",
+    "Is there freedom for nongovernmental organizations, particularly those\nthat are engaged in human rights -and governance- related work?",
+    "Is there freedom for trade unions and similar\nprofessional or labor organizations?",
+  ],
+  // Rule of Law
+  [
+    "Is there an independent judiciary?",
+    "Does due process prevail in civil and criminal matters?",
+    "Is there protection from the illegitimate use of physical force\nand freedom from war and insurgencies?",
+    "Do laws, policies, and practices guarantee equal treatment\nof various segments of the population?"
+  ],
+  // Personal autonomy and individual rights
+  [
+    "Do individuals enjoy freedom of movement, including the ability to change\ntheir place of residence, employment, or education?",
+    "Are individuals able to exercise the right to own property and establish\nprivate businesses without undue interference from state or nonstate actors?",
+    "Do individuals enjoy personal social freedoms, including choice of marriage\npartner and size of family, protection from domestic violence,\nand control over appearance?",
+    "Do individuals enjoy equality of opportunity and freedom\nfrom economic exploitation?"
+  ]
+];
+
 
 // CARICO LE COSE 
 function preload() {
@@ -55,7 +136,6 @@ function preload() {
   mioFont = loadFont("fonts/OpenSans-Regular.ttf");
   mioFontBold = loadFont("fonts/OpenSans-Bold.ttf");
 }
-
 //FUNZIONE PER NORMALIZZARE I NOMI 
 //slug --> versione ripulita dei nomi dei paesi, più facile da usare e non crea errori 
 function normalizeCountryName(name) {
@@ -64,6 +144,7 @@ function normalizeCountryName(name) {
     .trim()
     .replace(/[^a-z0-9]/g, ""); // tiene solo lettere e numeri
 }
+
 
 //DISEGNA I PALLINI 
 function drawPalliniGrigi(){
@@ -98,7 +179,9 @@ function drawPalliniGrigi(){
 
     let indicePallino = 0; //parto dal basso a sinistra 
 
-    let hovering = (hoveredCatIndex !== null); //capisco se c'è una categoria in hover 
+    // se c'è una categoria selezionata uso quella, altrimenti uso l'hover
+    let activeCatIndex = (selectedCatIndex !== null) ? selectedCatIndex : hoveredCatIndex;
+    let hasActive = (activeCatIndex !== null);
 
     //ciclo che genera i pallini 
     for (let r=0; r<righeQuadrato; r++) { //indice di riga
@@ -106,28 +189,27 @@ function drawPalliniGrigi(){
         let x = startX + c*(diametro+spazio);
         let y = startY + (righeQuadrato - 1 - r) * (diametro + spazio);
 
-      let catIndex = categoriaPerIndice(indicePallino);
-      let rCerchio = diametroPallino;  // niente hover di grandezza
+        let catIndex = categoriaPerIndice(indicePallino);
+        let rCerchio = diametroPallino;  // niente hover di grandezza
 
-  if (catIndex === null) { // nessuna categoria: pallino grigio
-  fill(60);
-} else {
-  // pallini colorati: se una categoria è in hover
-  let baseCol = coloriCategorie[catIndex];
-  let cCol = color(baseCol);
+      if (catIndex === null) { // nessuna categoria: pallino grigio
+        fill(60);
+      } else { // c'è una categoria, quindi pallini colorati
+        let baseCol = coloriCategorie[catIndex];
+        let cCol = color(baseCol);
 
-  if (hovering && catIndex !== hoveredCatIndex) {
-    // altri pallini di altre categorie: "spenti"
-    cCol.setAlpha(90);
-  } else {
-    // categoria sotto il mouse, oppure nessun hover
-    cCol.setAlpha(255);
-  }
-  fill(cCol);
-}
+        // se esiste una categoria "attiva" (hover o click)
+        // e questo pallino NON è di quella categoria --> lo spengo
+        if (hasActive && catIndex !== activeCatIndex) {
+          cCol.setAlpha(90);   // opaco
+        } else {
+          cCol.setAlpha(255);  // pieno
+        }
+        fill(cCol);
+      }
 
-noStroke();
-circle(x, y, rCerchio); 
+      noStroke();
+      circle(x, y, rCerchio);
 
       palliniInfo.push({ //salvo tutte le info legate al pallino
         index: indicePallino,
@@ -179,16 +261,23 @@ indicePallino++;
   }
 };
 
+
 //FUNZIONE HOVER PER CATEGORIA (mi aiuta per quella sotto)
 function updateHoverCategory() {
-  hoveredCatIndex = null; //nessuna categoria in hover
+  // Se c'è una categoria selezionata con il click,
+  // l'hover non deve più cambiare nulla.
+  if (selectedCatIndex !== null) {
+    hoveredCatIndex = null;
+    return;
+  }
+  hoveredCatIndex = null; // nessuna categoria in hover di default
 
   for (let p of palliniInfo) {
     // considero solo i pallini positivi e con categoria (no grigi, no negativi)
     if (p.type === "pos" && p.catIndex !== null) {
       let d = dist(mouseX, mouseY, p.x, p.y);
       if (d < diametroPallino / 2) {
-        hoveredCatIndex = p.catIndex; // salvo la categoria
+        hoveredCatIndex = p.catIndex; // salvo la categoria sotto il mouse
         break; // mi basta il primo
       }
     }
@@ -196,6 +285,16 @@ function updateHoverCategory() {
 }
 
 
+//LEGENDA O DOMANDE --> mi gestisce quale delle due funzioni attivare  
+function drawSidePanel() {
+  if (selectedCatIndex === null) {
+    // nessuna categoria cliccata: mostro la legenda normale
+    drawLegenda();
+  } else {
+    // c'è una categoria cliccata: mostro il pannello di dettaglio
+    drawCategoryPanel(selectedCatIndex);
+  }
+}
 //DISEGNO LA LEGENDA 
 function drawLegenda() {
   let x0 = 575;   // posizione X della legenda
@@ -350,6 +449,82 @@ function drawLegenda() {
 
 
 }
+//FUNZIONE DISEGNA PANNELLO DOMANDE 
+function drawCategoryPanel(catIndex) {
+  // posizione e dimensioni del box a destra
+  let x0 = 560;
+  let y0 = 240;
+  let w  = 650;
+  let h  = 260;
+
+  //SE VOGLIO METTERE UN BORDO BIANCO 
+  // sfondo del box
+  //noFill();
+  //stroke(textColor);
+  //strokeWeight(1.5);
+  //rect(x0, y0, w, h, 18); 
+
+  // titolo CATEGORIA 
+  let titolo = panelTitles[catIndex] || "Category details";
+  fill(textColor);
+  noStroke();
+  textFont(mioFontBold);
+  textSize(20);
+  text(titolo, x0 + 10, y0 + 30);
+
+  // domande
+  let questions = panelQuestions[catIndex] || [];
+  textFont(mioFont);
+  textSize(14);
+
+  let lineY = y0 + 70;   // punto di partenza
+  let lineHeight = 20;   // altezza di ogni riga di testo
+  let gap = 20;          // spazio extra tra una domanda e la successiva
+
+  //variabili per i pallini 
+  let palliniRaggio = 6; // raggio dei piccoli pallini
+  let palliniSpazio = 16;// distanza orizzontale tra i pallini
+  let palliniStartX = x0 + 18; // X del primo pallino
+  let textX = x0 + 85; // X del testo della domanda (dopo i pallini)
+
+  for (let qi = 0; qi < questions.length; qi++) {
+  let q = questions[qi];
+  let score = 0;
+  if (questionScores[catIndex] && questionScores[catIndex][qi] != null) {
+    score = questionScores[catIndex][qi];
+  }
+  score = int(constrain(score, 0, 4));  //metto il limite da 0 a 4
+
+    //Divido la domanda in righe usando \n
+    let righe = q.split("\n");
+
+    noStroke();
+    let palliniY0 = lineY + 2; //variabile per centrarli rispetto al testo 
+
+    for (let i = 0; i < 4; i++) { // 4 pallini
+      // se i < score: pallino acceso, altrimenti grigio
+      if (i < score) {
+        fill(coloriCategorie[catIndex]);   // colore della categoria
+      } else {
+        fill(80);                          // grigio spento
+      }
+
+      let palliniX0 = palliniStartX + i * palliniSpazio;
+      circle(palliniX0, palliniY0, palliniRaggio * 2);
+    }
+    //Disegno ogni riga
+    fill(textColor);
+    noStroke();
+    for (let r of righe) {
+      text(r, textX, lineY);
+      lineY += lineHeight;
+    }
+
+    //Gap tra una domanda e la successiva
+    lineY += gap;
+  }
+}
+
 
 //FUNZIONE ADDQ (domanda negativa)
 function drawAddQOverlay() {
@@ -443,7 +618,9 @@ function drawAddQOverlay() {
 noStroke();
   }
 
+
 //FUNZIONE PUNTEGGIO TOTALE + ARRAY CON I VALORI DELLE CATEGORIE 
+//qui associo paese.anno.valori
 function aggiornaPunteggioTotale(){ //e anche categorie 
   punteggioTotale = 0; //azzero la mia variabile per sicurezza 
 
@@ -488,14 +665,36 @@ function aggiornaPunteggioTotale(){ //e anche categorie
       addQVal = float(addQStr);
       if (isNaN(addQVal)) addQVal = 0;
       }
-      
-      break; // mi fermo, ho trovato la riga giusta
 
-      //ogni volta che trovo la linea giusta, oltre a bloccarmi il punteggio totale
-      //mi salva anche i punteggi di tutte le categorie 
+      //AGGIUNGO CHE OLTRE AI TOTALI LEGGO ANCHE I PUNTEGGI DELLE SINGOLE DOMANDE 
+       questionScores = []; // svuoto
+         for (let k = 0; k < questionColumns.length; k++) { //scorriamo tutte le categorie 
+        let cols = questionColumns[k]; //cols è l'elenco dei nomi di colonna CSV
+        questionScores[k] = []; //array che conterrà i punteggi delle domande in quella categoria 
+
+      if (!cols) continue; //se cols è vuoto, quella categoria non ha domande, vado avanti 
+
+        for (let q = 0; q < cols.length; q++) {
+          let colName = cols[q]; //nome colonna (Question A)
+          let valStr = data.getString(i, colName).trim(); //prende la stringa del CSV 
+
+          let val;
+          if (valStr === "" || valStr.toUpperCase() === "N/A") { //se è vuota o ha scritte strane prende 0
+            val = 0;
+          } else {
+            val = float(valStr); //converte in numero 
+            if (isNaN(val)) val = 0;
+          }
+
+          questionScores[k][q] = val; // memorizza il punteggio 
+        }
+      }
+
+      break; // mi fermo: ho trovato la riga giusta
+    }
   }
-}
 };
+
 
 //creo una funzione di supporto che dopo aver asseganto i valori ai pallini
 //mi dice di un pallino a che categoria appartiene 
@@ -672,12 +871,32 @@ function draw() {
   textFont(mioFont);
   text(punteggioTotale,1020, 95);
 
+ 
+  drawPalliniGrigi();
+
   updateHoverCategory(); //capisco dove sta il mouse 
 
- drawPalliniGrigi();
+  drawAddQOverlay();
 
- drawAddQOverlay();
-
- drawLegenda();
+  drawSidePanel();
 }
 
+//SE CLICCO IL MOUSE
+function mousePressed() {
+  // controllo se ho cliccato su un pallino "positivo" con categoria
+  for (let p of palliniInfo) {
+    if (p.type === "pos" && p.catIndex !== null) {
+      let d = dist(mouseX, mouseY, p.x, p.y);
+      if (d < diametroPallino / 2) {
+        // se clicco sulla stessa categoria già selezionata: la "disattivo"
+        if (selectedCatIndex === p.catIndex) {
+          selectedCatIndex = null;
+        } else {
+          // altrimenti seleziono questa categoria
+          selectedCatIndex = p.catIndex;
+        }
+        return; // ho gestito il click, posso uscire dalla funzione
+      }
+    }
+  }
+}
