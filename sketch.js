@@ -35,6 +35,10 @@ let suggerimentiDiv;
 let paesiUnici = [];
 let suggerimentoSelezionato = -1;
 
+// Aggiungi dopo le altre variabili globali
+let paesiConPosizioni = []; // Array per memorizzare posizioni dei pallini
+let indiceHover = -1; // Indice del paese in hover (-1 = nessuno)
+
 // variabile per memorizzare il massimo numero di paesi per regione
 let maxPaesiPerRegione = {};
 
@@ -88,10 +92,26 @@ function setup() {
   
   // crea l'elemento select
   selettoreAnno = createSelect(); 
-  selettoreAnno.position(50, 100);
+  
+  // NUOVA POSIZIONE: sotto i bottoni US e FH
+  const diametroBottone = 60;
+  const spaziaturaTraBottoni = 20;
+  let xFH = width - diametroBottone - 25;
+  let xUS = xFH - diametroBottone - spaziaturaTraBottoni;
+  
+  // Posiziona il selettore sotto il bottone US (più a sinistra)
+  let xSelettore = xUS;
+  let ySelettore = 30 + diametroBottone + 20; // 30 (yPos bottoni) + 60 (diametro) + 20 (spaziatura)
+  
+  selettoreAnno.position(xSelettore, ySelettore);
   selettoreAnno.style('padding', '8px');
   selettoreAnno.style('font-size', '16px');
   selettoreAnno.style('z-index', '1000');
+  selettoreAnno.style('background-color', '#26231d');
+  selettoreAnno.style('color', '#f0f0f0');
+  selettoreAnno.style('border', '1px solid #f0f0f0');
+  selettoreAnno.style('border-radius', '5px');
+  selettoreAnno.style('font-family', 'NeueHaasGrotDisp-55Roman, sans-serif');
   
   // aggiunge le opzioni al menu
   for (let anno of anniUnici) { 
@@ -171,7 +191,7 @@ function creaBarraRicerca() {
   
   // Input di ricerca
   inputRicerca = createInput('');
-  inputRicerca.attribute('placeholder', 'LIBERTY ENLIGHTENING THE WORLD');
+  inputRicerca.attribute('placeholder', 'Look up Country or Territory');
   inputRicerca.parent(inputWrapper);
   inputRicerca.style('width', '100%');
   inputRicerca.style('padding', '20px 20px 18px 50px'); // Aumentato padding a sinistra per l'icona
@@ -378,7 +398,7 @@ function filtraDatiPerAnno() {
     filtraECalcolaDati(annoCorrente); // ricalcola e ridisegna i dati per il nuovo anno
 }
 
-// funzione per creare un singolo bottone con stile
+// funzione per creare un singolo bottone
 function creaBottone(testo, x, y, colori, tipo) {
   let bottone = createButton(testo);
   bottone.position(x, y);
@@ -545,6 +565,7 @@ function draw() {
       disegnaGriglia();
       disegnaBarre();
       disegnaEtichettaAnno();
+      disegnaEtichetteHover();
   } else {
       fill(255);
       textAlign(CENTER, CENTER);
@@ -553,28 +574,51 @@ function draw() {
   }
 }
 
-// disegna la scala
 function disegnaGriglia() {
-  const puntiDiRiferimento = [0, 50, 100]; 
-
+  const puntiDiRiferimento = [0, 100]; 
+  let yPositions = []; // array per salvare le posizioni Y
+  
+  // 1. Ciclo per disegnare linee e numeri (0 e 100)
   for (let valore of puntiDiRiferimento) {
     let altezzaRelativa = map(valore, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
     let yLinea = yBarra - altezzaRelativa - incremento;
-
-    stroke("#f0f0f0");
+    yPositions.push(yLinea); // salva la posizione Y
+    
+    // Disegna la linea
+    stroke("#f0f0f078");
     strokeWeight(1);
     noFill();
-    line(50, yLinea, graficoWidth - 50, yLinea); // usa graficoWidth come limite destro
+    line(50, yLinea, graficoWidth - 50, yLinea);
     
+    // Disegna il valore (0 o 100)
     noStroke();
-    fill("#f0f0f0"); 
+    fill("#f0f0f078"); 
     textAlign(RIGHT, CENTER);
+    textSize(12);
     text(valore, 40, yLinea);
+  }
+
+  // 2. Disegna la scritta "Total Score" SOLO sopra la linea del 100
+  // Assumiamo che 100 sia il secondo elemento nell'array puntiDiRiferimento,
+  // quindi la sua posizione Y è yPositions[1].
+  
+  // Se l'array ha almeno due elementi e 100 è il secondo punto di riferimento
+  if (yPositions.length > 1 && puntiDiRiferimento[1] === 100) {
+    const yLinea100 = yPositions[1]; // Posizione Y della linea del 100
+    
+    push();
+    fill("#f0f0f078");
+    textSize(16);
+    // Posiziona il testo poco sopra la linea del 100
+    translate( 50, yLinea100 - 5); 
+    textAlign(LEFT, BOTTOM);
+    text("Total Score", 0, 0);
+    pop();
   }
 }
 
 // funzione per disegnare una singola barra
-function disegnaBarraSingola(xBarra, riga, larghezzaBarra) {
+function disegnaBarraSingola(xBarra, riga, larghezzaBarra, indice) {
   let status = riga.getString('Status');
   let total = riga.getNum('TOTAL');
   let altezzaBarra = map(total, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
@@ -591,12 +635,22 @@ function disegnaBarraSingola(xBarra, riga, larghezzaBarra) {
   fill("#f0f0f0");
   ellipse(xBarra + larghezzaBarra/2, yCimaBarra, larghezzaBarra, larghezzaBarra);
   pop();
+  
+  // AGGIUNGI QUESTO: Salva la posizione del pallino
+  paesiConPosizioni.push({
+    indice: indice,
+    nome: riga.getString('Country/Territory'),
+    x: xBarra + larghezzaBarra/2,
+    y: yCimaBarra,
+    raggio: larghezzaBarra/2
+  });
 }
 
 // costruzione delle barre raggruppate per regione con livelli sovrapposti
-// costruzione delle barre raggruppate per regione con livelli sovrapposti
 function disegnaBarre() { 
   noStroke();
+
+  paesiConPosizioni = []; // Resetta l'array ad ogni frame
 
   // Raggruppa i dati per regione
   let datiPerRegione = {};
@@ -973,4 +1027,28 @@ function creaBottoniNavigazione() {
   bottoneUS.mousePressed(() => {
     window.location.href = 'us.html';
   });
+}
+
+// NUOVA FUNZIONE per disegnare le etichette dei paesi in hover
+function disegnaEtichetteHover() {
+  if (indiceHover === -1) return;
+  
+  // Trova il paese in hover
+  let paeseHover = paesiConPosizioni.find(p => p.indice === indiceHover);
+  if (!paeseHover) return;
+  
+  push();
+  
+  // Disegna il testo del nome del paese
+  fill('#f0f0f0');
+  noStroke();
+  textSize(20);
+  textFont(fontMedium);
+  textAlign(LEFT, CENTER);
+  
+  // Posiziona il testo a destra del pallino
+  let offsetX = 15;
+  text(paeseHover.nome, paeseHover.x + offsetX, paeseHover.y);
+  
+  pop();
 }

@@ -626,7 +626,7 @@ function draw() {
     disegnaGriglia();
     disegnaBarre();
     disegnaTorciaRegione();
-    disegnaEtichetteHover(); // AGGIUNGI QUESTA LINEA
+    disegnaEtichetteHover();
   }
   
   disegnaEtichettaAnno();
@@ -1090,27 +1090,40 @@ function mouseClicked() {
 
 // Aggiorna mouseMoved() per aggiornare il box info
 function mouseMoved() {
-  indiceHover = -1; // Reset
-  let isHovering = false;
-  let paeseHover = null;
-  
-  // Controlla se il mouse è sopra qualche pallino
+  // Prima controlla i pallini
+  let trovato = false;
   for (let paese of paesiConPosizioni) {
     let distanza = dist(mouseX, mouseY, paese.x, paese.y);
-    if (distanza < paese.raggio + 5) {
+    if (distanza <= paese.raggio) {
       indiceHover = paese.indice;
-      isHovering = true;
-      paeseHover = paese;
+      trovato = true;
+      cursor(HAND);
       break;
     }
   }
   
-  if (isHovering) {
-    cursor(HAND);
-    aggiornaBoxInfoPaese(paeseHover); // AGGIUNGI QUESTA RIGA
-  } else {
+  if (!trovato) {
+    indiceHover = -1;
+  }
+  
+  // Poi controlla le torce (codice esistente)
+  let nuovaRegioneHover = null;
+  
+  for (let area of areeTorce) {
+    if (mouseX >= area.x && mouseX <= area.x + area.w &&
+        mouseY >= area.y && mouseY <= area.y + area.h) {
+      nuovaRegioneHover = area.regione;
+      cursor(HAND);
+      break;
+    }
+  }
+  
+  if (nuovaRegioneHover !== regioneHover) {
+    regioneHover = nuovaRegioneHover;
+  }
+  
+  if (regioneHover === null && indiceHover === -1) {
     cursor(ARROW);
-    aggiornaBoxInfoPaese(null); // AGGIUNGI QUESTA RIGA
   }
 }
 
@@ -1525,22 +1538,45 @@ function getParagrafoCorrente() {
   return "Freedom in the World is Freedom House's flagship annual report, assessing the condition of political rights and civil liberties around the world.";
 }
 
-// disegna la scala
 function disegnaGriglia() {
-  const puntiDiRiferimento = [0, 50, 100]; 
-
+  const puntiDiRiferimento = [0, 100]; 
+  let yPositions = []; // array per salvare le posizioni Y
+  
+  // 1. Ciclo per disegnare linee e numeri (0 e 100)
   for (let valore of puntiDiRiferimento) {
     let altezzaRelativa = map(valore, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
     let yLinea = yBarra - altezzaRelativa - incremento;
-
-    stroke("#f0f0f0");
+    yPositions.push(yLinea); // salva la posizione Y
+    
+    // Disegna la linea
+    stroke("#f0f0f078");
     strokeWeight(1);
     noFill();
-    line(graficoWidth*0.38, yLinea, graficoWidth*0.62, yLinea); // usa graficoWidth come limite destro
+    line(graficoWidth*0.38, yLinea, graficoWidth*0.62, yLinea);
     
+    // Disegna il valore (0 o 100)
     noStroke();
-    fill("#f0f0f0"); 
+    fill("#f0f0f078"); 
     textAlign(RIGHT, CENTER);
+    textSize(12);
     text(valore, graficoWidth*0.37, yLinea);
+  }
+
+  // 2. Disegna la scritta "Total Score" SOLO sopra la linea del 100
+  // Assumiamo che 100 sia il secondo elemento nell'array puntiDiRiferimento,
+  // quindi la sua posizione Y è yPositions[1].
+  
+  // Se l'array ha almeno due elementi e 100 è il secondo punto di riferimento
+  if (yPositions.length > 1 && puntiDiRiferimento[1] === 100) {
+    const yLinea100 = yPositions[1]; // Posizione Y della linea del 100
+    
+    push();
+    fill("#f0f0f078");
+    textSize(16);
+    // Posiziona il testo poco sopra la linea del 100
+    translate(graficoWidth*0.38, yLinea100 - 5); 
+    textAlign(LEFT, BOTTOM);
+    text("Total Score", 0, 0);
+    pop();
   }
 }
