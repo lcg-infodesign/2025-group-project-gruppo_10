@@ -9,8 +9,9 @@ let countries = [];
 function preload() {
   
   data = loadTable("assets/FH_dataset.csv", "csv", "header");
-  mioFont = loadFont("fonts/OpenSans-Regular.ttf");
-  mioFontBold = loadFont("fonts/OpenSans-Bold.ttf");
+  mioFont = loadFont("fonts/NeueHaasGrotDisp-55Roman.otf");
+  mioFontMedium = loadFont("fonts/NeueHaasGrotDisp-65Medium.otf");
+  mioFontBold = loadFont("fonts/NeueHaasGrotDisp-75Bold.otf");
 }
 
 //stessa cosa del dettaglio, metto una cosa per omologare
@@ -32,7 +33,7 @@ function setup() {
     let edition = data.getString(i, "Edition").trim();
     let country = data.getString(i, "Country/Territory").trim();
 
-    if (edition === "2025" && !seen[country]) {
+    if (edition === "2024" && !seen[country]) {
       countries.push({
         name: country,                       // nome leggibile
         slug: normalizeCountryName(country)  // chiave “pulita”
@@ -51,13 +52,9 @@ function draw() {
   drawTooltip();
 }
 
-function drawGrid() {
-  let cols = floor((width - 2 * outerPadding) / (itemSize + padding));
-  hoveredCountry = null;
-  let colCount = 0;
-  let rowCount = 0;
 
-  function drawGrid() {
+
+function drawGrid() {
   let cols = floor((width - 2 * outerPadding) / (itemSize + padding));
   hoveredCountry = null;
   let colCount = 0;
@@ -84,8 +81,8 @@ function drawGrid() {
       rowCount++;
     }
   }
-  }
 }
+
 
 function drawTooltip() {
   if (hoveredCountry) {
