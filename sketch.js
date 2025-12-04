@@ -7,7 +7,7 @@ const texts = [
     "What is freedom to you?", 
     "What is freedom to FreedomHouse?", 
     // testo lungo 1
-    "FreedomHouse is founded on the core conviction that freedom flourishes in democratic nations where governments are accountable to their people.",
+    "FreedomHouse is financed by American governament and is founded on the core conviction that freedom flourishes in democratic nations where governments are accountable to their people.",
     // testo lungo 2
     "Copper oxidation represents the degradation of the freedom of the countries of the world." 
 ];
