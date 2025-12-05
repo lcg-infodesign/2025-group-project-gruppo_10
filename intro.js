@@ -22,7 +22,7 @@ const PHASE_FADE_IN_1_END = 1800;           // 5 - fade in testo lungo 1
 const PHASE_FADE_OUT_1_END = 2300;          // 6 - fade out testo lungo 1 
 const PHASE_WRITE_2_END_TYPING = 4800;      // 7 - fine typing  testo lungo 2
 const PHASE_FADE_OUT_2_END = 5300;          // 9 - fine fade out testo lungo 2
-const PHASE_BUTTON_SHOW = 5800;             // 10 - bottone link pagina generalissima
+const PHASE_BUTTON_SHOW = 5600;             // 10 - bottone link pagina generalissima
 const MAX_SCROLL = 6000;                    // 11 - limite massimo dello scroll finale
 
 const BASE_FONT_SIZE = 64;                  // dimensione base del font 
@@ -59,7 +59,7 @@ function sketch(p) {
         canvas.parent('p5-canvas-container'); 
         p.textAlign(p.CENTER, p.CENTER); 
         p.smooth();
-        p.textFont('Arial, sans-serif');
+        p.textFont('NeueHaasGrotDisp-55Roman');
 
         img1Element = p.select('#img-liberty-1');
         img2Element = p.select('#img-liberty-2');
