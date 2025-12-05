@@ -16,34 +16,73 @@ body {
     width: 100%;
 }
 
-/* contenitore della tela p5.js */
+/* Contenitore principale */
 #p5-canvas-container {
-    position: absolute;
+    position: relative; 
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    /* Rimuovi display: flex per evitare interferenze con il canvas */
+}
+
+/* Posizionamento del Canvas P5 */
+canvas {
+    position: absolute; 
     top: 0;
     left: 0;
+    width: 100%; 
+    height: 100%; 
+    z-index: 1; 
+}
+
+/* Contenitore per le Immagini: FISSATO a SINISTRA */
+#image-container {
+    position: absolute; 
+    top: 0;
+    left: 0; /* Allinea a sinistra */
+    width: 50%; /* Occupa la metà sinistra dello schermo */
+    height: 100%;
+    display: flex;
+    justify-content: center; /* Centra l'immagine all'interno del suo 50% */
+    align-items: center;
+    z-index: 2; /* Davanti al canvas per le immagini, sotto il testo p5.js renderizzato */
+    pointer-events: none; 
+}
+
+/* Stili per le immagini: a "tutto schermo" nella metà sinistra */
+#img-liberty-1, #img-liberty-2 {
+    position: absolute; 
+    /* Aumenta la dimensione per coprire quasi interamente il contenitore (50% dello schermo) */
     width: 100%;
     height: 100%;
-    
-    /* centratura Flexbox per il canvas all'interno del contenitore */
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    max-width: 100%; 
+    max-height: 100%;
+    object-fit: contain; /* Mantiene le proporzioni, evitando che l'immagine si tagli */
+    opacity: 0; 
+    transition: opacity 0.5s ease-in-out; 
 }
 
-/* stile per il suggerimento di scroll */
-.scroll-hint {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 0.9rem;
-    opacity: 0.5;
-    animation: bounce 2s infinite;
-    z-index: 100;
-    pointer-events: none;
+
+/* bottone */
+#linkButton {
+    /* posizionamento verrà gestito da p5.js con .position() */
+    position: absolute; 
+    z-index: 10;
+    font-size: 1.2em;
+    padding: 10px 30px;
+    background-color: transparent; 
+    color: white; 
+    border: 2px solid white; 
+    border-radius: 50px;
+    cursor: pointer;
+    text-decoration: none; 
+    opacity: 0; 
+    transition: background-color 0.3s, color 0.3s; 
 }
 
-@keyframes bounce {
-    0%, 100% { transform: translateX(-50%) translateY(0); }
-    50% { transform: translateX(-50%) translateY(-10px); }
+#linkButton:hover {
+    background-color: white;
+    color: black;
 }
