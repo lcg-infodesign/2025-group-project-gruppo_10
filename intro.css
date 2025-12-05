@@ -20,7 +20,7 @@
 
 body {
     /* sfondo e font di base */
-    background: #0a0e27;
+    background-color: #26231D;
     color: #fff;
     
     /* rimuove lo scroll nativo, gestito da JS */
