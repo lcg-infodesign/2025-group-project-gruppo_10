@@ -1,4 +1,16 @@
 let data; //variabile che contiene il mio csv
+
+//RESPONSIVE
+let BASE_W = 1280; // larghezza di riferimento 
+let BASE_H = 665; // altezza di riferimento
+let scaleFactor = 1; // fattore di scala corrente
+let lastScaleFactor = -1; // per capire se la scala è cambiata
+let logicalMouseX = 0; // mouse "nello spazio logico"
+let logicalMouseY = 0;
+
+const YEAR_BASE_X = 750;  // coordinate ORIGINALI del select anno
+const YEAR_BASE_Y = 125;
+
 //font 
 let mioFont; 
 let mioFontBold;
@@ -69,6 +81,7 @@ let legendHitAreas = []; // zone cliccabili della legenda
 
 let backDetailArea = null; // bottone "back" nel pannello domande
 let backHomeArea = null;   // bottone "back" in alto (pagina principale)
+
 
 //VARIABILI TITOLO (7 parametri)
 let panelTitles = [
@@ -290,7 +303,7 @@ function updateHoverCategory() {
   for (let p of palliniInfo) {
     // considero solo i pallini positivi e con categoria (no grigi, no negativi)
     if (p.type === "pos" && p.catIndex !== null) {
-      let d = dist(mouseX, mouseY, p.x, p.y);
+      let d = dist(logicalMouseX, logicalMouseY, p.x, p.y);
       if (d < diametroPallino / 2) {
         hoveredCatIndex = p.catIndex; // salvo la categoria sotto il mouse
         break; // mi basta il primo
@@ -963,6 +976,8 @@ function drawHomeButton() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
+  scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
+
   //caratteristiche generali dei testi 
   textColor = color(232, 233, 214);
   textFont(mioFont);
@@ -1017,7 +1032,7 @@ function setup() {
      aggiornaPunteggioTotale(); //calcola subito 
 
     yearSelect = createSelect(); //crea la tendina, elemento p5
-    yearSelect.position(750, 125); //posizione del menù a tendina 
+    yearSelect.position(YEAR_BASE_X * scaleFactor, YEAR_BASE_Y * scaleFactor); //posizione del menù a tendina 
 
     for (let y of anniDisponibili) { //per ogni elemento delll'array aggiungo un elemento al menu
       yearSelect.option(y);
@@ -1028,10 +1043,9 @@ function setup() {
     yearSelect.style('background-color', '#050505');
     yearSelect.style('color', '#E8E9D6');
     yearSelect.style('border', '1px solid #E8E9D6');
-    yearSelect.style('padding', '1px 35px');
     yearSelect.style('font-family', 'Open Sans, sans-serif');
-    yearSelect.style('font-size', '55px');
-    yearSelect.style('border-radius', '18px');
+    yearSelect.style('font-size', (55 * scaleFactor) + 'px');
+    yearSelect.style('border-radius', (18 * scaleFactor) + 'px');
     yearSelect.style('outline', 'none');
 
     // tolgo la freccia nativa del browser
@@ -1040,7 +1054,13 @@ function setup() {
     yearSelect.style('-moz-appearance', 'none');
 
     // aumento il padding a destra per far posto alla freccia finta
-    yearSelect.style('padding', '6px 60px 6px 24px');
+    yearSelect.style(
+      'padding',
+      (6 * scaleFactor) + 'px ' +
+      (60 * scaleFactor) + 'px ' +
+      (6 * scaleFactor) + 'px ' +
+      (24 * scaleFactor) + 'px'
+    );
 
     // creo una freccia finta "▾"
     arrowSpan = createSpan('▾');
@@ -1048,7 +1068,7 @@ function setup() {
     arrowSpan.style('pointer-events', 'none'); // così il click passa al select
     arrowSpan.style('color', '#E8E9D6');
     arrowSpan.style('font-family', 'Open Sans, sans-serif');
-    arrowSpan.style('font-size', '62px'); // stessa dimensione del numero
+    arrowSpan.style('font-size', (62 * scaleFactor) + 'px'); // stessa dimensione del numero
 
     yearSelect.changed(() => { //quando cambi scelta 
       annoSelezionato = yearSelect.value(); //aggiorno la variabile con il valore dell'array scelto 
@@ -1070,15 +1090,53 @@ function posizionaFreccia() {
   // posiziono la freccia un po' dentro dal bordo destro
   arrowSpan.position(selX + selW - 55, selY + 4);
 }
+function aggiornaYearSelect() {
+  if (!yearSelect) return;
+
+  // posizionamento scalato
+  yearSelect.position(
+    YEAR_BASE_X * scaleFactor,
+    YEAR_BASE_Y * scaleFactor
+  );
+
+  // stile scalato
+  yearSelect.style('font-size', (55 * scaleFactor) + 'px');
+  yearSelect.style(
+    'padding',
+    (6 * scaleFactor) + 'px ' +
+    (60 * scaleFactor) + 'px ' +
+    (6 * scaleFactor) + 'px ' +
+    (24 * scaleFactor) + 'px'
+  );
+  yearSelect.style('border-radius', (18 * scaleFactor) + 'px');
+
+  if (arrowSpan) {
+    arrowSpan.style('font-size', (62 * scaleFactor) + 'px');
+    posizionaFreccia(); // la freccia usa già il bounding rect reale
+  }
+}
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-  // se la finestra cambia, riposiziono la freccia
-  posizionaFreccia();
+  scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
+  aggiornaYearSelect();
 }
 
 function draw() {
   background(0);
+
+  scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
+
+  logicalMouseX = mouseX / scaleFactor;
+  logicalMouseY = mouseY / scaleFactor;
+
+  if (scaleFactor !== lastScaleFactor) {
+    aggiornaYearSelect();
+    lastScaleFactor = scaleFactor;
+  }
+
+  push();
+  scale(scaleFactor); 
 
   animT += 0.01; 
 
@@ -1118,14 +1176,20 @@ function draw() {
   drawSidePanel();
 
   drawHomeButton();
+
+  pop();
+  // rect(0,0,1280,665)
 }
 
 //SE CLICCO IL MOUSE
 function mousePressed() {
+let mx = mouseX / scaleFactor;
+  let my = mouseY / scaleFactor;
+
   // controllo se ho cliccato su un pallino "positivo" con categoria
   for (let p of palliniInfo) {
     if (p.type === "pos" && p.catIndex !== null) {
-      let d = dist(mouseX, mouseY, p.x, p.y);
+      let d = dist(mx, my, p.x, p.y);
       if (d < diametroPallino / 2) {
         // se clicco sulla stessa categoria già selezionata: la "disattivo"
         if (selectedCatIndex === p.catIndex) {
@@ -1141,7 +1205,7 @@ function mousePressed() {
 
 for (let p of palliniInfo) { //PALLINI NEGATIVI 
     if (p.type === "neg") {
-      let d = dist(mouseX, mouseY, p.x, p.y);
+      let d = dist(mx, my, p.x, p.y);
       if (d < diametroPallino / 2) {
         // AddQ è indice 8
         if (selectedCatIndex === 8) {
@@ -1158,10 +1222,10 @@ for (let p of palliniInfo) { //PALLINI NEGATIVI
   if (selectedCatIndex === null) {
     for (let area of legendHitAreas) {
       if (
-        mouseX >= area.x && //controllano se il click è dentro al rettangolo 
-        mouseX <= area.x + area.w &&
-        mouseY >= area.y &&
-        mouseY <= area.y + area.h
+        mx >= area.x && //controllano se il click è dentro al rettangolo 
+        mx <= area.x + area.w &&
+        my >= area.y &&
+        my <= area.y + area.h
       ) {
         if (selectedCatIndex === area.catIndex) {
           selectedCatIndex = null;
@@ -1175,10 +1239,10 @@ for (let p of palliniInfo) { //PALLINI NEGATIVI
 
   if (backDetailArea) {
   if (
-    mouseX >= backDetailArea.x &&
-    mouseX <= backDetailArea.x + backDetailArea.w &&
-    mouseY >= backDetailArea.y &&
-    mouseY <= backDetailArea.y + backDetailArea.h
+    mx >= backDetailArea.x &&
+    mx <= backDetailArea.x + backDetailArea.w &&
+    my >= backDetailArea.y &&
+    my <= backDetailArea.y + backDetailArea.h
   ) {
     selectedCatIndex = null; // torna alla legenda
     return;
@@ -1187,10 +1251,10 @@ for (let p of palliniInfo) { //PALLINI NEGATIVI
 
 if (backHomeArea) {
   if (
-    mouseX >= backHomeArea.x &&
-    mouseX <= backHomeArea.x + backHomeArea.w &&
-    mouseY >= backHomeArea.y &&
-    mouseY <= backHomeArea.y + backHomeArea.h
+    mx >= backHomeArea.x &&
+    mx <= backHomeArea.x + backHomeArea.w &&
+    my >= backHomeArea.y &&
+    my <= backHomeArea.y + backHomeArea.h
   ) {
     window.history.back(); // oppure location.href = "index.html"
     return;
