@@ -26,7 +26,7 @@ const PHASE_FADE_OUT_2_END = 3800;          // 9 - fine fade-out testo 2 + img 2
 const PHASE_BUTTON_SHOW = 4100;            // 10 - bottone link pagina generalissima
 
 const MAX_SCROLL = 4500;                   // limite massimo dello scroll finale
-const BASE_FONT_SIZE = 64;                 // dimensione base del font 
+const BASE_FONT_SIZE = 45;                 // dimensione base del font 
 
 
 // FUNZIONI DI TRASFORMAZIONE DEL TESTO
@@ -60,7 +60,7 @@ function sketch(p) {
         canvas.parent('p5-canvas-container');
         p.textAlign(p.CENTER, p.CENTER);
         p.smooth();
-        p.textFont('NeueHaasGrotDisp-55Roman');
+        p.textFont('NeueHaasDisplayRoman');
 
         img1Element = p.select('#img-liberty-1'); // rame.png 
         img2Element = p.select('#img-liberty-2'); // rame_o2.png 
@@ -108,7 +108,8 @@ function sketch(p) {
         let currentFontSize = p.constrain(baseSize * (p.width / 1200), 30, 80);
         
         // variabili per i testi lunghi 
-        const lineHeight = currentFontSize * 1.5;
+        const lineHeight = currentFontSize * 1.3; // interlinea generale x tutti i testi
+        const lineHeight1 = currentFontSize * 0.9; // interlinea testo lungo 1
         const contentWidth = p.width * 0.5;
         const maxLineWidth = contentWidth * 0.8;
         

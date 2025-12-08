@@ -5,15 +5,22 @@
 }
 
 @font-face {
-  font-family: 'NeueHaasGrotDisp-55Roman';
-  src: url('font/NeueHaasGrotDisp-55Roman.otf') format('opentype');
+  font-family: 'NeueHaasDisplayRoman';
+  src: url('font/NeueHaasDisplayRoman.ttf') format('opentype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'NeueHaasGrotDisp-75Bold';
-  src: url('font/NeueHaasGrotDisp-75Bold.otf') format('opentype');
+  font-family: 'NeueHaasDisplayMediu';
+  src: url('font/NeueHaasDisplayMediu.ttf') format('opentype');
+  font-weight: medium;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NeueHaasDisplayBold';
+  src: url('font/NeueHaasDisplayBold.ttf') format('opentype');
   font-weight: bold;
   font-style: normal;
 }
@@ -80,11 +87,12 @@ canvas {
 
 /* bottone */
 #linkButton {
-    /* posizionamento verrà gestito da p5.js con .position() */
+    font-family:'NeueHaasDisplayRoman';
     position: absolute; 
     z-index: 10;
-    font-size: 1.2em;
+    font-size: 2.1em;
     padding: 10px 30px;
+    margin-top: 10px;
     background-color: transparent; 
     color: white; 
     border: 2px solid white; 
