@@ -7,17 +7,24 @@ canvas {
   display: block;
 }
 
-/* Esempio di come dovrebbe apparire la regola CSS per rendere i font utilizzabili */
+/* font */
 @font-face {
-  font-family: 'NeueHaasGrotDisp-55Roman';
-  src: url('font/NeueHaasGrotDisp-55Roman.otf') format('opentype');
+  font-family: 'NeueHaasDisplay';
+  src: url('font/NeueHaasDisplayRoman.ttf') format('opentype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'NeueHaasGrotDisp-75Bold';
-  src: url('font/NeueHaasGrotDisp-75Bold.otf') format('opentype');
+  font-family: 'NeueHaasDisplay';
+  src: url('font/NeueHaasDisplayMedium.ttf') format('opentype');
+  font-weight: medium;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NeueHaasDisplay';
+  src: url('font/NeueHaasDisplayBold.ttf') format('opentype');
   font-weight: bold;
   font-style: normal;
 }

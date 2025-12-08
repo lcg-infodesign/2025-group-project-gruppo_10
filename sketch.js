@@ -20,8 +20,11 @@ let incremento = 50;
 
 // variabili per selezionare l'anno
 let datiFiltrati;
-let selettoreAnno; 
 let annoCorrente;
+let anniUnici = [];
+let scrollAccumulato = 0;
+let pixelPerAnno = 200; // Quanti pixel di scroll per cambiare anno
+let progressoScroll = 0; // Valore da 0 a 1 per l'animazione tra anni
 
 // variabili per i filtri status
 let filtroF = true;
@@ -38,6 +41,7 @@ let suggerimentoSelezionato = -1;
 // Aggiungi dopo le altre variabili globali
 let paesiConPosizioni = []; // Array per memorizzare posizioni dei pallini
 let indiceHover = -1; // Indice del paese in hover (-1 = nessuno)
+let paeseCercato = null;
 
 // variabile per memorizzare il massimo numero di paesi per regione
 let maxPaesiPerRegione = {};
@@ -45,12 +49,18 @@ let maxPaesiPerRegione = {};
 // variabili per l'interazione con le torce
 let regioneHover = null;
 let areeTorce = []; // Array per memorizzare le aree cliccabili delle torce
+let areeRegioni = []; // Array per memorizzare le aree complete delle regioni (barre + torce)
 let opacitaRegioni = {}; // Oggetto per memorizzare l'opacità di ogni regione
 let velocitaTransizione = 0.1; // Velocità della transizione (0-1, più alto = più veloce)
 
 // variabili per i nuovi bottoni in alto a destra
 let bottoneUS;
 let bottoneFH;
+let bottoneCancella;
+
+// colori
+let nero ="#26231d";
+let bianco = "#eaead8";
 
 // colori per status con gradienti
 let coloriStatus = {
@@ -62,9 +72,9 @@ let coloriStatus = {
 function preload() {
   data = loadTable("assets/FH_dataset.csv", "csv", "header");
   torcia = loadImage("img/torcia.png");
-  fontRegular = loadFont("font/NeueHaasGrotDisp-55Roman.otf");
-  fontMedium = loadFont("font/NeueHaasGrotDisp-65Medium.otf");
-  fontBold = loadFont("font/NeueHaasGrotDisp-75Bold.otf");
+  fontRegular = loadFont("font/NeueHaasDisplayRoman.ttf");
+  fontMedium = loadFont("font/NeueHaasDisplayMedium.ttf");
+  fontBold = loadFont("font/NeueHaasDisplayBold.ttf");
 }
 
 function setup() {
@@ -88,48 +98,15 @@ function setup() {
   // filtro i dati per anno
   // trova tutti gli anni unici presenti nella colonna 'Edition'
   let anni = data.getColumn('Edition').map(Number); 
-  let anniUnici = [...new Set(anni)].sort((a, b) => b - a); 
+  anniUnici = [...new Set(anni)].sort((a, b) => b - a); 
   
-  // crea l'elemento select
-  selettoreAnno = createSelect(); 
-  
-  // NUOVA POSIZIONE: sotto i bottoni US e FH
-  const diametroBottone = 60;
-  const spaziaturaTraBottoni = 20;
-  let xFH = width - diametroBottone - 25;
-  let xUS = xFH - diametroBottone - spaziaturaTraBottoni;
-  
-  // Posiziona il selettore sotto il bottone US (più a sinistra)
-  let xSelettore = xUS;
-  let ySelettore = 30 + diametroBottone + 20; // 30 (yPos bottoni) + 60 (diametro) + 20 (spaziatura)
-  
-  selettoreAnno.position(xSelettore, ySelettore);
-  selettoreAnno.style('padding', '8px');
-  selettoreAnno.style('font-size', '16px');
-  selettoreAnno.style('z-index', '1000');
-  selettoreAnno.style('background-color', '#26231d');
-  selettoreAnno.style('color', '#f0f0f0');
-  selettoreAnno.style('border', '1px solid #f0f0f0');
-  selettoreAnno.style('border-radius', '5px');
-  selettoreAnno.style('font-family', 'NeueHaasGrotDisp-55Roman, sans-serif');
-  
-  // aggiunge le opzioni al menu
-  for (let anno of anniUnici) { 
-    if (!isNaN(anno)) {
-        selettoreAnno.option(anno);
-    }
-  }
-  
-  // l'anno iniziale di default è impostato sul più recente
+ // l'anno iniziale di default è impostato sul più recente
   if (anniUnici.length > 0 && !isNaN(anniUnici[0])) {
       annoCorrente = anniUnici[0]; 
-      selettoreAnno.selected(annoCorrente);
   } else {
       annoCorrente = null;
   }
 
-  // associa una funzione di callback al cambio di selezione
-  selettoreAnno.changed(filtraDatiPerAnno); 
   // filtra e calcola i dati iniziali
   filtraECalcolaDati(annoCorrente); 
   
@@ -175,8 +152,8 @@ function creaBarraRicerca() {
   let iconaLente = createDiv();
   iconaLente.parent(inputWrapper);
   iconaLente.html(`
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0f0f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="11" cy="11" r="8"></circle>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${bianco}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"></circle>
       <path d="m21 21-4.35-4.35"></path>
     </svg>
   `);
@@ -194,15 +171,17 @@ function creaBarraRicerca() {
   inputRicerca.attribute('placeholder', 'Look up Country or Territory');
   inputRicerca.parent(inputWrapper);
   inputRicerca.style('width', '100%');
-  inputRicerca.style('padding', '20px 20px 18px 50px'); // Aumentato padding a sinistra per l'icona
+  inputRicerca.style('padding', '20px 20px 18px 50px');
   inputRicerca.style('font-size', '20px');
-  inputRicerca.style('border', '1px solid #f0f0f0');
+  inputRicerca.style('border', '1px solid' + bianco);
   inputRicerca.style('border-radius', '30px');
-  inputRicerca.style('background-color', '#26231d');
-  inputRicerca.style('color', '#f0f0f0');
+  inputRicerca.style('background-color', nero);
+  inputRicerca.style('color', bianco);
   inputRicerca.style('outline', 'none');
   inputRicerca.style('box-sizing', 'border-box');
   inputRicerca.style('font-family', 'NeueHaasGrotDisp-55Roman, sans-serif'); 
+  
+  // RIMUOVI IL BOTTONE X DA QUI - lo creeremo separatamente
   
   // Div per i suggerimenti
   suggerimentiDiv = createDiv();
@@ -212,8 +191,8 @@ function creaBarraRicerca() {
   suggerimentiDiv.style('width', '100%');
   suggerimentiDiv.style('max-height', '300px');
   suggerimentiDiv.style('overflow-y', 'auto');
-  suggerimentiDiv.style('background-color', '#26231d');
-  suggerimentiDiv.style('border', '1px solid #f0f0f0');
+  suggerimentiDiv.style('background-color', nero);
+  suggerimentiDiv.style('border', '1px solid' + bianco);
   suggerimentiDiv.style('border-radius', '30px');
   suggerimentiDiv.style('display', 'none');
   suggerimentiDiv.style('z-index', '1001');
@@ -224,7 +203,6 @@ function creaBarraRicerca() {
   inputRicerca.input(mostraSuggerimenti);
   inputRicerca.elt.addEventListener('focus', mostraSuggerimenti);
   inputRicerca.elt.addEventListener('blur', () => {
-    // Aggiungi un piccolo ritardo per permettere il click sul suggerimento
     setTimeout(() => {
       suggerimentiDiv.style('display', 'none');
       suggerimentoSelezionato = -1;
@@ -251,22 +229,85 @@ function creaBarraRicerca() {
       e.preventDefault();
       if (suggerimentoSelezionato >= 0 && suggerimenti[suggerimentoSelezionato]) {
         let paese = suggerimenti[suggerimentoSelezionato].textContent;
-        // Chiama la funzione per navigare
         vaiAPaginaPaese(paese); 
       }
-      // Se Invio viene premuto sull'input senza selezione, filtra per il valore corrente
       else if (inputRicerca.value().trim() !== '') {
-          // Opzionale: Naviga al primo risultato o esegui una ricerca
           let primoSuggerimento = suggerimentiDiv.elt.firstChild;
           if (primoSuggerimento) {
                vaiAPaginaPaese(primoSuggerimento.textContent);
           } else {
-               // Se non ci sono suggerimenti, prova a cercare esattamente ciò che è stato digitato
                vaiAPaginaPaese(inputRicerca.value().trim()); 
           }
       }
     }
   });
+  
+  // CREA IL CONTAINER PER IL NOME DEL PAESE E IL BOTTONE X
+  // Posizionato a destra della barra di ricerca
+  let containerPaeseCercato = createDiv();
+  containerPaeseCercato.id('containerPaeseCercato');
+  containerPaeseCercato.style('position', 'absolute');
+  containerPaeseCercato.style('display', 'none'); // Nascosto inizialmente
+  containerPaeseCercato.style('align-items', 'center');
+  containerPaeseCercato.style('gap', '6px');
+  containerPaeseCercato.style('z-index', '1000');
+  
+  // Nome del paese
+  let nomePaeseDiv = createDiv('');
+  nomePaeseDiv.id('nomePaeseCercato');
+  nomePaeseDiv.parent(containerPaeseCercato);
+  nomePaeseDiv.style('color', bianco);
+  nomePaeseDiv.style('font-family', 'NeueHaasGrotDisp-65Medium, sans-serif');
+  nomePaeseDiv.style('font-size', '20px');
+  nomePaeseDiv.style('white-space', 'nowrap');
+  
+  // Bottone X circolare
+  bottoneCancella = createButton('×');
+  bottoneCancella.parent(containerPaeseCercato);
+  bottoneCancella.style('width', '30px');
+  bottoneCancella.style('height', '30px');
+  bottoneCancella.style('border-radius', '50%');
+  bottoneCancella.style('background-color', nero);
+  bottoneCancella.style('color', bianco);
+  bottoneCancella.style('border', '1px solid' + bianco);
+  bottoneCancella.style('cursor', 'pointer');
+  bottoneCancella.style('font-size', '20px');
+  bottoneCancella.style('display', 'flex');
+  bottoneCancella.style('align-items', 'center');
+  bottoneCancella.style('justify-content', 'center');
+  bottoneCancella.style('padding', '0');
+  bottoneCancella.style('line-height', '1');
+
+  bottoneCancella.mousePressed(() => {
+    paeseCercato = null;
+    inputRicerca.value('');
+    let container = document.getElementById('containerPaeseCercato');
+    if (container) {
+      container.style.display = 'none';
+    }
+  });
+}
+
+// funzione per aggiornare la posizione del container del paese cercato
+function aggiornaPosizioneContainerPaese() {
+  if (paeseCercato === null) return;
+  
+  let container = document.getElementById('containerPaeseCercato');
+  if (!container) return;
+  
+  // Trova il paese cercato nell'array delle posizioni
+  let paese = paesiConPosizioni.find(p => p.nome === paeseCercato);
+  
+  if (paese) {
+    // Posiziona il container a destra della barra del paese
+    let offsetX = 10;
+    container.style.left = (paese.x + paese.raggio + offsetX) + 'px';
+    container.style.top = (paese.y - 15) + 'px'; // Centrato verticalmente rispetto al pallino
+    container.style.display = 'flex';
+  } else {
+    // Se il paese non è trovato (potrebbe essere filtrato), nascondi il container
+    container.style.display = 'none';
+  }
 }
 
 // funzione per mostrare i suggerimenti
@@ -296,7 +337,7 @@ function mostraSuggerimenti() {
     suggDiv.parent(suggerimentiDiv);
     suggDiv.style('padding', '15px 20px 12px 20px');
     suggDiv.style('cursor', 'pointer');
-    suggDiv.style('color', '#f0f0f0');
+    suggDiv.style('color', bianco);
     suggDiv.style('font-size', '18px');
     suggDiv.style('border-bottom', '1px solid #444');
     suggerimentiDiv.style('border-radius', '30px');
@@ -336,12 +377,28 @@ function aggiornaSelezioneSuggerimento(suggerimenti) {
   }
 }
 
-// funzione per navigare alla pagina del paese
+// funzione per filtrare il paese nella visualizzazione
 function vaiAPaginaPaese(paese) {
-  // Codifica il nome del paese per l'URL
-  let paeseEncoded = encodeURIComponent(paese);
-  // Reindirizza alla pagina del paese, assumendo esista un file 'paese.html'
-  window.location.href = `paese.html?country=${paeseEncoded}`; 
+  // Salva il paese cercato
+  paeseCercato = paese;
+  
+  // Nascondi i suggerimenti
+  suggerimentiDiv.style('display', 'none');
+  
+  // Pulisci l'input
+  inputRicerca.value('');
+  
+  // Mostra il container con nome e bottone X
+  let container = document.getElementById('containerPaeseCercato');
+  if (container) {
+    container.style.display = 'flex';
+    
+    // Aggiorna il nome del paese
+    let nomeDiv = document.getElementById('nomePaeseCercato');
+    if (nomeDiv) {
+      nomeDiv.innerHTML = paese;
+    }
+  }
 }
 
 // funzione per navigare alla pagina della regione
@@ -392,10 +449,12 @@ function calcolaMaxPaesiPerRegione() {
   }
 }
 
-// funzione richiamata al cambio di selezione del menu
-function filtraDatiPerAnno() { 
-    annoCorrente = parseInt(selettoreAnno.value()); // aggiorna annoCorrente con il nuovo valore selezionato
-    filtraECalcolaDati(annoCorrente); // ricalcola e ridisegna i dati per il nuovo anno
+// funzione richiamata al cambio di anno tramite scroll
+function cambiaAnno(nuovoIndice) { 
+    if (nuovoIndice >= 0 && nuovoIndice < anniUnici.length) {
+      annoCorrente = anniUnici[nuovoIndice];
+      filtraECalcolaDati(annoCorrente); // ricalcola e ridisegna i dati per il nuovo anno
+    }
 }
 
 // funzione per creare un singolo bottone
@@ -448,7 +507,7 @@ function creaBottone(testo, x, y, colori, tipo) {
   bottone.style('background-origin', 'border-box'); 
   
   // Il colore del testo rimane il colore scuro
-  bottone.style('color', '#26231d');
+  bottone.style('color', nero);
   
   bottone.mousePressed(() => toggleFiltro(tipo));
   
@@ -519,14 +578,13 @@ function aggiornaStileBottone(bottone, attivo, colori) {
   if (attivo) {
     bottone.style('background', gradiente);
     bottone.style('opacity', '1');
-    bottone.style('color', '#26231d');
+    bottone.style('color', nero);
   } else {
     bottone.style('background', 'transparent');
     bottone.style('opacity', '0.8');
-    bottone.style('color', '#f0f0f0');
+    bottone.style('color', bianco);
   }
 }
-
 
 function creaGradiente(x, yInizio, yFine, larghezza, colori) {
   let gradient = drawingContext.createLinearGradient(x, yInizio, x, yFine);
@@ -559,13 +617,14 @@ function filtraECalcolaDati(anno) {
 }
 
 function draw() {
-  background("#26231d");
+  background(nero);
 
   if (datiFiltrati && datiFiltrati.length > 0) {
       disegnaGriglia();
       disegnaBarre();
       disegnaEtichettaAnno();
       disegnaEtichetteHover();
+      aggiornaPosizioneContainerPaese();
   } else {
       fill(255);
       textAlign(CENTER, CENTER);
@@ -585,14 +644,14 @@ function disegnaGriglia() {
     yPositions.push(yLinea); // salva la posizione Y
     
     // Disegna la linea
-    stroke("#f0f0f078");
+    stroke(bianco + 80);
     strokeWeight(1);
     noFill();
     line(50, yLinea, graficoWidth - 50, yLinea);
     
     // Disegna il valore (0 o 100)
     noStroke();
-    fill("#f0f0f078"); 
+    fill(bianco + 80); 
     textAlign(RIGHT, CENTER);
     textSize(12);
     text(valore, 40, yLinea);
@@ -607,7 +666,7 @@ function disegnaGriglia() {
     const yLinea100 = yPositions[1]; // Posizione Y della linea del 100
     
     push();
-    fill("#f0f0f078");
+    fill(bianco + 80);
     textSize(16);
     // Posiziona il testo poco sopra la linea del 100
     translate( 50, yLinea100 - 5); 
@@ -623,6 +682,14 @@ function disegnaBarraSingola(xBarra, riga, larghezzaBarra, indice) {
   let total = riga.getNum('TOTAL');
   let altezzaBarra = map(total, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
   let yCimaBarra = yBarra - altezzaBarra - incremento;
+  
+  let nomePaese = riga.getString('Country/Territory');
+  
+  // Determina l'opacità in base alla ricerca
+  push();
+  if (paeseCercato !== null && nomePaese !== paeseCercato) {
+    drawingContext.globalAlpha = 0.2; // Trasparenza per paesi non cercati
+  }
 
   // Applica il gradiente
   let gradient = creaGradiente(xBarra, yCimaBarra, yBarra, larghezzaBarra, coloriStatus[status]);
@@ -631,15 +698,15 @@ function disegnaBarraSingola(xBarra, riga, larghezzaBarra, indice) {
   arc(xBarra + larghezzaBarra / 2, yCimaBarra, larghezzaBarra, larghezzaBarra, PI, TWO_PI);
   
   // Disegna il cerchio in cima
-  push();
-  fill("#f0f0f0");
+  fill(bianco);
   ellipse(xBarra + larghezzaBarra/2, yCimaBarra, larghezzaBarra, larghezzaBarra);
+  
   pop();
   
-  // AGGIUNGI QUESTO: Salva la posizione del pallino
+  // Salva la posizione del pallino
   paesiConPosizioni.push({
     indice: indice,
-    nome: riga.getString('Country/Territory'),
+    nome: nomePaese,
     x: xBarra + larghezzaBarra/2,
     y: yCimaBarra,
     raggio: larghezzaBarra/2
@@ -847,9 +914,27 @@ function disegnaBarre() {
   noTint(); // Rimuovi il tint per gli elementi successivi
   pop();
   
+  // Salva le aree complete delle regioni (dall'inizio delle barre fino al fondo della torcia)
+  areeRegioni = [];
+  for (let etichetta of etchetteRegioni) {
+    // Trova l'area della torcia corrispondente
+    let areaTorcia = areeTorce.find(a => a.regione === etichetta.regione);
+    
+    if (areaTorcia) {
+      // L'area della regione va dall'inizio delle barre (sopra) fino al fondo della torcia
+      areeRegioni.push({
+        regione: etichetta.regione,
+        x: etichetta.xInizio,
+        y: 150, // Dall'alto della finestra
+        w: etichetta.larghezza,
+        h: height // Fino in fondo
+      });
+    }
+  }
+
   // Disegna le etichette delle regioni alla fine (sopra tutti i livelli e sopra le torce)
   push();
-  fill("#26231d");
+  fill(nero);
   noStroke();
   textAlign(CENTER, CENTER);
   textFont(fontMedium); 
@@ -873,42 +958,135 @@ function disegnaBarre() {
 }
 
 function disegnaEtichettaAnno() {
-  // 1. Sposta l'origine (0,0) nel punto di rotazione
   push(); 
 
   // Imposta lo stile del testo
-  fill("#f0f0f0");
-  textSize(annoWidth*1.3);
-  textFont(fontRegular); 
-  textAlign(CENTER, CENTER); // Allinea il testo al centro
   noStroke();
+  textFont(fontRegular); 
+  textAlign(CENTER, CENTER);
   
-  // Calcolo della posizione xPos per centrare il testo ruotato nell'area annoWidth (che inizia a graficoWidth)
-  // xPos = Inizio area (graficoWidth) + metà larghezza area (annoWidth / 2)
+  // Calcolo della posizione base (punto di rotazione al centro)
   let xPos = graficoWidth + (annoWidth / 2); 
   let yPos = height / 2;
   
   translate(xPos, yPos);
+  // Rotazione di 270 gradi (PI / 2 * 3)
+  // L'asse X ora punta verso l'alto dello schermo.
+  rotate(PI / 2 * 3); 
   
-  // 2. Ruota il sistema di coordinate di 90 gradi in senso orario.
-  rotate(PI / 2 * 3);
+  // --- NUOVA LOGICA DI SPAZIATURA VERTICALE (sull'asse X ruotato) ---
+  const spaziaturaFissaX = 400; 
   
-  // 3. Disegna il testo all'origine traslata (che ora è xPos, yPos)
-  text(annoCorrente, 0, -30); 
+  // *** INVERSIONE CHIAVE: Offset Globale Positivo ***
+  // Quando progressoScroll va da 0 a 1, l'intero blocco si sposta 
+  // di +spaziaturaFissaX, causando lo scorrimento verso il basso.
+  let offsetGlobaleX = map(progressoScroll, 0, 1, 0, spaziaturaFissaX); // POSITIVO!
+  
+  // Calcola l'indice dell'anno corrente
+  let indiceCorrente = anniUnici.indexOf(annoCorrente);
+  
+  // --- ANNO PRECEDENTE (Il più vecchio, esce in alto/sopra) ---
+  if (indiceCorrente > 0) {
+    let annoPrecedente = anniUnici[indiceCorrente - 1]; // Esempio: 2013 quando annoCorrente è 2014
+    
+    // Posizione di base: un "salto" SOPRA la posizione centrale (negativo sull'asse X ruotato)
+    let baseXPrecedente = spaziaturaFissaX; 
+    let finalXPrecedente = baseXPrecedente + offsetGlobaleX;
+    
+    // Dimensione e Opacità: si rimpicciolisce e sfuma (sta uscendo)
+    let dimensionePrecedente = map(progressoScroll, 0, 1, annoWidth * 0.9, annoWidth * 0.7);
+    let opacitaPrecedente = map(progressoScroll, 0, 1, 100, 70);
+    
+    fill(bianco + hex(floor(opacitaPrecedente), 2));
+    textSize(dimensionePrecedente);
+    text(annoPrecedente, finalXPrecedente, -30);
+  }
+  
+  // --- ANNO CORRENTE (L'anno al centro, che transita) ---
+  let baseXCorrente = 0; // Posizione centrale di partenza
+  let finalXCorrente = baseXCorrente + offsetGlobaleX;
 
-  pop(); // Ripristina il sistema di coordinate pre-esistente
+  // Dimensione e Opacità: transita da grande a piccolo
+  let dimensioneCorrente = map(progressoScroll, 0, 1, annoWidth * 1.3, annoWidth * 0.9);
+  let opacitaCorrente = map(progressoScroll, 0, 1, 255, 100);
+  
+  fill(bianco + hex(floor(opacitaCorrente), 2));
+  textSize(dimensioneCorrente);
+  text(annoCorrente, finalXCorrente, -30);
+  
+  // --- ANNO SUCCESSIVO (Il più recente, entra dal basso/sotto) ---
+  if (indiceCorrente < anniUnici.length - 1) {
+    let annoSuccessivo = anniUnici[indiceCorrente + 1]; // Esempio: 2015 quando annoCorrente è 2014
+    
+    // Posizione di base: un "salto" SOTTO la posizione centrale (positivo sull'asse X ruotato)
+    let baseXSuccessivo = -spaziaturaFissaX;
+    let finalXSuccessivo = baseXSuccessivo + offsetGlobaleX;
+    
+    // Dimensione e Opacità: resta piccolo e trasparente (sta aspettando di entrare)
+    let dimensioneSuccessivo = map(progressoScroll, 0, 1, annoWidth * 0.7, annoWidth * 1.3); 
+    let opacitaSuccessivo = map(progressoScroll, 0, 1, 70, 100);  
+
+    fill(bianco + hex(floor(opacitaSuccessivo), 2));
+    textSize(dimensioneSuccessivo);
+    text(annoSuccessivo, finalXSuccessivo, -30);
+  }
+
+  pop();
 }
 
 // Funzione per gestire il movimento del mouse
 function mouseMoved() {
-  // Controlla se il mouse è sopra una torcia
   let nuovaRegioneHover = null;
+  let cursoreDaMostrare = ARROW;
   
-  for (let area of areeTorce) {
+  // PRIORITÀ 1: Controlla se il mouse è sopra il paese cercato
+  if (paeseCercato !== null) {
+    let paese = paesiConPosizioni.find(p => p.nome === paeseCercato);
+    
+    if (paese) {
+      // Trova i dati completi della barra
+      for (let i = 0; i < datiFiltrati.length; i++) {
+        let riga = datiFiltrati[i];
+        if (riga.getString('Country/Territory') === paeseCercato) {
+          let total = riga.getNum('TOTAL');
+          let altezzaBarra = map(total, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
+          let yCimaBarra = yBarra - altezzaBarra - incremento;
+          
+          // Verifica se il mouse è dentro la barra rettangolare
+          if (mouseX >= paese.x - paese.raggio && 
+              mouseX <= paese.x + paese.raggio &&
+              mouseY >= yCimaBarra && 
+              mouseY <= yBarra) {
+            cursor(HAND);
+            return;
+          }
+          
+          // Verifica se il mouse è sul pallino in cima
+          let distanza = dist(mouseX, mouseY, paese.x, paese.y);
+          if (distanza <= paese.raggio) {
+            cursor(HAND);
+            return;
+          }
+          
+          break;
+        }
+      }
+    }
+  }
+  
+  // PRIORITÀ 2: Controlla le aree complete delle regioni (barre + torce)
+  for (let area of areeRegioni) {
     if (mouseX >= area.x && mouseX <= area.x + area.w &&
         mouseY >= area.y && mouseY <= area.y + area.h) {
       nuovaRegioneHover = area.regione;
-      cursor(HAND);
+      
+      // Se il mouse è nell'area delle torce, mostra la mano
+      let areaTorcia = areeTorce.find(a => a.regione === area.regione);
+      if (areaTorcia && 
+          mouseY >= areaTorcia.y && 
+          mouseY <= areaTorcia.y + areaTorcia.h) {
+        cursoreDaMostrare = HAND;
+      }
       break;
     }
   }
@@ -918,10 +1096,8 @@ function mouseMoved() {
     regioneHover = nuovaRegioneHover;
   }
   
-  // Se non c'è hover, ripristina il cursore
-  if (regioneHover === null) {
-    cursor(ARROW);
-  }
+  // Imposta il cursore appropriato
+  cursor(cursoreDaMostrare);
 }
 
 // Funzione per aggiornare gradualmente le opacità
@@ -949,11 +1125,57 @@ function aggiornaOpacita(regioni) {
 
 // Funzione per gestire il click del mouse
 function mousePressed() {
-  // Controlla se è stato cliccato su una torcia
-  for (let area of areeTorce) {
+  // PRIORITÀ 1: Controlla se è stato cliccato sul paese cercato
+  if (paeseCercato !== null) {
+    let paese = paesiConPosizioni.find(p => p.nome === paeseCercato);
+    
+    if (paese) {
+      // Controlla se il click è sulla barra rettangolare
+      // Trova i dati completi della barra
+      for (let i = 0; i < datiFiltrati.length; i++) {
+        let riga = datiFiltrati[i];
+        if (riga.getString('Country/Territory') === paeseCercato) {
+          let total = riga.getNum('TOTAL');
+          let altezzaBarra = map(total, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
+          let yCimaBarra = yBarra - altezzaBarra - incremento;
+          
+          // Verifica se il click è dentro la barra rettangolare
+          if (mouseX >= paese.x - paese.raggio && 
+              mouseX <= paese.x + paese.raggio &&
+              mouseY >= yCimaBarra && 
+              mouseY <= yBarra) {
+            
+            const countryNameEncoded = encodeURIComponent(paeseCercato);
+            window.location.href = `paese.html?country=${countryNameEncoded}&year=${annoCorrente}`;
+            return;
+          }
+          
+          // Verifica se il click è sul pallino in cima
+          let distanza = dist(mouseX, mouseY, paese.x, paese.y);
+          if (distanza <= paese.raggio) {
+            const countryNameEncoded = encodeURIComponent(paeseCercato);
+            window.location.href = `paese.html?country=${countryNameEncoded}&year=${annoCorrente}`;
+            return;
+          }
+          
+          break;
+        }
+      }
+    }
+  }
+  
+  // PRIORITÀ 2: Controlla se è stato cliccato su un'area di una regione
+  for (let area of areeRegioni) {
     if (mouseX >= area.x && mouseX <= area.x + area.w &&
         mouseY >= area.y && mouseY <= area.y + area.h) {
-      vaiAPaginaRegione(area.regione);
+      
+      // Verifica che il click sia nell'area della torcia (sotto le barre)
+      let areaTorcia = areeTorce.find(a => a.regione === area.regione);
+      if (areaTorcia && 
+          mouseY >= areaTorcia.y && 
+          mouseY <= areaTorcia.y + areaTorcia.h) {
+        vaiAPaginaRegione(area.regione);
+      }
       break;
     }
   }
@@ -990,9 +1212,9 @@ function creaBottoniNavigazione() {
   bottoneFH.style('width', diametroBottone + 'px');
   bottoneFH.style('height', diametroBottone + 'px');
   bottoneFH.style('border-radius', '50%'); // Rende il bottone circolare
-  bottoneFH.style('background-color', '#26231d'); 
-  bottoneFH.style('color', '#f0f0f0');
-  bottoneFH.style('border', '1px solid #f0f0f0');
+  bottoneFH.style('background-color', nero); 
+  bottoneFH.style('color', bianco);
+  bottoneFH.style('border', '1px solid' + bianco);
   bottoneFH.style('text-align', 'center');
   bottoneFH.style('line-height', diametroBottone + 'px'); // Centra il testo verticalmente
   bottoneFH.style('font-size', '18px');
@@ -1013,9 +1235,9 @@ function creaBottoniNavigazione() {
   bottoneUS.style('width', diametroBottone + 'px');
   bottoneUS.style('height', diametroBottone + 'px');
   bottoneUS.style('border-radius', '50%'); 
-  bottoneUS.style('background-color', '#26231d'); 
-  bottoneUS.style('color', '#f0f0f0');
-  bottoneUS.style('border', '1px solid #f0f0f0');
+  bottoneUS.style('background-color', nero);
+  bottoneUS.style('color', bianco);
+  bottoneUS.style('border', '1px solid' + bianco);
   bottoneUS.style('text-align', 'center');
   bottoneUS.style('line-height', diametroBottone + 'px'); 
   bottoneUS.style('font-size', '18px');
@@ -1040,7 +1262,7 @@ function disegnaEtichetteHover() {
   push();
   
   // Disegna il testo del nome del paese
-  fill('#f0f0f0');
+  fill(bianco);
   noStroke();
   textSize(20);
   textFont(fontMedium);
@@ -1051,4 +1273,55 @@ function disegnaEtichetteHover() {
   text(paeseHover.nome, paeseHover.x + offsetX, paeseHover.y);
   
   pop();
+}
+
+// funzione per disegnare l'etichetta del paese cercato
+function disegnaEtichettaPaeseCercato() {
+  if (paeseCercato === null) return;
+  
+  // Trova il paese cercato nell'array delle posizioni
+  let paese = paesiConPosizioni.find(p => p.nome === paeseCercato);
+  if (!paese) return;
+  
+  push();
+  
+  // Disegna il testo del nome del paese A SINISTRA del pallino
+  fill(bianco);
+  noStroke();
+  textSize(20);
+  textFont(fontMedium);
+  textAlign(RIGHT, CENTER); // ALLINEAMENTO A DESTRA per posizionare a sinistra del pallino
+  
+  // Posiziona il testo a SINISTRA del pallino
+  let offsetX = 15;
+  text(paese.nome, paese.x - offsetX, paese.y);
+  
+  pop();
+}
+
+// Funzione per gestire lo scroll del mouse
+function mouseWheel(event) {
+  // Accumula lo scroll
+  scrollAccumulato += event.delta;
+  
+  // Limita lo scroll ai limiti degli anni
+  let scrollMin = 0;
+  let scrollMax = (anniUnici.length - 1) * pixelPerAnno;
+  scrollAccumulato = constrain(scrollAccumulato, scrollMin, scrollMax);
+  
+  // Calcola l'indice dell'anno e il progresso
+  let indiceEsatto = scrollAccumulato / pixelPerAnno;
+  let indiceAnno = floor(indiceEsatto);
+  progressoScroll = indiceEsatto - indiceAnno; // Valore tra 0 e 1
+  
+  // Limita l'indice tra 0 e il numero massimo di anni
+  indiceAnno = constrain(indiceAnno, 0, anniUnici.length - 1);
+  
+  // Se l'anno è cambiato, aggiorna
+  if (anniUnici[indiceAnno] !== annoCorrente) {
+    cambiaAnno(indiceAnno);
+  }
+  
+  // Previeni lo scroll della pagina
+  return false;
 }

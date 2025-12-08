@@ -51,9 +51,14 @@ let suggerimentoSelezionato = -1;
 // variabili per i nuovi bottoni in alto a destra
 let bottoneUS;
 let bottoneFH;
+let bottoneBack; // bottone per tornare indietro
 
 // Aggiungi dopo le altre variabili globali
 let paragrafiRegioni;
+
+// colori
+let nero ="#26231d";
+let bianco = "#eaead8";
 
 // colori per status con gradienti
 let coloriStatus = {
@@ -65,10 +70,9 @@ let coloriStatus = {
 function preload() {
   data = loadTable("assets/FH_dataset.csv", "csv", "header");
   torcia = loadImage("img/torcia.png");
-  // Assicurati che questi percorsi font/ siano corretti nel tuo progetto
-  fontRegular = loadFont("font/NeueHaasGrotDisp-55Roman.otf");
-  fontMedium = loadFont("font/NeueHaasGrotDisp-65Medium.otf");
-  fontBold = loadFont("font/NeueHaasGrotDisp-75Bold.otf");
+  fontRegular = loadFont("font/NeueHaasDisplayRoman.ttf");
+  fontMedium = loadFont("font/NeueHaasDisplayMedium.ttf");
+  fontBold = loadFont("font/NeueHaasDisplayBold.ttf");
 }
 
 function setup() {
@@ -104,6 +108,26 @@ function setup() {
   selettoreAnno.style('font-size', '16px');
   selettoreAnno.style('z-index', '1000');
   
+    // NUOVA POSIZIONE: sotto i bottoni US e FH
+  const diametroBottone = 60;
+  const spaziaturaTraBottoni = 20;
+  let xFH = width - diametroBottone - 25;
+  let xUS = xFH - diametroBottone - spaziaturaTraBottoni;
+  
+  // Posiziona il selettore sotto il bottone US (più a sinistra)
+  let xSelettore = xUS;
+  let ySelettore = 30 + diametroBottone + 20; // 30 (yPos bottoni) + 60 (diametro) + 20 (spaziatura)
+  
+  selettoreAnno.position(xSelettore, ySelettore);
+  selettoreAnno.style('padding', '8px');
+  selettoreAnno.style('font-size', '16px');
+  selettoreAnno.style('z-index', '1000');
+  selettoreAnno.style('background-color', nero);
+  selettoreAnno.style('color', bianco);
+  selettoreAnno.style('border', '1px solid' + bianco);
+  selettoreAnno.style('border-radius', '5px');
+  selettoreAnno.style('font-family', 'NeueHaasGrotDisp-55Roman, sans-serif');
+
   // aggiunge le opzioni al menu
   for (let anno of anniUnici) { 
     if (!isNaN(anno)) {
@@ -137,6 +161,8 @@ function setup() {
   
   // CREA I BOTTONI FILTRO STATUS
   creaBottoniFiltro();
+
+  creaBottoneBack();
   
   // CREA I BOTTONI FILTRO COUNTRIES/TERRITORIES
   creaBottoniCountriesTerritori();
@@ -189,8 +215,8 @@ function creaBarraRicerca() {
   let iconaLente = createDiv();
   iconaLente.parent(inputWrapper);
   iconaLente.html(`
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0f0f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="11" cy="11" r="8"></circle>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${bianco}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"></circle>
       <path d="m21 21-4.35-4.35"></path>
     </svg>
   `);
@@ -210,10 +236,10 @@ function creaBarraRicerca() {
   inputRicerca.style('width', '100%');
   inputRicerca.style('padding', '20px 20px 18px 50px'); // Aumentato padding a sinistra per l'icona
   inputRicerca.style('font-size', '20px');
-  inputRicerca.style('border', '1px solid #f0f0f0');
+  inputRicerca.style('border', '1px solid' + bianco);
   inputRicerca.style('border-radius', '30px');
-  inputRicerca.style('background-color', '#26231d');
-  inputRicerca.style('color', '#f0f0f0');
+  inputRicerca.style('background-color', nero);
+  inputRicerca.style('color', bianco);
   inputRicerca.style('outline', 'none');
   inputRicerca.style('box-sizing', 'border-box');
   inputRicerca.style('font-family', 'NeueHaasGrotDisp-55Roman, sans-serif'); 
@@ -226,8 +252,8 @@ function creaBarraRicerca() {
   suggerimentiDiv.style('width', '100%');
   suggerimentiDiv.style('max-height', '300px');
   suggerimentiDiv.style('overflow-y', 'auto');
-  suggerimentiDiv.style('background-color', '#26231d');
-  suggerimentiDiv.style('border', '1px solid #f0f0f0');
+  suggerimentiDiv.style('background-color', nero);
+  suggerimentiDiv.style('border', '1px solid' + bianco);
   suggerimentiDiv.style('border-radius', '30px');
   suggerimentiDiv.style('display', 'none');
   suggerimentiDiv.style('z-index', '1001');
@@ -310,7 +336,7 @@ function mostraSuggerimenti() {
     suggDiv.parent(suggerimentiDiv);
     suggDiv.style('padding', '15px 20px 12px 20px');
     suggDiv.style('cursor', 'pointer');
-    suggDiv.style('color', '#f0f0f0');
+    suggDiv.style('color', bianco);
     suggDiv.style('font-size', '18px');
     suggDiv.style('border-bottom', '1px solid #444');
     suggerimentiDiv.style('border-radius', '30px');
@@ -425,12 +451,12 @@ function creaBottone(testo, x, y, colori, tipo) {
     gradienteBordo = `linear-gradient(45deg, ${colori[0]}, ${colori[1]})`; 
   }
   
-  bottone.style('background', `${gradienteBordo}, linear-gradient(${colori[2] || '#26231d'}, ${colori[2] || '#26231d'})`);
+  bottone.style('background', `${gradienteBordo}, linear-gradient(${colori[2] || nero}, ${colori[2] || nero})`);
   bottone.style('border-width', '2px');
   bottone.style('border-style', 'solid');
   bottone.style('background-clip', 'padding-box, border-box');
   bottone.style('background-origin', 'border-box'); 
-  bottone.style('color', '#26231d');
+  bottone.style('color', nero);
   
   bottone.mousePressed(() => toggleFiltro(tipo));
   
@@ -496,12 +522,12 @@ function creaBottoniCountriesTerritori() {
   [bottoneCountries, bottoneTerritories].forEach(bottone => {
     bottone.style('cursor', 'pointer');
     bottone.style('border-radius', '30px');
-    bottone.style('background', '#26231d'); // Sfondo Nero
+    bottone.style('background', nero);
     bottone.style('display', 'flex');
     bottone.style('align-items', 'center');
     bottone.style('justify-content', 'center');
     bottone.style('transition', 'all 0.3s ease');
-    bottone.style('border', '1px solid #f0f0f0'); // Bordo Bianco
+    bottone.style('border', '1px solid' + bianco);
     bottone.style('z-index', '1001');
   });
   
@@ -559,21 +585,21 @@ function aggiornaStileBottone(bottone, attivo, colori) {
   if (attivo) {
     bottone.style('background', gradiente);
     bottone.style('opacity', '1');
-    bottone.style('color', '#26231d');
+    bottone.style('color', nero);
   } else {
     bottone.style('background', 'transparent');
     bottone.style('opacity', '0.8');
-    bottone.style('color', '#f0f0f0');
+    bottone.style('color', bianco);
   }
 }
 
 // FUNZIONE per aggiornare lo stile dei bottoni Countries/Territories
 function aggiornaStileBottoneCountriesTerritori() {
   // Colori di riferimento
-  const COLORE_ATTIVO = '#f0f0f0'; // Bianco (sfondo attivo)
-  const COLORE_INATTIVO = '#26231d'; // Nero (sfondo inattivo)
-  const BORDO_ATTIVO = '1px solid #26231d'; // Bordo nero quando attivo
-  const BORDO_INATTIVO = '1px solid #f0f0f0'; // Bordo bianco quando inattivo
+  const COLORE_ATTIVO = bianco; // Bianco (sfondo attivo)
+  const COLORE_INATTIVO = nero; // Nero (sfondo inattivo)
+  const BORDO_ATTIVO = '1px solid' + nero; // Bordo nero quando attivo
+  const BORDO_INATTIVO = '1px solid' + bianco; // Bordo bianco quando inattivo
   
   // Bottone Countries
   if (filtroCountries === 'c') {
@@ -618,7 +644,7 @@ function creaGradiente(x, yInizio, yFine, larghezza, colori) {
 }
 
 function draw() {
-  background("#26231d");
+  background(nero);
   drawTitle();
   drawBoxes();
   
@@ -627,6 +653,17 @@ function draw() {
     disegnaBarre();
     disegnaTorciaRegione();
     disegnaEtichetteHover();
+    
+    // AGGIUNGI QUESTA PARTE:
+    // Aggiorna il box info in base all'hover
+    if (indiceHover !== -1) {
+      let paeseHover = paesiConPosizioni.find(p => p.indice === indiceHover);
+      if (paeseHover) {
+        aggiornaBoxInfoPaese(paeseHover);
+      }
+    } else {
+      aggiornaBoxInfoPaese(null);
+    }
   }
   
   disegnaEtichettaAnno();
@@ -634,12 +671,12 @@ function draw() {
 
 function drawTitle(){
   push();
-  fill('#f0f0f0');
+  fill(bianco);
   noStroke();
-  textSize(100);
+  textSize(80);
   textFont(fontMedium);
   textAlign(LEFT, TOP);
-  text(regioneCorrente, 40, 20); 
+  text(regioneCorrente, 120, 35); 
   pop();
 }
 
@@ -656,8 +693,8 @@ function drawBoxes() {
   
   // Stile box
   strokeWeight(1);
-  stroke('#f0f0f0');
-  fill('#26231d');
+  stroke(bianco);
+  fill(nero);
   let radius = 30;
   
   // primo box a sinistra
@@ -668,7 +705,7 @@ function drawBoxes() {
   
   // AGGIUNGI IL TESTO DINAMICO NEL BOX IN BASSO A SINISTRA
   push();
-  fill('#f0f0f0');
+  fill(bianco);
   noStroke();
   textSize(16);
   textFont(fontRegular);
@@ -716,7 +753,7 @@ function disegnaBarraSingola(xBarra, riga, larghezzaBarra, opacita) {
   arc(xBarra + larghezzaBarra / 2, yCimaBarra, larghezzaBarra, larghezzaBarra, PI, TWO_PI);
   
   // Disegna il cerchio in cima
-  fill("#f0f0f0");
+  fill(bianco);
   ellipse(xBarra + larghezzaBarra/2, yCimaBarra, larghezzaBarra, larghezzaBarra);
   pop();
 }
@@ -766,6 +803,9 @@ function disegnaBarre() {
   
   let indiceGlobale = 0; // Per tracciare l'indice globale
   
+  // Array temporaneo per memorizzare le barre in ordine di disegno
+  let barreInOrdine = [];
+  
   // LIVELLO 1: Disegna prima tutti i paesi LIBERI (F)
   if (filtroF && numF > 0) {
     let larghezzaTotaleF = numF * larghezzaBarra;
@@ -792,22 +832,28 @@ function disegnaBarre() {
       
       disegnaBarraSingola(xBarra, paesiF[i], larghezzaBarra, opacita);
       
-      // Memorizza la posizione del pallino per il rilevamento hover
+      // Memorizza la posizione completa della barra per il rilevamento hover
       let total = paesiF[i].getNum('TOTAL');
       let altezzaBarra = map(total, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
       let yCimaBarra = yBarra - altezzaBarra - incremento;
       
-      // Per i paesi F (trova e modifica):
-      paesiConPosizioni.push({
-        x: xBarra + larghezzaBarra/2,
+      // Memorizza con coordinate complete della barra
+      let barraDati = {
+        x: xBarra,
         y: yCimaBarra,
+        larghezza: larghezzaBarra,
+        altezza: altezzaBarra + incremento,
+        centroPallinoX: xBarra + larghezzaBarra/2,
+        centroPallinoY: yCimaBarra,
         raggio: larghezzaBarra/2,
         nome: paesiF[i].getString('Country/Territory'),
         score: paesiF[i].getNum('TOTAL'),
-        pr: paesiF[i].getNum('PR'),  // AGGIUNGI
-        cl: paesiF[i].getNum('CL'),  // AGGIUNGI
+        pr: paesiF[i].getNum('PR'),
+        cl: paesiF[i].getNum('CL'),
         indice: indiceGlobale
-      });
+      };
+      
+      barreInOrdine.push(barraDati);
       
       indiceGlobale++;
     }
@@ -837,22 +883,27 @@ function disegnaBarre() {
       
       disegnaBarraSingola(xBarra, paesiPF[i], larghezzaBarra, opacita);
       
-      // Memorizza la posizione del pallino
+      // Memorizza la posizione completa della barra
       let total = paesiPF[i].getNum('TOTAL');
       let altezzaBarra = map(total, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
       let yCimaBarra = yBarra - altezzaBarra - incremento;
       
-      // Ripeti per PF:
-      paesiConPosizioni.push({
-        x: xBarra + larghezzaBarra/2,
+      let barraDati = {
+        x: xBarra,
         y: yCimaBarra,
+        larghezza: larghezzaBarra,
+        altezza: altezzaBarra + incremento,
+        centroPallinoX: xBarra + larghezzaBarra/2,
+        centroPallinoY: yCimaBarra,
         raggio: larghezzaBarra/2,
         nome: paesiPF[i].getString('Country/Territory'),
         score: paesiPF[i].getNum('TOTAL'),
-        pr: paesiPF[i].getNum('PR'),  // AGGIUNGI
-        cl: paesiPF[i].getNum('CL'),  // AGGIUNGI
+        pr: paesiPF[i].getNum('PR'),
+        cl: paesiPF[i].getNum('CL'),
         indice: indiceGlobale
-      });
+      };
+      
+      barreInOrdine.push(barraDati);
       
       indiceGlobale++;
     }
@@ -882,25 +933,35 @@ function disegnaBarre() {
       
       disegnaBarraSingola(xBarra, paesiNF[i], larghezzaBarra, opacita);
       
-      // Memorizza la posizione del pallino
+      // Memorizza la posizione completa della barra
       let total = paesiNF[i].getNum('TOTAL');
       let altezzaBarra = map(total, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
       let yCimaBarra = yBarra - altezzaBarra - incremento;
       
-      paesiConPosizioni.push({
-        x: xBarra + larghezzaBarra/2,
+      let barraDati = {
+        x: xBarra,
         y: yCimaBarra,
+        larghezza: larghezzaBarra,
+        altezza: altezzaBarra + incremento,
+        centroPallinoX: xBarra + larghezzaBarra/2,
+        centroPallinoY: yCimaBarra,
         raggio: larghezzaBarra/2,
         nome: paesiNF[i].getString('Country/Territory'),
         score: paesiNF[i].getNum('TOTAL'),
-        pr: paesiNF[i].getNum('PR'),  // AGGIUNGI
-        cl: paesiNF[i].getNum('CL'),  // AGGIUNGI
+        pr: paesiNF[i].getNum('PR'),
+        cl: paesiNF[i].getNum('CL'),
         indice: indiceGlobale
-      });
+      };
+      
+      barreInOrdine.push(barraDati);
       
       indiceGlobale++;
     }
   }
+  
+  // Ora che abbiamo tutte le barre nell'ordine di disegno,
+  // le copiamo in paesiConPosizioni (saranno controllate in ordine inverso per l'hover)
+  paesiConPosizioni = barreInOrdine;
 }
 
 // FUNZIONE per disegnare la torcia della regione
@@ -940,7 +1001,7 @@ function disegnaEtichettaAnno() {
   push(); 
 
   // Imposta lo stile del testo
-  fill("#f0f0f0");
+  fill(bianco);
   textSize(annoWidth * 1.3);
   textFont(fontRegular); 
   textAlign(CENTER, CENTER);
@@ -961,7 +1022,7 @@ function disegnaEtichettaAnno() {
   pop();
 }
 
-// NUOVA FUNZIONE per generare il contenuto HTML dei bottoni Countries e Territories
+// generare il contenuto HTML dei bottoni Countries e Territories
 function aggiornaContenutoBottoniCountriesTerritori() {
   // 1. Conta i paesi (C) e i territori (T)
   let numCountries = 0;
@@ -980,9 +1041,9 @@ function aggiornaContenutoBottoniCountriesTerritori() {
   let maxNumWidth = '120px'; 
   
   // Colore del testo in base allo stato del filtro
-  // Se attivo è '#26231d' (nero), se inattivo è '#f0f0f0' (bianco)
-  const colorC = filtroCountries === 'c' ? '#26231d' : '#f0f0f0';
-  const colorT = filtroCountries === 't' ? '#26231d' : '#f0f0f0';
+  // Se attivo è nero, se inattivo è bianco
+  const colorC = filtroCountries === 'c' ? nero : bianco;
+  const colorT = filtroCountries === 't' ? nero : bianco;
   
   // 2. Genera il contenuto HTML per il bottone Countries
   let htmlCountries = `
@@ -1041,61 +1102,77 @@ function aggiornaContenutoBottoniCountriesTerritori() {
   bottoneTerritories.html(htmlTerritories);
 }
 
-// NUOVA FUNZIONE per disegnare le etichette dei paesi in hover
+// disegnare le etichette dei paesi in hover
 function disegnaEtichetteHover() {
   if (indiceHover === -1) return;
   
-  // Trova il paese in hover
   let paeseHover = paesiConPosizioni.find(p => p.indice === indiceHover);
   if (!paeseHover) return;
   
   push();
-  
-  // Disegna il testo del nome del paese
-  fill('#f0f0f0');
+  fill(bianco);
   noStroke();
   textSize(20);
   textFont(fontMedium);
   textAlign(LEFT, CENTER);
   
-  // Posiziona il testo a destra del pallino
   let offsetX = 15;
-  text(paeseHover.nome, paeseHover.x + offsetX, paeseHover.y);
+  text(paeseHover.nome, paeseHover.centroPallinoX + offsetX, paeseHover.centroPallinoY);
   
   pop();
 }
 
-// NUOVA FUNZIONE per gestire il click del mouse
 function mouseClicked() {
-  // Controlla se il mouse è sopra qualche pallino
-  for (let paese of paesiConPosizioni) {
-    let distanza = dist(mouseX, mouseY, paese.x, paese.y);
-    // Usiamo un'area di click leggermente più grande (raggio + 5) per facilitare
-    if (distanza < paese.raggio + 5) { 
+  // Controlla se il mouse è sopra qualche barra (in ordine inverso)
+  for (let i = paesiConPosizioni.length - 1; i >= 0; i--) {
+    let barra = paesiConPosizioni[i];
+    
+    // Controlla se il click è dentro la barra rettangolare
+    if (mouseX >= barra.x && 
+        mouseX <= barra.x + barra.larghezza &&
+        mouseY >= barra.y && 
+        mouseY <= yBarra) {
       
-      // Codifica il nome del paese per l'URL (es. "South Sudan" -> "South%20Sudan")
-      const countryNameEncoded = encodeURIComponent(paese.nome);
-      
-      // Costruisci l'URL di destinazione
-      // Passiamo il nome del paese e l'anno corrente come parametri
+      const countryNameEncoded = encodeURIComponent(barra.nome);
       const destinazioneURL = `paese.html?country=${countryNameEncoded}&year=${annoCorrente}`;
-      
-      // Reindirizza l'utente
       window.location.href = destinazioneURL;
-      
-      return; // Ferma il loop dopo il reindirizzamento
+      return;
+    }
+    
+    // Se non è nella barra, controlla il pallino
+    let distanza = dist(mouseX, mouseY, barra.centroPallinoX, barra.centroPallinoY);
+    if (distanza < barra.raggio + 5) {
+      const countryNameEncoded = encodeURIComponent(barra.nome);
+      const destinazioneURL = `paese.html?country=${countryNameEncoded}&year=${annoCorrente}`;
+      window.location.href = destinazioneURL;
+      return;
     }
   }
 }
 
-// Aggiorna mouseMoved() per aggiornare il box info
 function mouseMoved() {
-  // Prima controlla i pallini
+  // Prima controlla le barre (in ordine inverso per dare priorità alle ultime disegnate)
   let trovato = false;
-  for (let paese of paesiConPosizioni) {
-    let distanza = dist(mouseX, mouseY, paese.x, paese.y);
-    if (distanza <= paese.raggio) {
-      indiceHover = paese.indice;
+  
+  // Scorri l'array al contrario per dare priorità alle barre in primo piano
+  for (let i = paesiConPosizioni.length - 1; i >= 0; i--) {
+    let barra = paesiConPosizioni[i];
+    
+    // Controlla se il mouse è dentro la barra rettangolare
+    if (mouseX >= barra.x && 
+        mouseX <= barra.x + barra.larghezza &&
+        mouseY >= barra.y && 
+        mouseY <= yBarra) {
+      indiceHover = barra.indice;
+      trovato = true;
+      cursor(HAND);
+      break;
+    }
+    
+    // Se non è nella barra, controlla il pallino in cima
+    let distanza = dist(mouseX, mouseY, barra.centroPallinoX, barra.centroPallinoY);
+    if (distanza <= barra.raggio) {
+      indiceHover = barra.indice;
       trovato = true;
       cursor(HAND);
       break;
@@ -1170,8 +1247,8 @@ function creaBoxInfoPaese() {
   
   // Stile del box (rimane invariato)
   boxInfoPaese.style('border-radius', '30px');
-  boxInfoPaese.style('background', '#26231d');
-  boxInfoPaese.style('border', '1px solid #f0f0f0');
+  boxInfoPaese.style('background', nero);
+  boxInfoPaese.style('border', '1px solid' + bianco);
   boxInfoPaese.style('display', 'flex');
   boxInfoPaese.style('flex-direction', 'column');
   boxInfoPaese.style('align-items', 'center');
@@ -1187,7 +1264,7 @@ function creaBoxInfoPaese() {
 
 function aggiornaBoxInfoPaese(paeseData) {
   // Colore di sfondo del box
-  const COLOR_BACKGROUND = '#26231d'; 
+  const COLOR_BACKGROUND = nero; 
 
   // Colori fissi per PR e CL
   let colorPR = '#E0B8B8'; 
@@ -1203,8 +1280,9 @@ function aggiornaBoxInfoPaese(paeseData) {
         justify-content: center;
         width: 100%;
         height: 100%;
-        color: #f0f0f0;
-        font-family: 'NeueHaasGrotDisp-55Roman', sans-serif;
+        color: ${bianco};
+        font-family: 'NeueHaasDisplay', sans-serif;
+        font-weight: normal;                   
         font-size: 18px;
         opacity: 0.5;
       ">
@@ -1238,10 +1316,10 @@ function aggiornaBoxInfoPaese(paeseData) {
         box-sizing: border-box;
       ">
         
-        <!-- Nome del Paese - Altezza fissa -->
         <div style="
-          color: #f0f0f0;
-          font-family: 'NeueHaasGrotDisp-65Medium', sans-serif;
+          color: ${bianco};
+          font-family: 'NeueHaasDisplay', sans-serif;
+          font-weight: medium;                    
           font-size: 35px;
           line-height: 1;
           text-align: left;
@@ -1253,7 +1331,6 @@ function aggiornaBoxInfoPaese(paeseData) {
           ${paeseData.nome}
         </div>
         
-        <!-- Container per Grafico e Punteggi - Posizione fissa -->
         <div style="
           display: flex;
           align-items: center;
@@ -1263,7 +1340,6 @@ function aggiornaBoxInfoPaese(paeseData) {
           flex: 1;
         ">
           
-          <!-- Grafico a torta -->
           <div style="
             width: 180px;
             height: 180px;
@@ -1273,7 +1349,6 @@ function aggiornaBoxInfoPaese(paeseData) {
             flex-shrink: 0;
           "></div>
           
-          <!-- Colonna Punteggi (allineata in altezza al grafico) -->
           <div style="
             display: flex;
             flex-direction: column;
@@ -1283,7 +1358,6 @@ function aggiornaBoxInfoPaese(paeseData) {
             height: 180px;
           ">
             
-            <!-- Box PR -->
             <div style="
               background: ${colorPR};
               border-radius: 15px;
@@ -1293,13 +1367,13 @@ function aggiornaBoxInfoPaese(paeseData) {
               justify-content: center;
             ">
               <span style="
-                color: #26231d;
-                font-family: 'NeueHaasGrotDisp-75Bold', sans-serif;
-                font-size: 12px;
+                color: ${nero};
+                font-family: 'NeueHaasDisplay', sans-serif;
+                font-weight: medium;                     
+                font-size: 14px;
               ">PR</span>
             </div>
             
-            <!-- Box CL -->
             <div style="
               background: ${colorCL};
               border-radius: 15px;
@@ -1309,13 +1383,13 @@ function aggiornaBoxInfoPaese(paeseData) {
               justify-content: center;
             ">
               <span style="
-                color: #26231d;
-                font-family: 'NeueHaasGrotDisp-75Bold', sans-serif;
-                font-size: 12px;
+                color: ${nero};
+                font-family: 'NeueHaasDisplay', sans-serif; 
+                font-weight: medium;                        
+                font-size: 14px;
               ">CL</span>
             </div>
             
-            <!-- Total Score -->
             <div style="
               display: flex;
               flex-direction: column;
@@ -1324,14 +1398,17 @@ function aggiornaBoxInfoPaese(paeseData) {
               margin-top: 5px;
             ">
               <span style="
-                color: #f0f0f0;
-                font-family: 'NeueHaasGrotDisp-55Roman', sans-serif;
+                color: ${bianco};
+                font-family: 'NeueHaasDisplay', sans-serif; 
+                font-weight: normal;                     
                 font-size: 16px;
                 line-height: 1.1;
               ">TOTAL<br>SCORE</span>
+              
               <span style="
-                color: #f0f0f0;
-                font-family: 'NeueHaasGrotDisp-65Medium', sans-serif;
+                color: ${bianco};
+                font-family: 'NeueHaasDisplay', sans-serif; 
+                font-weight: medium;                  
                 font-size: 90px;
                 line-height: 0.8;
               ">${totalScore}</span>
@@ -1387,9 +1464,9 @@ function creaBottoniNavigazione() {
   bottoneFH.style('width', diametroBottone + 'px');
   bottoneFH.style('height', diametroBottone + 'px');
   bottoneFH.style('border-radius', '50%'); // Rende il bottone circolare
-  bottoneFH.style('background-color', '#26231d'); 
-  bottoneFH.style('color', '#f0f0f0');
-  bottoneFH.style('border', '1px solid #f0f0f0');
+  bottoneFH.style('background-color', nero); 
+  bottoneFH.style('color', bianco);
+  bottoneFH.style('border', '1px solid' + bianco);
   bottoneFH.style('text-align', 'center');
   bottoneFH.style('line-height', diametroBottone + 'px'); // Centra il testo verticalmente
   bottoneFH.style('font-size', '18px');
@@ -1410,9 +1487,9 @@ function creaBottoniNavigazione() {
   bottoneUS.style('width', diametroBottone + 'px');
   bottoneUS.style('height', diametroBottone + 'px');
   bottoneUS.style('border-radius', '50%'); 
-  bottoneUS.style('background-color', '#26231d'); 
-  bottoneUS.style('color', '#f0f0f0');
-  bottoneUS.style('border', '1px solid #f0f0f0');
+  bottoneUS.style('background-color', nero); 
+  bottoneUS.style('color', bianco);
+  bottoneUS.style('border', '1px solid' + bianco);
   bottoneUS.style('text-align', 'center');
   bottoneUS.style('line-height', diametroBottone + 'px'); 
   bottoneUS.style('font-size', '18px');
@@ -1549,14 +1626,14 @@ function disegnaGriglia() {
     yPositions.push(yLinea); // salva la posizione Y
     
     // Disegna la linea
-    stroke("#f0f0f078");
+    stroke(bianco + 80);
     strokeWeight(1);
     noFill();
     line(graficoWidth*0.38, yLinea, graficoWidth*0.62, yLinea);
     
     // Disegna il valore (0 o 100)
     noStroke();
-    fill("#f0f0f078"); 
+    fill(bianco + 80); 
     textAlign(RIGHT, CENTER);
     textSize(12);
     text(valore, graficoWidth*0.37, yLinea);
@@ -1571,7 +1648,7 @@ function disegnaGriglia() {
     const yLinea100 = yPositions[1]; // Posizione Y della linea del 100
     
     push();
-    fill("#f0f0f078");
+    fill(bianco + 80);
     textSize(16);
     // Posiziona il testo poco sopra la linea del 100
     translate(graficoWidth*0.38, yLinea100 - 5); 
@@ -1579,4 +1656,34 @@ function disegnaGriglia() {
     text("Total Score", 0, 0);
     pop();
   }
+}
+
+// NUOVA FUNZIONE per creare il bottone "Torna Indietro"
+function creaBottoneBack() {
+  const diametroBottone = 60; // Stesso diametro dei bottoni US e FH
+  const xPos = 40; // Allineato a sinistra
+  const yPos = 40; // Stessa altezza del titolo regioneCorrente
+  
+  bottoneBack = createButton('←');
+  bottoneBack.position(xPos, yPos);
+  
+  // Stile del bottone circolare (come US e FH)
+  bottoneBack.style('width', diametroBottone + 'px');
+  bottoneBack.style('height', diametroBottone + 'px');
+  bottoneBack.style('border-radius', '50%'); // Rende il bottone circolare
+  bottoneBack.style('background-color', nero);
+  bottoneBack.style('color', bianco);
+  bottoneBack.style('border', '1px solid' + bianco);
+  bottoneBack.style('text-align', 'center');
+  bottoneBack.style('line-height', diametroBottone + 'px'); // Centra la freccia verticalmente
+  bottoneBack.style('font-size', '24px'); // Dimensione della freccia
+  bottoneBack.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
+  bottoneBack.style('cursor', 'pointer');
+  bottoneBack.style('z-index', '1002');
+  bottoneBack.style('padding', '0'); // Rimuove padding per centrare meglio
+
+  // Funzione per tornare alla pagina precedente nella cronologia del browser
+  bottoneBack.mousePressed(() => {
+    window.history.back();
+  });
 }
