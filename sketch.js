@@ -49,15 +49,15 @@ function creaRiquadri() {
   const margine = 25;
   const yInizio = 30 + 60 + 40; // titolo y + altezza titolo + spaziatura
   const spaziaturaRiquadri = 20;
-  const larghezzaTitoloVerticale1 = 40; // spazio per il primo titolo verticale
-  const larghezzaTitoloVerticale2 = 40; // spazio per il secondo titolo verticale
-  const spaziaturaTitoloVerticale = 20;
+  const larghezzaTitoloVerticale1 = 30; // spazio per il primo titolo verticale
+  const larghezzaTitoloVerticale2 = 30; // spazio per il secondo titolo verticale
+  const spaziaturaTitoloVerticale = 55;
 
   // Calcola la larghezza totale disponibile
   const larghezzaTotale = width - (margine * 2);
   // Calcola la larghezza di ogni riquadro
-  const larghezzaRiquadro1 = (larghezzaTotale - spaziaturaRiquadri - spaziaturaTitoloVerticale * 4 - larghezzaTitoloVerticale1 - larghezzaTitoloVerticale2) / 2;
-  const larghezzaRiquadro2 = (larghezzaTotale - spaziaturaRiquadri - spaziaturaTitoloVerticale * 4 - larghezzaTitoloVerticale1 - larghezzaTitoloVerticale2) / 2;
+  const larghezzaRiquadro1 = (larghezzaTotale - spaziaturaRiquadri - spaziaturaTitoloVerticale * 3 - larghezzaTitoloVerticale1 - larghezzaTitoloVerticale2) / 2;
+  const larghezzaRiquadro2 = (larghezzaTotale - spaziaturaRiquadri - spaziaturaTitoloVerticale * 3 - larghezzaTitoloVerticale1 - larghezzaTitoloVerticale2) / 2;
 
   // --- Riquadro 1 ---
   riquadro1 = createDiv();
@@ -66,7 +66,7 @@ function creaRiquadri() {
   // Stile del riquadro
   riquadro1.style('width', larghezzaRiquadro1 + 'px');
   riquadro1.style('height', 'auto');
-  riquadro1.style('min-height', '50px');
+  riquadro1.style('min-height', '60px');
   riquadro1.style('background-color', '#26231d');
   riquadro1.style('border', '2px solid #c76351');
   riquadro1.style('border-radius', '15px');
@@ -105,7 +105,7 @@ function creaRiquadri() {
   titoloVerticale.style('justify-content', 'center');
   titoloVerticale.style('color', '#c76351');
   titoloVerticale.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
-  titoloVerticale.style('font-size', '50px');
+  titoloVerticale.style('font-size', '70px');
   titoloVerticale.style('writing-mode', 'vertical-rl');
   titoloVerticale.style('text-orientation', 'mixed');
   titoloVerticale.style('letter-spacing', '4px');
@@ -161,7 +161,7 @@ function creaRiquadri() {
   titoloVerticale2.style('justify-content', 'center');
   titoloVerticale2.style('color', '#75a099');
   titoloVerticale2.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
-  titoloVerticale2.style('font-size', '50px');
+  titoloVerticale2.style('font-size', '70px');
   titoloVerticale2.style('writing-mode', 'vertical-rl');
   titoloVerticale2.style('text-orientation', 'mixed');
   titoloVerticale2.style('letter-spacing', '4px');
@@ -217,7 +217,7 @@ function creaRiquadri() {
   titoloVerticale3.style('justify-content', 'center');
   titoloVerticale3.style('color', '#e5c38f');
   titoloVerticale3.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
-  titoloVerticale3.style('font-size', '50px');
+  titoloVerticale3.style('font-size', '70px');
   titoloVerticale3.style('writing-mode', 'vertical-rl');
   titoloVerticale3.style('text-orientation', 'mixed');
   titoloVerticale3.style('letter-spacing', '4px');
@@ -274,7 +274,7 @@ riquadro4.style('height', altezzaRiquadro3 + 'px');
   titoloVerticale4.style('justify-content', 'center');
   titoloVerticale4.style('color', '#d58d3e');
   titoloVerticale4.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
-  titoloVerticale4.style('font-size', '50px');
+  titoloVerticale4.style('font-size', '70px');
   titoloVerticale4.style('writing-mode', 'vertical-rl');
   titoloVerticale4.style('text-orientation', 'mixed');
   titoloVerticale4.style('letter-spacing', '4px');
