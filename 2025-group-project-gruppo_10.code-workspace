@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../ritratti"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "2025-group-project-gruppo_10"
+	}
+}

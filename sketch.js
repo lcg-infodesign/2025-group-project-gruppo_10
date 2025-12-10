@@ -3,19 +3,21 @@ let bottoneFH;
 let titolo;
 let testoIntro;
 let testiRettangoli = [];
+let Besenzoni;
 
 function preload() {
+  Besenzoni = loadImage("ritratto1.png");
 }
 
 function setup() {
   // Calcola l'altezza totale necessaria per contenere tutti i rettangoli
   const margineTop = 250;
   const margineBottom = 100;
-  const spaziaturaV = 200;
-  const altezzaRett = 300;
+  const spaziaturaV = 170;
+  const altezzaRett = 270;
   const numRighe = 2;
   
-  const altezzaTotale = margineTop + (altezzaRett * numRighe) + (spaziaturaV * (numRighe - 1)) + margineBottom;
+  const altezzaTotale = margineTop + (altezzaRett * numRighe) + (spaziaturaV * (numRighe - 1)) + margineBottom + 100;
   
   // Crea la canvas con altezza sufficiente per tutti i contenuti
   createCanvas(windowWidth, max(windowHeight, altezzaTotale));
@@ -48,8 +50,8 @@ function disegnaRettangoli() {
   const margineSx = 25; // uguale al margine del titolo
   const margineDx = 25; // uguale al margine dei bottoni
   
-   // Spaziatura tra i rettangoli
-  const spaziaturaH = 250; // spaziatura orizzontale aumentata
+  // Spaziatura tra i rettangoli
+  const spaziaturaH = 270; // spaziatura orizzontale aumentata
   const spaziaturaV = 170; // spaziatura verticale aumentata
   
   // Dimensioni fisse dei rettangoli (più piccoli)
@@ -61,22 +63,87 @@ function disegnaRettangoli() {
   const offsetX = (width - larghezzaTotale) / 2;
   
   // Disegna i rettangoli
-  fill('#bcbcabff');
   noStroke();
   
   for (let riga = 0; riga < numRighe; riga++) {
     for (let colonna = 0; colonna < numColonne; colonna++) {
+      let indice = riga * numColonne + colonna;
       let x = offsetX + (colonna * (larghezzaRett + spaziaturaH));
       let y = margineTop + (riga * (altezzaRett + spaziaturaV));
       
-      // Disegna il rettangolo
+      // Disegna il rettangolo di sfondo
+      fill('#bcbcab');
       rect(x, y, larghezzaRett, altezzaRett, raggio);
       
+      // Disegna l'immagine solo nel primo rettangolo (indice 0)
+      if (indice === 0 && Besenzoni) {
+        push();
+        
+        // L'immagine esce dai bordi superiore, sinistro e destro
+        let overflow = 30; // quanto l'immagine esce dai bordi
+        let offsetX = 20; // sposta l'immagine a destra
+        let offsetY = 20; // sposta l'immagine in basso
+        
+        let imgX = x - overflow + offsetX;
+        let imgY = y - overflow + offsetY;
+        let imgW = larghezzaRett + (overflow * 2);
+        let imgH = altezzaRett + overflow; // estendi anche in altezza per centrare meglio
+        
+        // Fattore di ingrandimento (zoom)
+        let zoomFactor = 1.3;
+        
+        // Calcola il rapporto per ritagliare l'immagine (cover con zoom)
+        let rapportoImg = Besenzoni.width / Besenzoni.height;
+        let rapportoRett = imgW / imgH;
+        
+        let sx, sy, sw, sh;
+        
+        if (rapportoImg > rapportoRett) {
+          sh = Besenzoni.height / zoomFactor;
+          sw = sh * rapportoRett;
+          sx = (Besenzoni.width - sw) / 2;
+          sy = (Besenzoni.height - sh) / 2;
+        } else {
+          sw = Besenzoni.width / zoomFactor;
+          sh = sw / rapportoRett;
+          sx = (Besenzoni.width - sw) / 2;
+          sy = (Besenzoni.height - sh) / 2;
+        }
+        
+        // Crea un clipping path che maschera solo il bordo inferiore
+        drawingContext.save();
+        drawingContext.beginPath();
+        
+        // Percorso che permette overflow sui lati superiore, sinistro e destro
+        // ma mantiene il bordo arrotondato inferiore
+        drawingContext.moveTo(x - overflow, y - overflow); // top-left (fuori)
+        drawingContext.lineTo(x + larghezzaRett + overflow, y - overflow); // top-right (fuori)
+        drawingContext.lineTo(x + larghezzaRett + overflow, y + altezzaRett - raggio); // right side (fuori)
+        drawingContext.arcTo(
+          x + larghezzaRett, y + altezzaRett,
+          x + larghezzaRett - raggio, y + altezzaRett,
+          raggio
+        ); // bottom-right corner
+        drawingContext.lineTo(x + raggio, y + altezzaRett); // bottom side
+        drawingContext.arcTo(
+          x, y + altezzaRett,
+          x, y + altezzaRett - raggio,
+          raggio
+        ); // bottom-left corner
+        drawingContext.lineTo(x - overflow, y + altezzaRett - raggio); // left side (fuori)
+        drawingContext.closePath();
+        drawingContext.clip();
+        
+        // Disegna l'immagine con la maschera applicata
+        image(Besenzoni, imgX, imgY, imgW, imgH, sx, sy, sw, sh);
+        
+        drawingContext.restore();
+        pop();
+      }
+      
       // Aggiorna posizione del testo sotto il rettangolo
-      let indice = riga * numColonne + colonna;
       if (testiRettangoli[indice]) {
-        testiRettangoli[indice].style('left', (x + 10) + 'px');
-        testiRettangoli[indice].style('top',  (y + altezzaRett + 20) + 'px');
+        testiRettangoli[indice].position(x + 10, y + altezzaRett + 20);
       }
     }
   }
@@ -87,11 +154,11 @@ function windowResized() {
   // Calcola l'altezza necessaria
   const margineTop = 250;
   const margineBottom = 100;
-  const spaziaturaV = 200;
-  const altezzaRett = 300;
+  const spaziaturaV = 170;
+  const altezzaRett = 270;
   const numRighe = 2;
   
-  const altezzaTotale = margineTop + (altezzaRett * numRighe) + (spaziaturaV * (numRighe - 1)) + margineBottom;
+  const altezzaTotale = margineTop + (altezzaRett * numRighe) + (spaziaturaV * (numRighe - 1)) + margineBottom + 100;
   
   resizeCanvas(windowWidth, max(windowHeight, altezzaTotale));
   riposizionaElementiDOM();
