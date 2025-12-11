@@ -33,7 +33,7 @@ function setup() {
     let edition = data.getString(i, "Edition").trim();
     let country = data.getString(i, "Country/Territory").trim();
 
-    if (edition === "2024" && !seen[country]) {
+    if (edition === "2025" && !seen[country]) {
       countries.push({
         name: country,                       // nome leggibile
         slug: normalizeCountryName(country)  // chiave “pulita”
