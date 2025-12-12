@@ -3,26 +3,47 @@ let bottoneFH;
 let titolo;
 let testoIntro;
 let testiRettangoli = [];
-let Besenzoni;
+let ritratti = []; // Array per le immagini dei rettangoli
+let offsetY = [];  // Array per offset verticale dei ritratti
+let offsetXimg = []; // Offset orizzontale per ogni ritratto
 
 function preload() {
-  Besenzoni = loadImage("ritratto1.png");
+  // Carica le immagini dei ritratti
+  ritratti.push(loadImage("ritratto1.png")); // Besenzoni
+  ritratti.push(loadImage("ritratto2.png")); // Franchi
+  ritratti.push(loadImage("ritratto3.png")); // Marozzi
+  ritratti.push(loadImage("ritratto4.png")); // Preioni
+  ritratti.push(loadImage("ritratto5.png")); // Soraruf
+  ritratti.push(loadImage("ritratto6.png")); // Zanotto
+
+  // Offset verticale (Y)
+  offsetY.push(-25); // 1
+  offsetY.push(-50); // 2
+  offsetY.push(-25); // 3
+  offsetY.push(-25); // 4
+  offsetY.push(5);   // 5
+  offsetY.push(-25); // 6
+
+  // Offset orizzontale (X)
+  offsetXimg.push(30); // 1
+  offsetXimg.push(10); // 2 
+  offsetXimg.push(30); // 3
+  offsetXimg.push(20); // 4
+  offsetXimg.push(20); // 5
+  offsetXimg.push(-10); // 6
 }
 
 function setup() {
-  // Calcola l'altezza totale necessaria per contenere tutti i rettangoli
-  const margineTop = 280;
+  const margineTop = 320;
   const margineBottom = 100;
-  const spaziaturaV = 170;
-  const altezzaRett = 270;
+  const spaziaturaV = 240;
+  const altezzaRett = 280;
   const numRighe = 2;
   
   const altezzaTotale = margineTop + (altezzaRett * numRighe) + (spaziaturaV * (numRighe - 1)) + margineBottom + 100;
   
-  // Crea la canvas con altezza sufficiente per tutti i contenuti
   createCanvas(windowWidth, max(windowHeight, altezzaTotale));
 
-  // Crea gli elementi HTML
   creaTitolo();
   creaTestoIntroduttivo();
   creaTestiRettangoli();
@@ -30,97 +51,70 @@ function setup() {
 }
 
 function draw() {
-  // Sfondo (colore #eaead8)
   background("#eaead8");
-  
-  // Disegna i sei rettangoli
   disegnaRettangoli();
 }
 
 // --- DISEGNA RETTANGOLI ---
-
 function disegnaRettangoli() {
   const numColonne = 3;
   const numRighe = 2;
-  const raggio = 20; // raggio degli angoli arrotondati
+  const raggio = 20;
   
-  // Margini uguali a quelli del titolo e bottoni
-  const margineTop = 280; // spazio per titolo + testo introduttivo + overflow immagine
-  const margineBottom = 100; // margine inferiore (equivalente a titolo + bottoni)
-  const margineSx = 25; // uguale al margine del titolo
-  const margineDx = 25; // uguale al margine dei bottoni
-  
-  // Spaziatura tra i rettangoli
-  const spaziaturaH = 270; // spaziatura orizzontale aumentata
-  const spaziaturaV = 170; // spaziatura verticale aumentata
-  
-  // Dimensioni fisse dei rettangoli (più piccoli)
-  const larghezzaRett = 245; // larghezza fissa
-  const altezzaRett = 270; // altezza fissa (maggiore della larghezza)
-  
-  // Calcola la larghezza totale necessaria per centrare i rettangoli
+  const margineTop = 320;
+  const spaziaturaH = 230;
+  const spaziaturaV = 240;
+  const larghezzaRett = 245;
+  const altezzaRett = 280;
+
   const larghezzaTotale = (larghezzaRett * numColonne) + (spaziaturaH * (numColonne - 1));
   const offsetX = (width - larghezzaTotale) / 2;
   
-  // Disegna i rettangoli
   noStroke();
-  
+
   for (let riga = 0; riga < numRighe; riga++) {
     for (let colonna = 0; colonna < numColonne; colonna++) {
       let indice = riga * numColonne + colonna;
       let x = offsetX + (colonna * (larghezzaRett + spaziaturaH));
       let y = margineTop + (riga * (altezzaRett + spaziaturaV));
-      
-      // Disegna i rettangoli
+
+      // Rettangolo
       fill('#bcbcab');
       rect(x, y, larghezzaRett, altezzaRett, raggio);
-      
-      // Per il primo rettangolo, disegna l'immagine sopra con zoom e clip
-      if (indice === 0 && Besenzoni) {
+
+      // Immagine ritratto
+      if (ritratti[indice]) {
         push();
-        
-        // Crea una maschera di ritaglio che permette all'immagine di uscire sopra, sinistra e destra
-        // ma la taglia sul bordo inferiore del rettangolo
         beginClip();
-        // Creiamo un'area di clip molto grande che copre tutto tranne sotto il rettangolo
         rect(x - 1000, y - 1000, larghezzaRett + 2000, altezzaRett + 1000, raggio);
         endClip();
-        
-        // Fattore di zoom
-        let zoomFactor = 1.9;
-        
-        // Offset per centrare meglio l'immagine (valori positivi spostano l'immagine)
-        let offsetCentraturaX = 30; // sposta a destra
-        let offsetCentraturaY = -25; // sposta in alto
-        
-        // Calcola le dimensioni per mantenere le proporzioni
-        let rapportoImg = Besenzoni.width / Besenzoni.height;
+
+        let img = ritratti[indice];
+        let zoomFactor = 1.8;
+
+        let offsetCentraturaX = offsetXimg[indice] || 30;
+        let offsetCentraturaY = offsetY[indice] || -25;
+
+        let rapportoImg = img.width / img.height;
         let rapportoRett = larghezzaRett / altezzaRett;
-        
         let imgW, imgH;
-        
-        // Adatta l'immagine per coprire il rettangolo mantenendo le proporzioni
+
         if (rapportoImg > rapportoRett) {
-          // L'immagine è più larga: adatta in altezza
           imgH = altezzaRett * zoomFactor;
           imgW = imgH * rapportoImg;
         } else {
-          // L'immagine è più alta: adatta in larghezza
           imgW = larghezzaRett * zoomFactor;
           imgH = imgW / rapportoImg;
         }
-        
-        // Centra l'immagine zoomata sul rettangolo con offset personalizzati
+
         let imgX = x + (larghezzaRett - imgW) / 2 + offsetCentraturaX;
         let imgY = y + (altezzaRett - imgH) / 2 + offsetCentraturaY;
-        
-        // Disegna l'immagine
-        image(Besenzoni, imgX, imgY, imgW, imgH);
-        
+
+        image(img, imgX, imgY, imgW, imgH);
         pop();
       }
-      
-      // Aggiorna posizione del testo sotto il rettangolo
+
+      // Testo sotto rettangolo
       if (testiRettangoli[indice]) {
         testiRettangoli[indice].position(x + 10, y + altezzaRett + 20);
       }
@@ -128,17 +122,16 @@ function disegnaRettangoli() {
   }
 }
 
-// --- GESTIONE RIDIMENSIONAMENTO ---
+// --- RIDIMENSIONAMENTO ---
 function windowResized() {
-  // Calcola l'altezza necessaria
-  const margineTop = 280;
+  const margineTop = 320;
   const margineBottom = 100;
   const spaziaturaV = 170;
-  const altezzaRett = 270;
+  const altezzaRett = 280;
   const numRighe = 2;
-  
+
   const altezzaTotale = margineTop + (altezzaRett * numRighe) + (spaziaturaV * (numRighe - 1)) + margineBottom + 100;
-  
+
   resizeCanvas(windowWidth, max(windowHeight, altezzaTotale));
   riposizionaElementiDOM();
 }
@@ -147,8 +140,6 @@ function windowResized() {
 function creaTitolo() {
   titolo = createElement('h1', 'About us');
   titolo.position(25, 35);
-  
-  // Stili
   titolo.style('color', '#26231d');
   titolo.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
   titolo.style('font-size', '70px');
@@ -161,10 +152,8 @@ function creaTitolo() {
 
 // --- TESTO INTRODUTTIVO ---
 function creaTestoIntroduttivo() {
-  testoIntro = createP('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.');
-  testoIntro.position(25, 95);
-  
-  // Stili
+  testoIntro = createP('We are a group of students at the Design department of Politecnico di Milano. We have chosen to address the theme of freedom and democracy in the world, concerned about the increasing cases of violations. Through this analysis, we want to inform and raise awareness so that we can contribute to change.');
+  testoIntro.position(25, 100);
   testoIntro.style('color', '#26231d');
   testoIntro.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
   testoIntro.style('font-size', '17px');
@@ -176,17 +165,17 @@ function creaTestoIntroduttivo() {
   testoIntro.style('position', 'absolute');
 }
 
-// --- TESTI SOTTO I RETTANGOLI ---
+// --- TESTI SOTTO RETTANGOLI ---
 function creaTestiRettangoli() {
   const testiContent = [
-    '<strong>Federica Besenzoni</strong><br>Ruolo<br>la libertà è',
-    '<strong>Vittoria Franchi</strong><br>Ruolo<br>la libertà è',
-    '<strong>Asia Marozzi</strong><br>Ruolo<br>la libertà è',
-    '<strong>Aurora Preioni</strong><br>Ruolo<br>la libertà è',
-    '<strong>Jasmin Soraruf</strong><br>Ruolo<br>la libertà è',
-    '<strong>Sheetal Zanotto</strong><br>Ruolo<br>la libertà è'
+    '<span style="font-size: 19px;"><strong>Federica Besenzoni</strong></span><br><strong>Codice visualizzazione singola</strong><br>la libertà è Lorem ipsum dolor sit <br>amet, consectetur adipiscing elit.',
+    '<span style="font-size: 19px;"><strong>Vittoria Franchi</strong></span><br><strong>Testi, codice pagine boh</strong><br>la libertà è Lorem ipsum dolor sit <br>amet, consectetur adipiscing elit.',
+    '<span style="font-size: 19px;"><strong>Asia Marozzi</strong></span><br><strong>Codice visualizzazione generale</strong><br>la libertà è Lorem ipsum dolor sit <br>amet, consectetur adipiscing elit.',
+    '<span style="font-size: 19px;"><strong>Aurora Preioni</strong></span><br><strong>Codice visualizzazione singola</strong><br>la libertà è Lorem ipsum dolor sit <br>amet, consectetur adipiscing elit.',
+    '<span style="font-size: 19px;"><strong>Jasmin Soraruf</strong></span><br><strong>Illustrazioni, codice introduzione</strong><br>la libertà è Lorem ipsum dolor sit <br>amet, consectetur adipiscing elit.',
+    '<span style="font-size: 19px;"><strong>Sheetal Zanotto</strong></span><br><strong>Codice introduzione</strong><br>la libertà è Lorem ipsum dolor sit <br>amet, consectetur adipiscing elit.'
   ];
-  
+
   for (let i = 0; i < testiContent.length; i++) {
     let testo = createP(testiContent[i]);
     testo.style('color', '#26231d');
@@ -201,28 +190,21 @@ function creaTestiRettangoli() {
   }
 }
 
-// --- BOTTONI DI NAVIGAZIONE ---
+// --- BOTTONI ---
 function creaBottoniNavigazione() {
   const diametro = 60;
-  
-  // --- Bottone FH ---
+
   bottoneFH = createButton('FH');
   applicaStiliBottone(bottoneFH, diametro);
-  bottoneFH.mousePressed(() => {
-    window.location.href = 'freedomhouse.html';
-  });
+  bottoneFH.mousePressed(() => { window.location.href = 'freedomhouse.html'; });
 
-  // --- Bottone US ---
   bottoneUS = createButton('US');
   applicaStiliBottone(bottoneUS, diametro);
-  bottoneUS.mousePressed(() => {
-    window.location.href = 'us.html';
-  });
-  
+  bottoneUS.mousePressed(() => { window.location.href = 'us.html'; });
+
   riposizionaElementiDOM();
 }
 
-// Funzione helper per applicare gli stili ai bottoni
 function applicaStiliBottone(bottone, diametro) {
   bottone.style('width', diametro + 'px');
   bottone.style('height', diametro + 'px');
@@ -239,23 +221,16 @@ function applicaStiliBottone(bottone, diametro) {
   bottone.style('position', 'absolute');
 }
 
-// Funzione dedicata al riposizionamento di tutti gli elementi DOM
 function riposizionaElementiDOM() {
   const diametro = 60;
   const yPos = 30;
   const gap = 20;
 
-  // Calcolo delle posizioni in base alla larghezza corrente della finestra
   let xFH = windowWidth - diametro - 25;
   let xUS = xFH - diametro - gap;
 
-  // Riposiziona il titolo
   titolo.position(25, 35);
-  
-  // Riposiziona il testo introduttivo
-  testoIntro.position(25, 95);
-  
-  // Riposiziona i bottoni
+  testoIntro.position(25, 100);
   bottoneFH.position(xFH, yPos);
   bottoneUS.position(xUS, yPos);
 }
