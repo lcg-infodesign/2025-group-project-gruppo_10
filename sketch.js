@@ -11,7 +11,7 @@ function preload() {
 
 function setup() {
   // Calcola l'altezza totale necessaria per contenere tutti i rettangoli
-  const margineTop = 250;
+  const margineTop = 280;
   const margineBottom = 100;
   const spaziaturaV = 170;
   const altezzaRett = 270;
@@ -45,7 +45,7 @@ function disegnaRettangoli() {
   const raggio = 20; // raggio degli angoli arrotondati
   
   // Margini uguali a quelli del titolo e bottoni
-  const margineTop = 250; // spazio per titolo + testo introduttivo
+  const margineTop = 280; // spazio per titolo + testo introduttivo + overflow immagine
   const margineBottom = 100; // margine inferiore (equivalente a titolo + bottoni)
   const margineSx = 25; // uguale al margine del titolo
   const margineDx = 25; // uguale al margine dei bottoni
@@ -55,7 +55,7 @@ function disegnaRettangoli() {
   const spaziaturaV = 170; // spaziatura verticale aumentata
   
   // Dimensioni fisse dei rettangoli (più piccoli)
-  const larghezzaRett = 240; // larghezza fissa
+  const larghezzaRett = 245; // larghezza fissa
   const altezzaRett = 270; // altezza fissa (maggiore della larghezza)
   
   // Calcola la larghezza totale necessaria per centrare i rettangoli
@@ -71,73 +71,52 @@ function disegnaRettangoli() {
       let x = offsetX + (colonna * (larghezzaRett + spaziaturaH));
       let y = margineTop + (riga * (altezzaRett + spaziaturaV));
       
-      // Disegna il rettangolo di sfondo
+      // Disegna i rettangoli
       fill('#bcbcab');
       rect(x, y, larghezzaRett, altezzaRett, raggio);
       
-      // Disegna l'immagine solo nel primo rettangolo (indice 0)
+      // Per il primo rettangolo, disegna l'immagine sopra con zoom e clip
       if (indice === 0 && Besenzoni) {
         push();
         
-        // L'immagine esce dai bordi superiore, sinistro e destro
-        let overflow = 30; // quanto l'immagine esce dai bordi
-        let offsetX = 20; // sposta l'immagine a destra
-        let offsetY = 20; // sposta l'immagine in basso
+        // Crea una maschera di ritaglio che permette all'immagine di uscire sopra, sinistra e destra
+        // ma la taglia sul bordo inferiore del rettangolo
+        beginClip();
+        // Creiamo un'area di clip molto grande che copre tutto tranne sotto il rettangolo
+        rect(x - 1000, y - 1000, larghezzaRett + 2000, altezzaRett + 1000, raggio);
+        endClip();
         
-        let imgX = x - overflow + offsetX;
-        let imgY = y - overflow + offsetY;
-        let imgW = larghezzaRett + (overflow * 2);
-        let imgH = altezzaRett + overflow; // estendi anche in altezza per centrare meglio
+        // Fattore di zoom
+        let zoomFactor = 1.9;
         
-        // Fattore di ingrandimento (zoom)
-        let zoomFactor = 1.3;
+        // Offset per centrare meglio l'immagine (valori positivi spostano l'immagine)
+        let offsetCentraturaX = 30; // sposta a destra
+        let offsetCentraturaY = -25; // sposta in alto
         
-        // Calcola il rapporto per ritagliare l'immagine (cover con zoom)
+        // Calcola le dimensioni per mantenere le proporzioni
         let rapportoImg = Besenzoni.width / Besenzoni.height;
-        let rapportoRett = imgW / imgH;
+        let rapportoRett = larghezzaRett / altezzaRett;
         
-        let sx, sy, sw, sh;
+        let imgW, imgH;
         
+        // Adatta l'immagine per coprire il rettangolo mantenendo le proporzioni
         if (rapportoImg > rapportoRett) {
-          sh = Besenzoni.height / zoomFactor;
-          sw = sh * rapportoRett;
-          sx = (Besenzoni.width - sw) / 2;
-          sy = (Besenzoni.height - sh) / 2;
+          // L'immagine è più larga: adatta in altezza
+          imgH = altezzaRett * zoomFactor;
+          imgW = imgH * rapportoImg;
         } else {
-          sw = Besenzoni.width / zoomFactor;
-          sh = sw / rapportoRett;
-          sx = (Besenzoni.width - sw) / 2;
-          sy = (Besenzoni.height - sh) / 2;
+          // L'immagine è più alta: adatta in larghezza
+          imgW = larghezzaRett * zoomFactor;
+          imgH = imgW / rapportoImg;
         }
         
-        // Crea un clipping path che maschera solo il bordo inferiore
-        drawingContext.save();
-        drawingContext.beginPath();
+        // Centra l'immagine zoomata sul rettangolo con offset personalizzati
+        let imgX = x + (larghezzaRett - imgW) / 2 + offsetCentraturaX;
+        let imgY = y + (altezzaRett - imgH) / 2 + offsetCentraturaY;
         
-        // Percorso che permette overflow sui lati superiore, sinistro e destro
-        // ma mantiene il bordo arrotondato inferiore
-        drawingContext.moveTo(x - overflow, y - overflow); // top-left (fuori)
-        drawingContext.lineTo(x + larghezzaRett + overflow, y - overflow); // top-right (fuori)
-        drawingContext.lineTo(x + larghezzaRett + overflow, y + altezzaRett - raggio); // right side (fuori)
-        drawingContext.arcTo(
-          x + larghezzaRett, y + altezzaRett,
-          x + larghezzaRett - raggio, y + altezzaRett,
-          raggio
-        ); // bottom-right corner
-        drawingContext.lineTo(x + raggio, y + altezzaRett); // bottom side
-        drawingContext.arcTo(
-          x, y + altezzaRett,
-          x, y + altezzaRett - raggio,
-          raggio
-        ); // bottom-left corner
-        drawingContext.lineTo(x - overflow, y + altezzaRett - raggio); // left side (fuori)
-        drawingContext.closePath();
-        drawingContext.clip();
+        // Disegna l'immagine
+        image(Besenzoni, imgX, imgY, imgW, imgH);
         
-        // Disegna l'immagine con la maschera applicata
-        image(Besenzoni, imgX, imgY, imgW, imgH, sx, sy, sw, sh);
-        
-        drawingContext.restore();
         pop();
       }
       
@@ -152,7 +131,7 @@ function disegnaRettangoli() {
 // --- GESTIONE RIDIMENSIONAMENTO ---
 function windowResized() {
   // Calcola l'altezza necessaria
-  const margineTop = 250;
+  const margineTop = 280;
   const margineBottom = 100;
   const spaziaturaV = 170;
   const altezzaRett = 270;
@@ -183,7 +162,7 @@ function creaTitolo() {
 // --- TESTO INTRODUTTIVO ---
 function creaTestoIntroduttivo() {
   testoIntro = createP('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.');
-  testoIntro.position(25, 110);
+  testoIntro.position(25, 95);
   
   // Stili
   testoIntro.style('color', '#26231d');
@@ -274,7 +253,7 @@ function riposizionaElementiDOM() {
   titolo.position(25, 35);
   
   // Riposiziona il testo introduttivo
-  testoIntro.position(25, 110);
+  testoIntro.position(25, 95);
   
   // Riposiziona i bottoni
   bottoneFH.position(xFH, yPos);
