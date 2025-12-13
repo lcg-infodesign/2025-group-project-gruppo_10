@@ -1,5 +1,6 @@
 let bottoneUS;
 let bottoneFH;
+let bottoneBack;
 let titolo;
 let testoIntro;
 let testiRettangoli = [];
@@ -202,6 +203,10 @@ function creaBottoniNavigazione() {
   applicaStiliBottone(bottoneUS, diametro);
   bottoneUS.mousePressed(() => { window.location.href = 'us.html'; });
 
+  bottoneBack = createButton('<');
+  applicaStiliBottoneBack(bottoneBack, diametro);
+  bottoneBack.mousePressed(() => { window.history.back(); });
+
   riposizionaElementiDOM();
 }
 
@@ -221,6 +226,24 @@ function applicaStiliBottone(bottone, diametro) {
   bottone.style('position', 'absolute');
 }
 
+function applicaStiliBottoneBack(bottone, diametro) {
+  bottone.style('width', diametro + 'px');
+  bottone.style('height', diametro + 'px');
+  bottone.style('border-radius', '50%');
+  bottone.style('background-color', '#eaead8');
+  bottone.style('color', '#26231d');
+  bottone.style('border', '1px solid #26231d');
+  bottone.style('display', 'flex');
+  bottone.style('align-items', 'center');
+  bottone.style('justify-content', 'center');
+  bottone.style('font-size', '28px');
+  bottone.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
+  bottone.style('cursor', 'pointer');
+  bottone.style('z-index', '1000');
+  bottone.style('position', 'absolute');
+  bottone.style('padding', '0');
+}
+
 function riposizionaElementiDOM() {
   const diametro = 60;
   const yPos = 30;
@@ -228,9 +251,11 @@ function riposizionaElementiDOM() {
 
   let xFH = windowWidth - diametro - 25;
   let xUS = xFH - diametro - gap;
+  let xBack = xUS - diametro - gap;
 
   titolo.position(25, 35);
   testoIntro.position(25, 100);
   bottoneFH.position(xFH, yPos);
   bottoneUS.position(xUS, yPos);
+  bottoneBack.position(xBack, yPos);
 }
