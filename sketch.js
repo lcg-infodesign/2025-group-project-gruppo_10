@@ -51,7 +51,7 @@ function creaRiquadri() {
   const spaziaturaRiquadri = 20;
   const larghezzaTitoloVerticale1 = 30; // spazio per il primo titolo verticale
   const larghezzaTitoloVerticale2 = 30; // spazio per il secondo titolo verticale
-  const spaziaturaTitoloVerticale = 55;
+  const spaziaturaTitoloVerticale = 50;
 
   // Calcola la larghezza totale disponibile
   const larghezzaTotale = width - (margine * 2);
@@ -94,7 +94,7 @@ function creaRiquadri() {
   // --- Primo Titolo Verticale ---
   titoloVerticale = createDiv('About');
   const xTitoloVerticale = margine + larghezzaRiquadro1 + spaziaturaTitoloVerticale;
-  const yTitoloVerticale = yInizio + 5;
+  const yTitoloVerticale = yInizio + 20;
   titoloVerticale.position(xTitoloVerticale, yTitoloVerticale);
   
   // Stile del titolo verticale
@@ -142,15 +142,15 @@ function creaRiquadri() {
       Each question receives a score from 0 to 4 based on the conditions observed during the reference period. 
       The sum determines the total score: a maximum of 40 points for political rights and 60 for civil liberties. 
       Each score range corresponds to a rating from 1 (most free) to 7 (least free). The final index is the average of 
-      the ratings for the two macro-aspects, classifying countries as Free, Partly Free, and Not Free—categories that prove 
+      the ratings for the two macro-aspects, classifying countries as F, PF, and NF, categories that prove 
       vague as they can include countries with vastly different scores
     </p>
   `);
   
   // --- Secondo Titolo Verticale ---
-  titoloVerticale2 = createDiv('Methodology');
+  titoloVerticale2 = createDiv('Method');
   const xTitoloVerticale2 = xRiquadro2 + larghezzaRiquadro2 + spaziaturaTitoloVerticale;
-  const yTitoloVerticale2 = yInizio + 5;
+  const yTitoloVerticale2 = yInizio + 20;
   titoloVerticale2.position(xTitoloVerticale2, yTitoloVerticale2);
   
   // Stile del secondo titolo verticale
@@ -206,7 +206,7 @@ function creaRiquadri() {
   // --- Terzo Titolo Verticale ---
   titoloVerticale3 = createDiv('Classification');
   const xTitoloVerticale3 = margine + larghezzaRiquadro1 + spaziaturaTitoloVerticale;
-  const yTitoloVerticale3 = yRiquadro3 + 5;
+  const yTitoloVerticale3 = yRiquadro3 + 20;
   titoloVerticale3.position(xTitoloVerticale3, yTitoloVerticale3);
   
   // Stile del terzo titolo verticale
@@ -226,7 +226,9 @@ function creaRiquadri() {
   // --- Riquadro 4 ---
   riquadro4 = createDiv();
   const xRiquadro4 = margine + larghezzaRiquadro1 + spaziaturaTitoloVerticale + larghezzaTitoloVerticale1 + spaziaturaTitoloVerticale + spaziaturaRiquadri;
-  riquadro4.position(xRiquadro4, yRiquadro3);
+  const altezzaRiquadro2 = riquadro2.elt.offsetHeight;
+  const yRiquadro4 = yInizio + altezzaRiquadro2 + spaziaturaVerticale;
+  riquadro4.position(xRiquadro4, yRiquadro4);
   
   // Stile del riquadro
   riquadro4.style('width', larghezzaRiquadro2 + 'px');
@@ -257,13 +259,11 @@ function creaRiquadri() {
       <p style="margin: 0 0 5px 0;">G. Personal Autonomy & Individual Rights</strong></p>
     </div>
   `);
-  const altezzaRiquadro3 = riquadro3.elt.offsetHeight;
-riquadro4.style('height', altezzaRiquadro3 + 'px');
   
   // --- Quarto Titolo Verticale ---
   titoloVerticale4 = createDiv('Questions');
   const xTitoloVerticale4 = xRiquadro4 + larghezzaRiquadro2 + spaziaturaTitoloVerticale;
-  const yTitoloVerticale4 = yRiquadro3 + 5;
+  const yTitoloVerticale4 = yRiquadro4 + 20;
   titoloVerticale4.position(xTitoloVerticale4, yTitoloVerticale4);
   
   // Stile del quarto titolo verticale
