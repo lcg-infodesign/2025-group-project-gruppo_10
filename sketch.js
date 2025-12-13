@@ -2,6 +2,7 @@
 let data;
 let bottoneUS;
 let bottoneFH;
+let bottoneBack;
 let titolo; 
 let riquadro1;
 let riquadro2;
@@ -287,9 +288,10 @@ function creaBottoniNavigazione() {
   const yPos = 30;
   const spaziaturaTraBottoni = 20;
 
-  // Calcolo delle posizioni X
+  // Calcolo delle posizioni X (ora con 3 bottoni)
   let xFH = width - diametroBottone - 25;
-  let xUS = xFH - diametroBottone - spaziaturaTraBottoni; 
+  let xUS = xFH - diametroBottone - spaziaturaTraBottoni;
+  let xBack = xUS - diametroBottone - spaziaturaTraBottoni;
   
   // --- Bottone Freedom House (FH) ---
   bottoneFH = createButton('FH');
@@ -336,6 +338,29 @@ function creaBottoniNavigazione() {
   bottoneUS.mousePressed(() => {
     window.location.href = 'us.html';
   });
+  
+  // --- Bottone BACK (←) ---
+  bottoneBack = createButton('<');
+  bottoneBack.position(xBack, yPos);
+  
+  // Stile del bottone
+  bottoneBack.style('width', diametroBottone + 'px');
+  bottoneBack.style('height', diametroBottone + 'px');
+  bottoneBack.style('border-radius', '50%'); 
+  bottoneBack.style('background-color', '#26231d'); 
+  bottoneBack.style('color', '#eaead8');
+  bottoneBack.style('border', '1px solid #eaead8');
+  bottoneBack.style('text-align', 'center');
+  bottoneBack.style('line-height', diametroBottone + 'px'); 
+  bottoneBack.style('font-size', '28px');
+  bottoneBack.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
+  bottoneBack.style('cursor', 'pointer');
+  bottoneBack.style('z-index', '1000');
+
+  // Funzione per tornare indietro nella cronologia del browser
+  bottoneBack.mousePressed(() => {
+    window.history.back();
+  });
 }
 
 function windowResized() {
@@ -346,9 +371,11 @@ function windowResized() {
   const spaziaturaTraBottoni = 20;
   let xFH = width - diametroBottone - 25;
   let xUS = xFH - diametroBottone - spaziaturaTraBottoni;
+  let xBack = xUS - diametroBottone - spaziaturaTraBottoni;
   
   bottoneFH.position(xFH, 30);
   bottoneUS.position(xUS, 30);
+  bottoneBack.position(xBack, 30);
   
   // Ricrea i riquadri per ricalcolare le dimensioni
   if (riquadro1) riquadro1.remove();
