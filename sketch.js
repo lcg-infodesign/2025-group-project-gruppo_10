@@ -33,7 +33,7 @@ function draw() {
 // funzione per creare il titolo in alto a sinistra
 function creaTitolo() {
   titolo = createElement('h1', 'Freedom House');
-  titolo.position(25, 35);
+  titolo.position(110, 35);
   
   // Stile del titolo
   titolo.style('color', '#eaead8');
@@ -288,13 +288,13 @@ function creaBottoniNavigazione() {
   const yPos = 30;
   const spaziaturaTraBottoni = 20;
 
-  // Calcolo delle posizioni X (ora con 3 bottoni)
+  // Calcolo delle posizioni X (bottoni a destra, back a sinistra)
   let xFH = width - diametroBottone - 25;
   let xUS = xFH - diametroBottone - spaziaturaTraBottoni;
-  let xBack = xUS - diametroBottone - spaziaturaTraBottoni;
+  let xBack = 25;
   
-  // --- Bottone Freedom House (FH) ---
-  bottoneFH = createButton('FH');
+  // --- Bottone Freedom House (GR) ---
+  bottoneFH = createButton('GR');
   bottoneFH.position(xFH, yPos);
   
   // Stile del bottone
@@ -313,7 +313,7 @@ function creaBottoniNavigazione() {
   
   // Link
   bottoneFH.mousePressed(() => {
-    window.location.href = 'freedomhouse.html';
+    window.location.href = 'regioni.html';
   });
   
   // --- Bottone USA (US) ---
@@ -340,7 +340,7 @@ function creaBottoniNavigazione() {
   });
   
   // --- Bottone BACK (←) ---
-  bottoneBack = createButton('<');
+  bottoneBack = createButton('←');
   bottoneBack.position(xBack, yPos);
   
   // Stile del bottone
@@ -350,12 +350,14 @@ function creaBottoniNavigazione() {
   bottoneBack.style('background-color', '#26231d'); 
   bottoneBack.style('color', '#eaead8');
   bottoneBack.style('border', '1px solid #eaead8');
-  bottoneBack.style('text-align', 'center');
-  bottoneBack.style('line-height', diametroBottone + 'px'); 
+  bottoneBack.style('display', 'flex');
+  bottoneBack.style('align-items', 'center');
+  bottoneBack.style('justify-content', 'center');
   bottoneBack.style('font-size', '28px');
   bottoneBack.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
   bottoneBack.style('cursor', 'pointer');
   bottoneBack.style('z-index', '1000');
+  bottoneBack.style('padding', '0');
 
   // Funzione per tornare indietro nella cronologia del browser
   bottoneBack.mousePressed(() => {
@@ -371,11 +373,13 @@ function windowResized() {
   const spaziaturaTraBottoni = 20;
   let xFH = width - diametroBottone - 25;
   let xUS = xFH - diametroBottone - spaziaturaTraBottoni;
-  let xBack = xUS - diametroBottone - spaziaturaTraBottoni;
+  let xBack = 25;
   
   bottoneFH.position(xFH, 30);
   bottoneUS.position(xUS, 30);
   bottoneBack.position(xBack, 30);
+  
+  titolo.position(110, 35);
   
   // Ricrea i riquadri per ricalcolare le dimensioni
   if (riquadro1) riquadro1.remove();
