@@ -140,7 +140,7 @@ function windowResized() {
 // --- TITOLO ---
 function creaTitolo() {
   titolo = createElement('h1', 'About us');
-  titolo.position(25, 35);
+  titolo.position(110, 35);
   titolo.style('color', '#26231d');
   titolo.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
   titolo.style('font-size', '70px');
@@ -154,7 +154,7 @@ function creaTitolo() {
 // --- TESTO INTRODUTTIVO ---
 function creaTestoIntroduttivo() {
   testoIntro = createP('We are a group of students at the Design department of Politecnico di Milano. We have chosen to address the theme of freedom and democracy in the world, concerned about the increasing cases of violations. Through this analysis, we want to inform and raise awareness so that we can contribute to change.');
-  testoIntro.position(25, 100);
+  testoIntro.position(110, 100);
   testoIntro.style('color', '#26231d');
   testoIntro.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
   testoIntro.style('font-size', '17px');
@@ -199,11 +199,11 @@ function creaBottoniNavigazione() {
   applicaStiliBottone(bottoneFH, diametro);
   bottoneFH.mousePressed(() => { window.location.href = 'freedomhouse.html'; });
 
-  bottoneUS = createButton('US');
+  bottoneUS = createButton('GR');
   applicaStiliBottone(bottoneUS, diametro);
-  bottoneUS.mousePressed(() => { window.location.href = 'us.html'; });
+  bottoneUS.mousePressed(() => { window.location.href = 'regioni.html'; });
 
-  bottoneBack = createButton('<');
+  bottoneBack = createButton('←');
   applicaStiliBottoneBack(bottoneBack, diametro);
   bottoneBack.mousePressed(() => { window.history.back(); });
 
@@ -251,10 +251,10 @@ function riposizionaElementiDOM() {
 
   let xFH = windowWidth - diametro - 25;
   let xUS = xFH - diametro - gap;
-  let xBack = xUS - diametro - gap;
+  let xBack = 25;
 
-  titolo.position(25, 35);
-  testoIntro.position(25, 100);
+  titolo.position(110, 35);
+  testoIntro.position(110, 100);
   bottoneFH.position(xFH, yPos);
   bottoneUS.position(xUS, yPos);
   bottoneBack.position(xBack, yPos);
