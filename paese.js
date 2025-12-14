@@ -1,4 +1,6 @@
 let data; //variabile che contiene il mio csv
+let iconaUs;
+let iconaFh;
 
 //RESPONSIVE
 let BASE_W = 1280; // larghezza di riferimento 
@@ -9,7 +11,7 @@ let logicalMouseX = 0; // mouse "nello spazio logico"
 let logicalMouseY = 0;
 
 const YEAR_BASE_X = 750;  // coordinate ORIGINALI del select anno
-const YEAR_BASE_Y = 125;
+const YEAR_BASE_Y = 145;
 
 //font 
 let mioFont; 
@@ -52,10 +54,13 @@ let questionScores = []; //contiene il punteggio da 0 a 4 di ciascuna Domanda
 let bottoneUS;
 let bottoneFH;
 let bottoneBack; // bottone per tornare indietro
+let tooltipUS;
+let tooltipFH;
 
 // colori
-let nero ="#26231d";
+let nero = "#26231d";
 let bianco = "#eaead8";
+let grigio = "#454340ff";
 
 //leganda colori 
 let coloriLegenda = {
@@ -160,16 +165,19 @@ let panelQuestions = [
   [
     "Is the government or occupying power deliberately changing the ethnic\ncomposition of a country or territory so as to destroy a culture\nor tip the political balance in favor of another group?"
   ]
-
 ];
 
 // CARICO LE COSE 
 function preload() {
   data = loadTable("assets/FH_dataset.csv", "csv", "header");
+  // font
   mioFont = loadFont("font/NeueHaasDisplayRoman.ttf");
   fontMedium = loadFont("font/NeueHaasDisplayMedium.ttf");
   mioFontBold = loadFont("font/NeueHaasDisplayBold.ttf");
   fontSimboli = loadFont("font/NeueHaasDisplayRoman.ttf");
+  // icone
+  iconaUs = loadImage("img/icone/us-bianco.png");
+  iconaFh = loadImage("img/icone/fh-bianco.png");
 }
 
 //FUNZIONE PER NORMALIZZARE I NOMI 
@@ -228,7 +236,7 @@ function drawPalliniGrigi(){
         let rCerchio = diametroPallino;  // niente hover di grandezza
 
       if (catIndex === null) { // nessuna categoria: pallino grigio
-        fill(30);
+        fill(grigio);
       } else { // c'è una categoria, quindi pallini colorati
         let baseCol = coloriCategorie[catIndex];
         let cCol = color(baseCol);
@@ -305,19 +313,68 @@ function updateHoverCategory() {
   // l'hover non deve più cambiare nulla.
   if (selectedCatIndex !== null) {
     hoveredCatIndex = null;
+    cursor(ARROW);
     return;
   }
-  hoveredCatIndex = null; // nessuna categoria in hover di default
+  hoveredCatIndex = null;
+  let cursorChanged = false;
 
   for (let p of palliniInfo) {
-    // considero solo i pallini positivi e con categoria (no grigi, no negativi)
     if (p.type === "pos" && p.catIndex !== null) {
       let d = dist(logicalMouseX, logicalMouseY, p.x, p.y);
       if (d < diametroPallino / 2) {
-        hoveredCatIndex = p.catIndex; // salvo la categoria sotto il mouse
-        break; // mi basta il primo
+        hoveredCatIndex = p.catIndex;
+        cursor(HAND);
+        cursorChanged = true;
+        break;
       }
     }
+  }
+  
+  // Controlla anche i pallini negativi
+  if (!cursorChanged) {
+    for (let p of palliniInfo) {
+      if (p.type === "neg") {
+        let d = dist(logicalMouseX, logicalMouseY, p.x, p.y);
+        if (d < diametroPallino / 2) {
+          cursor(HAND);
+          cursorChanged = true;
+          break;
+        }
+      }
+    }
+  }
+  
+  if (!cursorChanged) {
+    cursor(ARROW);
+  }
+}
+
+// Controlla hover sulla legenda
+function checkLegendHover() {
+  if (selectedCatIndex !== null) return;
+  
+  let mx = logicalMouseX;
+  let my = logicalMouseY;
+  
+  for (let area of legendHitAreas) {
+    if (mx >= area.x && mx <= area.x + area.w && my >= area.y && my <= area.y + area.h) {
+      cursor(HAND);
+      return;
+    }
+  }
+}
+
+// Controlla hover sul bottone X
+function checkBackButtonHover() {
+  if (!backDetailArea) return;
+  
+  let mx = logicalMouseX;
+  let my = logicalMouseY;
+  
+  if (mx >= backDetailArea.x && mx <= backDetailArea.x + backDetailArea.w &&
+      my >= backDetailArea.y && my <= backDetailArea.y + backDetailArea.h) {
+    cursor(HAND);
   }
 }
 
@@ -476,7 +533,7 @@ legendHitAreas.push({
   fill("#C51A1A");
   textFont(mioFont);
   textSize(14);
-  text("Additional Discretionary Question B:\nsottrae punti agli altri parametri", categoriaSpazio, y0 + passo*4 + 10);
+  text("Additional Discretionary Question B:\nsubtracts points from other parameters", categoriaSpazio, y0 + passo*4 + 10);
 
   legendHitAreas.push({
     x: x0,
@@ -498,7 +555,7 @@ if (anno >= 2013 && anno <= 2017) {
   textFont(mioFont);
   textSize(14);
   fill(textColor);
-  text("Additional Discretionary Question A:\naggiunge punti oltre i 100", categoriaSpazio, y0 + passo*6 + 10);
+  text("Additional Discretionary Question A:\nadds points over 100", categoriaSpazio, y0 + passo*6 + 10);
   let maxA = 4;
   let valAc = int(addAVal);
   textFont(mioFontBold);
@@ -635,128 +692,179 @@ if (anno >= 2013 && anno <= 2017) {
 
 }
 
-//FUNZIONE DISEGNA PANNELLO DOMANDE 
+// FUNZIONE DISEGNA PANNELLO DOMANDE 
 function drawCategoryPanel(catIndex) {
-  // posizione e dimensioni del box a destra
-  let x0 = 560;
-  let y0 = 240;
-  let w  = 650;
-  let h  = 260;
-
-  //BOTTONE 
-  let btnW = 65;
-  let btnH = 22;
-  let btnX = 555;
-  let btnY = y0 ;
-
-  //noFill();
-  //stroke(textColor);
-  //strokeWeight(1);
-  //rect(btnX, btnY, btnW, btnH, 14);
-
-  noStroke();
-  fill(textColor);
+  // Configurazione base fissa
+  let x0 = 560; // X di partenza
+  let y0 = 240; // Y di partenza (dove inizia il pannello)
+  
+  // Variabili di misurazione
+  let paddingLeft = 30;   // Padding a sinistra per titolo e pallini
+  let paddingRight = 30;  // Padding a destra per il testo più lungo (AUMENTATO per la X)
+  let palliniSpazioTotale = 16 * 4; 
+  let palliniOffset = 95;   
+  let maxTextWidth = 0; 
+  
+  // --- A. VARIABILI DI CALCOLO ALTEZZA & TEXTWIDTH ---
+  
+  let titoloAltezza = 20;  
+  let titoloMargine = 20;  
+  let dopoTitolo = 20;     
+  let lineHeight = 20;     
+  let gap = 20;            
+  let paddingBottom = 0;  // Aumentato per coerenza
+  
+  // Inizializzazione font per la misurazione
   textFont(mioFont);
-  textSize(12);
-  textAlign(CENTER, CENTER);
-  text("< Back", btnX + btnW/2, btnY + btnH/2);
+  textSize(14); 
 
-  // salvo la hit-area globale per il click
-  backDetailArea = {
-    x: btnX,
-    y: btnY,
-    w: btnW,
-    h: btnH
-  };
-
-
-  // ripristino l'allineamento per il resto del pannello
-  textAlign(LEFT, TOP);
-
-  //SE VOGLIO METTERE UN BORDO BIANCO 
-  // sfondo del box
-  //noFill();
-  //stroke(textColor);
-  //strokeWeight(1.5);
-  //rect(x0, y0, w, h, 18); 
-
-  // titolo CATEGORIA 
-  let titolo = panelTitles[catIndex] || "Category details";
-  fill(textColor);
-  noStroke();
+  // Iniziamo il calcolo dell'altezza necessaria (h)
+  let h = 0;
+  
+  // 1. Larghezza del Titolo (inclusa la X)
   textFont(mioFontBold);
   textSize(20);
-  text(titolo, x0 + 10, y0 + 30);
-
-  // domande
+  let titolo = panelTitles[catIndex] || "Category details";
+  
+  // Larghezza del titolo + spazio per la 'X' sul lato destro
+  // (La 'X' ha bisogno di circa 30px, la usiamo come offset dal bordo destro)
+  maxTextWidth = textWidth(titolo) + paddingLeft + 30; 
+  
+  // 2. Altezza iniziale (Titolo + Spazi)
+  h += titoloMargine + titoloAltezza + dopoTitolo;
+  
+  // 3. Calcolo Altezza e Larghezza Massima delle DOMANDE
+  textFont(mioFont);
+  textSize(14);
   let questions = panelQuestions[catIndex] || [];
+  
+  for (let qi = 0; qi < questions.length; qi++) {
+      let q = questions[qi];
+      let righe = q.split("\n");
+      
+      for (let r of righe) {
+          let currentLineWidth = textWidth(r);
+          let totalQuestionWidth = palliniOffset + currentLineWidth + paddingRight;
+          
+          if (totalQuestionWidth > maxTextWidth) {
+              maxTextWidth = totalQuestionWidth;
+          }
+      }
+      
+      h += (righe.length * lineHeight) + gap;
+  }
+  
+  // 4. Larghezza finale del pannello (w)
+  let w = maxTextWidth + paddingLeft; 
+  
+  // 5. Altezza finale
+  h += paddingBottom;
+
+  // --- B. DEFINIZIONE E DISEGNO DEL PANNELLO DINAMICO ---
+  
+  noFill();
+  stroke(textColor);
+  strokeWeight(1.5);
+  rect(x0, y0, w, h, 18); // h e w ORA SONO DINAMICHE
+  noStroke();
+
+  // --- C. DISEGNO CONTENUTO INTERNO ---
+  
+  // 1. Titolo
+  textFont(mioFontBold);
+  textSize(20);
+  fill(textColor);
+  let currentY = y0 + titoloMargine; 
+  text(titolo, x0 + paddingLeft, currentY); 
+
+  // --- D. BOTTONE 'X' (CLOSE) ---
+  
+  let xBtn = x0 + w - paddingRight; // X a destra, all'interno del padding
+  let yBtn = y0 + titoloMargine + titoloAltezza / 2; // Y allineata al centro del titolo
+  let btnSize = 16; // Dimensione della 'X'
+
+  // Imposta l'area cliccabile per la 'X'
+  backDetailArea = { 
+    x: xBtn - btnSize / 2, // Centro X della 'X'
+    y: yBtn - btnSize / 2, // Centro Y della 'X'
+    w: btnSize * 1.5,      // Area più generosa per il click
+    h: btnSize * 1.5
+  };
+
+  // Disegno della 'X'
+  push(); // Salviamo lo stato attuale per il simbolo 'X'
+  translate(xBtn, yBtn);
+  fill(textColor);
+  stroke(textColor);
+  strokeWeight(2);
+  
+  // Disegna le due linee della 'X'
+  line(-btnSize / 2, -btnSize / 2, btnSize / 2, btnSize / 2); // Diagonale \
+  line(btnSize / 2, -btnSize / 2, -btnSize / 2, btnSize / 2); // Diagonale /
+  
+  pop(); // Ripristina lo stato
+  
+  // --- E. DOMANDE E PALLINI ---
+  
+  currentY += titoloAltezza + dopoTitolo; 
+  
   textFont(mioFont);
   textSize(14);
 
-  let lineY = y0 + 70;   // punto di partenza
-  let lineHeight = 20;   // altezza di ogni riga di testo
-  let gap = 20;          // spazio extra tra una domanda e la successiva
-
-  //variabili per i pallini 
-  let palliniRaggio = 6; // raggio dei piccoli pallini
-  let palliniSpazio = 16;// distanza orizzontale tra i pallini
-  let palliniStartX = x0 + 18; // X del primo pallino
-  let textX = x0 + 85; // X del testo della domanda (dopo i pallini)
+  let palliniRaggio = 6; 
+  let palliniSpazio = 16;
+  let palliniStartX = x0 + paddingLeft; 
+  let textX = x0 + palliniOffset; 
 
   for (let qi = 0; qi < questions.length; qi++) {
-  let q = questions[qi];
-  let score = 0;
+    let q = questions[qi];
+    let score = 0;
 
-  // Calcolo del punteggio
-  if (catIndex === 8) {
-    // Pannello ADD Q: usa il valore addQVal (0–4)
-    score = int(constrain(addQVal, 0, 4));
-  } else {
-    // Pannelli normali → usa i punteggi delle singole domande
-    if (questionScores[catIndex] && questionScores[catIndex][qi] != null) {
-      score = questionScores[catIndex][qi];
-    }
-    score = int(constrain(score, 0, 4));  // limite 0–4
-  }
-
-  //Divido la domanda in righe usando \n
-  let righe = q.split("\n");
-
-  noStroke();
-  let palliniY0 = lineY + 6; // per centrarli rispetto al testo
-
-  //Disegno dei 4 pallini
-  for (let i = 0; i < 4; i++) {
-    if (i < score) {
-      if (catIndex === 8) {
-        // ADD Q: rosso pieno
-        fill("#C51A1A");
-      } else {
-        // categorie normali → colore della categoria
-        let baseCol = coloriCategorie[catIndex];
-        let c = color(baseCol); // copia
-        c.setAlpha(255); // niente lampeggio
-        fill(c);
-      }
+    // Calcolo del punteggio (omesso per brevità, ma identico al tuo originale)
+    if (catIndex === 8) {
+        score = int(constrain(addQVal, 0, 4));
     } else {
-      fill(nero); // pallino spento
+        if (questionScores[catIndex] && questionScores[catIndex][qi] != null) {
+            score = questionScores[catIndex][qi];
+        }
+        score = int(constrain(score, 0, 4));
     }
 
-    let palliniX0 = palliniStartX + i * palliniSpazio;
-    circle(palliniX0, palliniY0, palliniRaggio * 2);
-  }
+    let righe = q.split("\n");
+    noStroke();
+    let palliniY0 = currentY + 6; 
 
-  //Disegno ogni riga di testo
-  fill(textColor);
-  noStroke();
-  for (let r of righe) {
-    text(r, textX, lineY);
-    lineY += lineHeight;
-  }
+    // Disegno dei 4 pallini 
+    for (let i = 0; i < 4; i++) {
+        // ... Logica colori ...
+        if (i < score) {
+            if (catIndex === 8) {
+                fill("#C51A1A");
+            } else {
+                let baseCol = coloriCategorie[catIndex];
+                let c = color(baseCol); 
+                c.setAlpha(255); 
+                fill(c);
+            }
+        } else {
+            fill(grigio);
+        }
 
-  //Gap tra una domanda e la successiva
-  lineY += gap;
-}
+        let palliniX0 = palliniStartX + i * palliniSpazio;
+        circle(palliniX0, palliniY0, palliniRaggio * 2);
+    }
+
+    // Disegno ogni riga di testo
+    fill(textColor);
+    noStroke();
+    for (let r of righe) {
+        text(r, textX, currentY);
+        currentY += lineHeight;
+    }
+
+    // Gap tra una domanda e la successiva
+    currentY += gap;
+  }
 }
 
 //FUNZIONE ADDQ (domanda negativa)
@@ -852,7 +960,6 @@ function drawAddQOverlay() {
 noStroke();
   }
 
-
 //FUNZIONE PUNTEGGIO TOTALE + ARRAY CON I VALORI DELLE CATEGORIE 
 //qui associo paese.anno.valori
 function aggiornaPunteggioTotale(){ //e anche categorie 
@@ -928,7 +1035,6 @@ function aggiornaPunteggioTotale(){ //e anche categorie
     }
   }
 };
-
 
 //creo una funzione di supporto che dopo aver asseganto i valori ai pallini
 //mi dice di un pallino a che categoria appartiene 
@@ -1080,6 +1186,7 @@ function setup() {
   // Crea i bottoni
   creaBottoneBack();
   creaBottoniNavigazione();
+  creaBottoneVaiAPagina();
 }
 
 function posizionaFreccia() {
@@ -1129,18 +1236,26 @@ function windowResized() {
 function draw() {
   background(nero);
 
-  scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
+    scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
+    let translateX = (width - BASE_W * scaleFactor) / 2;
+    let translateY = (height - BASE_H * scaleFactor) / 2;
+    
+    // *** MODIFICA QUI ***
+    // Ricalcola logicalMouseX e logicalMouseY tenendo conto della traslazione
+    logicalMouseX = (mouseX - translateX) / scaleFactor;
+    logicalMouseY = (mouseY - translateY) / scaleFactor;
+    // *******************
 
-  logicalMouseX = mouseX / scaleFactor;
-  logicalMouseY = mouseY / scaleFactor;
+    if (scaleFactor !== lastScaleFactor) {
+        aggiornaYearSelect();
+        lastScaleFactor = scaleFactor;
+    }
 
-  if (scaleFactor !== lastScaleFactor) {
-    aggiornaYearSelect();
-    lastScaleFactor = scaleFactor;
-  }
+    push();
 
-  push();
-  scale(scaleFactor); 
+    // La traslazione che devi compensare nel mouse
+    translate(translateX, translateY);
+    scale(scaleFactor);  
 
   animT += 0.01; 
 
@@ -1165,29 +1280,27 @@ function draw() {
   textFont(mioFont);
   text(punteggioTotale,1010, 120);
 
- 
   drawTitle();
   drawPalliniGrigi();
-
-  updateHoverCategory(); //capisco dove sta il mouse 
-
+  updateHoverCategory();
+  checkLegendHover();
+  checkBackButtonHover();
   drawAddQOverlay();
-
   drawSidePanel();
 
   pop();
-  // rect(0,0,1280,665)
 }
 
 //SE CLICCO IL MOUSE
 function mousePressed() {
-let mx = mouseX / scaleFactor;
-  let my = mouseY / scaleFactor;
+  let mx = logicalMouseX; 
+  let my = logicalMouseY;;
 
   // controllo se ho cliccato su un pallino "positivo" con categoria
   for (let p of palliniInfo) {
     if (p.type === "pos" && p.catIndex !== null) {
-      let d = dist(mx, my, p.x, p.y);
+      // Usa mx e my (che sono già nello spazio corretto)
+      let d = dist(mx, my, p.x, p.y); 
       if (d < diametroPallino / 2) {
         // se clicco sulla stessa categoria già selezionata: la "disattivo"
         if (selectedCatIndex === p.catIndex) {
@@ -1217,10 +1330,10 @@ for (let p of palliniInfo) { //PALLINI NEGATIVI
   }
 
   // 3) click sulla LEGENDA (solo se la legenda è visibile)
-  if (selectedCatIndex === null) {
+ if (selectedCatIndex === null) {
     for (let area of legendHitAreas) {
       if (
-        mx >= area.x && //controllano se il click è dentro al rettangolo 
+        mx >= area.x && 
         mx <= area.x + area.w &&
         my >= area.y &&
         my <= area.y + area.h
@@ -1258,73 +1371,133 @@ if (backHomeArea) {
     return;
   }
 }
-
-  
 }
 
 // funzione per creare i bottoni di navigazione in alto a destra
 function creaBottoniNavigazione() {
   
   // Calcola il diametro del cerchio in base all'altezza della barra di ricerca
-  // L'altezza della barra è data dal padding verticale (20px + 18px) + font-size (20px) + border (2px)
-  // Utilizziamo 60px come riferimento di altezza/diametro (circa 20+20+18+2)
   const diametroBottone = 60;
   const raggio = diametroBottone / 2;
   
   // Posizionamento
-  // L'area del grafico è graficoWidth, l'area dell'anno è annoWidth
-  // Vogliamo posizionarli all'interno dell'area annoWidth o al confine con essa.
-  // Usiamo graficoWidth come riferimento iniziale per l'area di destra.
-  const margineDestro = 50; 
-  const yPos = 30; // Stessa altezza verticale della barra di ricerca
+  const margineDestro = 25; // Margine dal bordo destro
+  const margineSinistro = 30; // Margine dal bordo sinistro
+  const yPos = 40; // Stessa altezza verticale della barra di ricerca
   const spaziaturaTraBottoni = 20;
 
-  // Calcolo della posizione X del secondo bottone (FH)
-  let xFH = width - diametroBottone - 25;
+  // Variabile per la posizione Y comune dei tooltip (5px sotto il bottone)
+  const yTooltip = yPos + diametroBottone + 10; 
+
+  const biancoOpaco = 'rgba(234, 234, 216, 0.8)';
   
-  // Calcolo della posizione X del primo bottone (US)
-  let xUS = xFH - diametroBottone - spaziaturaTraBottoni; 
-  
-  // --- Bottone Freedom House (FH) ---
-  bottoneFH = createButton('FH');
+  // --- Stili CSS comuni per tutti i tooltip (AGGIORNATO BORDER-RADIUS) ---
+  const stileTooltip = {
+    'position': 'absolute',
+    'background-color': biancoOpaco,
+    'color': nero,
+    'padding': '5px 10px 3px 10px',
+    'border-radius': '15px', 
+    'font-size': '14px',
+    'font-family': 'NeueHaasDisplay, sans-serif', 
+    'font-weight': 'normal',
+    'white-space': 'nowrap',
+    'z-index': '1003',
+    'display': 'none' // Nascosto di default
+  };
+
+// --- 2. Bottone FH (Freedom House) ---
+
+  let xFH = width - diametroBottone - margineDestro; 
+  bottoneFH = createButton(''); // Rimosso 'FH'
   bottoneFH.position(xFH, yPos);
   
-  // Stile del bottone
+  // *** INSERIMENTO DELL'IMMAGINE FH ***
+  // Trasforma l'oggetto p5.Image in una stringa base64 per usarlo nel tag <img>
+  const immagineFH = iconaFh.canvas.toDataURL();
+  bottoneFH.html(`<img src="${immagineFH}" alt="FH" style="width: 80%; height: 80%; object-fit: contain;">`); // Dimensioni 70% per un look più pulito
+
+  // Stili del bottone (adattati per l'immagine)
   bottoneFH.style('width', diametroBottone + 'px');
   bottoneFH.style('height', diametroBottone + 'px');
-  bottoneFH.style('border-radius', '50%'); // Rende il bottone circolare
+  bottoneFH.style('border-radius', '50%'); 
   bottoneFH.style('background-color', nero); 
-  bottoneFH.style('color', bianco);
   bottoneFH.style('border', '1px solid' + bianco);
-  bottoneFH.style('text-align', 'center');
-  bottoneFH.style('line-height', diametroBottone + 'px'); // Centra il testo verticalmente
-  bottoneFH.style('font-size', '18px');
-  bottoneFH.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
   bottoneFH.style('cursor', 'pointer');
   bottoneFH.style('z-index', '1000');
+  bottoneFH.style('padding', '0');
+  // Aggiunti per centrare l'immagine
+  bottoneFH.style('display', 'flex'); 
+  bottoneFH.style('align-items', 'center'); 
+  bottoneFH.style('justify-content', 'center'); 
   
+  // --- CREAZIONE TOOLTIP FH ---
+  tooltipFH = createDiv('About FreedomHouse');
+  for (let key in stileTooltip) {
+    tooltipFH.style(key, stileTooltip[key]);
+  }
+
+  // --- GESTIONE HOVER FH (ALLINEATO A DESTRA) ---
+  bottoneFH.mouseOver(() => {
+      tooltipFH.style('display', 'block');
+      let larghezzaTooltip = tooltipFH.elt.offsetWidth;
+      
+      // Posizione X: Bordo destro del bottone - Larghezza del tooltip
+      let xAllineatoDestra = xFH + diametroBottone - larghezzaTooltip; 
+      tooltipFH.position(xAllineatoDestra, yTooltip);
+  });
+
+  bottoneFH.mouseOut(() => {
+      tooltipFH.style('display', 'none');
+  });
+
   // Link
   bottoneFH.mousePressed(() => {
     window.location.href = 'freedomhouse.html';
   });
   
-  // --- Bottone USA (US) ---
-  bottoneUS = createButton('US');
+  // --- 3. Bottone ABOUT US
+  
+  let xUS = xFH - diametroBottone - spaziaturaTraBottoni; 
+  bottoneUS = createButton('');
   bottoneUS.position(xUS, yPos);
   
-  // Stile del bottone (uguale al precedente)
+  // *** INSERIMENTO DELL'IMMAGINE US ***
+  // Trasforma l'oggetto p5.Image in una stringa base64 per usarlo nel tag <img>
+  const immagineUS = iconaUs.canvas.toDataURL();
+  bottoneUS.html(`<img src="${immagineUS}" alt="US" style="width: 80%; height: 80%; object-fit: contain;">`); // Dimensioni 70% per un look più pulito
+
+  // Stili del bottone (adattati per l'immagine)
   bottoneUS.style('width', diametroBottone + 'px');
   bottoneUS.style('height', diametroBottone + 'px');
   bottoneUS.style('border-radius', '50%'); 
-  bottoneUS.style('background-color', nero); 
-  bottoneUS.style('color', bianco);
+  bottoneUS.style('background-color', nero);
   bottoneUS.style('border', '1px solid' + bianco);
-  bottoneUS.style('text-align', 'center');
-  bottoneUS.style('line-height', diametroBottone + 'px'); 
-  bottoneUS.style('font-size', '18px');
-  bottoneUS.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
   bottoneUS.style('cursor', 'pointer');
   bottoneUS.style('z-index', '1000');
+  bottoneUS.style('padding', '0');
+  // Aggiunti per centrare l'immagine
+  bottoneUS.style('display', 'flex'); 
+  bottoneUS.style('align-items', 'center'); 
+  bottoneUS.style('justify-content', 'center'); 
+  
+  // --- CREAZIONE TOOLTIP US ---
+  tooltipUS = createDiv('About Us');
+  for (let key in stileTooltip) {
+    tooltipUS.style(key, stileTooltip[key]);
+  }
+
+  // --- GESTIONE HOVER US (CENTRATO) ---
+  bottoneUS.mouseOver(() => {
+      tooltipUS.style('display', 'block');
+      let larghezzaTooltip = tooltipUS.elt.offsetWidth;
+      // Posizione X: Inizio bottone + metà bottone - metà tooltip
+      tooltipUS.position(xUS + diametroBottone / 2 - larghezzaTooltip / 2, yTooltip);
+  });
+
+  bottoneUS.mouseOut(() => {
+      tooltipUS.style('display', 'none');
+  });
 
   // Link
   bottoneUS.mousePressed(() => {
@@ -1335,26 +1508,33 @@ function creaBottoniNavigazione() {
 // NUOVA FUNZIONE per creare il bottone "Torna Indietro"
 function creaBottoneBack() {
   const diametroBottone = 60; // Stesso diametro dei bottoni US e FH
+  const raggio = diametroBottone / 2; // Necessario per l'SVG
   const xPos = 40; // Allineato a sinistra
-  const yPos = 40; // Stessa altezza del titolo regioneCorrente
+  const yPos = 40; 
   
-  bottoneBack = createButton('←');
+  bottoneBack = createButton(''); // L'HTML viene impostato dall'SVG
   bottoneBack.position(xPos, yPos);
   
-  // Stile del bottone circolare (come US e FH)
+  // --- Contenuto SVG Freccia Sinistra (RIGA MANCANTE INCLUSA) ---
+bottoneBack.html(`
+    <svg width="${raggio}" height="${raggio}" viewBox="0 0 24 24" fill="none" stroke="${bianco}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12"></line> 
+      <polyline points="12 5 5 12 12 19"></polyline> 
+    </svg>
+  `);
+  
+  // --- Stile del bottone circolare (come US e FH) ---
   bottoneBack.style('width', diametroBottone + 'px');
   bottoneBack.style('height', diametroBottone + 'px');
-  bottoneBack.style('border-radius', '50%'); // Rende il bottone circolare
+  bottoneBack.style('border-radius', '50%'); 
   bottoneBack.style('background-color', nero);
-  bottoneBack.style('color', bianco);
   bottoneBack.style('border', '1px solid' + bianco);
-  bottoneBack.style('text-align', 'center');
-  bottoneBack.style('line-height', diametroBottone + 'px'); // Centra la freccia verticalmente
-  bottoneBack.style('font-size', '24px'); // Dimensione della freccia
-  bottoneBack.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
+  bottoneBack.style('display', 'flex'); 
+  bottoneBack.style('align-items', 'center'); 
+  bottoneBack.style('justify-content', 'center'); 
   bottoneBack.style('cursor', 'pointer');
   bottoneBack.style('z-index', '1002');
-  bottoneBack.style('padding', '0'); // Rimuove padding per centrare meglio
+  bottoneBack.style('padding', '0'); 
 
   // Funzione per tornare alla pagina precedente nella cronologia del browser
   bottoneBack.mousePressed(() => {
@@ -1369,6 +1549,40 @@ function drawTitle(){
   textSize(60);
   textFont(fontMedium);
   textAlign(LEFT, TOP);
-  text(countryName, 120, 35); 
+  text(countryName, 110, 10); 
   pop();
+}
+
+function creaBottoneVaiAPagina() {
+  // Passa il paese corrente nell'URL
+  const urlDestinazione = 'paesi-overview.html?country=' + encodeURIComponent(countryName);
+  const testoBottone = 'Vai a Paesi Overview';
+
+  // 2. Crea un elemento link (<a>) usando p5.js createA()
+  // Il primo argomento è l'URL, il secondo è il testo visibile.
+  let bottonePagina = createA(urlDestinazione, testoBottone);
+
+  // 3. Applica lo stile e posiziona il bottone (Esempio di posizionamento)
+  // Posizionamento: in basso a destra dello schermo, per esempio.
+  const margineX = 30;
+  const margineY = 30;
+  
+  // Calcola la posizione x e y finale (qui per esempio: in basso a destra)
+  const xPos = windowWidth - 200 - margineX; // Larghezza approssimativa del bottone è 200px
+  const yPos = windowHeight - margineY;
+
+  bottonePagina.position(xPos, yPos);
+
+  // 4. Stile (opzionale, ma consigliato per farlo sembrare un bottone)
+  bottonePagina.style('background-color', '#4CAF50'); // Verde
+  bottonePagina.style('color', 'white');
+  bottonePagina.style('padding', '10px 20px');
+  bottonePagina.style('text-align', 'center');
+  bottonePagina.style('text-decoration', 'none'); // Rimuove la sottolineatura tipica dei link
+  bottonePagina.style('border-radius', '8px');
+  bottonePagina.style('font-size', '16px');
+  bottonePagina.style('cursor', 'pointer'); // Cambia il cursore
+  
+  // Ritorna l'oggetto se devi manipolarlo altrove (opzionale)
+  return bottonePagina;
 }

@@ -1,0 +1,110 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+@font-face {
+  font-family: 'NeueHaasDisplayRoman';
+  src: url('font/NeueHaasDisplayRoman.ttf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NeueHaasDisplayMediu';
+  src: url('font/NeueHaasDisplayMedium.ttf') format('opentype');
+  font-weight: medium;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NeueHaasDisplayBold';
+  src: url('font/NeueHaasDisplayBold.ttf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+body {
+    /* sfondo e font di base */
+    background-color: #26231d;
+    color: #eaead8;
+    
+    
+    /* rimuove lo scroll nativo, gestito da JS */
+    overflow: hidden; 
+    height: 100vh;
+    width: 100%;
+}
+
+/* Contenitore principale */
+#p5-canvas-container {
+    position: relative; 
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    /* Rimuovi display: flex per evitare interferenze con il canvas */
+}
+
+/* Posizionamento del Canvas P5 */
+canvas {
+    position: absolute; 
+    top: 0;
+    left: 0;
+    width: 100%; 
+    height: 100%; 
+    z-index: 1; 
+}
+
+/* Contenitore per le Immagini: FISSATO a SINISTRA */
+#image-container {
+    position: absolute; 
+    top: 0;
+    left: 0; /* Allinea a sinistra */
+    width: 50%; /* Occupa la metà sinistra dello schermo */
+    height: 100%;
+    display: flex;
+    justify-content: center; /* Centra l'immagine all'interno del suo 50% */
+    align-items: center;
+    z-index: 2; /* Davanti al canvas per le immagini, sotto il testo p5.js renderizzato */
+    pointer-events: none; 
+}
+
+/* Stili per le immagini: a "tutto schermo" nella metà sinistra */
+#img-liberty-1, #img-liberty-2 {
+    position: absolute; 
+    /* Aumenta la dimensione per coprire quasi interamente il contenitore (50% dello schermo) */
+    width: 100%;
+    height: 100%;
+    max-width: 100%; 
+    max-height: 100%;
+    object-fit: contain; /* Mantiene le proporzioni, evitando che l'immagine si tagli */
+    opacity: 0; 
+    transition: opacity 0.5s ease-in-out; 
+}
+
+
+/* bottone */
+#linkButton {
+    font-family:'NeueHaasDisplayRoman';
+    position: absolute; 
+    z-index: 10;
+    font-size: 2.1em;
+    padding: 10px 30px;
+    margin-top: 10px;
+    background-color: transparent; 
+    color: #eaead8; 
+    border: 2px solid #eaead8; 
+    border-radius: 50px;
+    cursor: pointer;
+    text-decoration: none; 
+    opacity: 0; 
+    transition: background-color 0.3s, color 0.3s; 
+}
+
+#linkButton:hover {
+    background-color: #eaead8;
+    color: #26231d;
+}

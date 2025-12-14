@@ -1,6 +1,8 @@
 // variabili globali
 let data;
 let torcia;
+let iconaUs;
+let iconaFh;
 
 // variabili per font
 let fontRegular;
@@ -57,6 +59,10 @@ let velocitaTransizione = 0.1; // Velocità della transizione (0-1, più alto = 
 let bottoneUS;
 let bottoneFH;
 let bottoneCancella;
+let bottoneIntro;
+let tooltipIntro;
+let tooltipUS;
+let tooltipFH;
 
 // colori
 let nero ="#26231d";
@@ -72,9 +78,13 @@ let coloriStatus = {
 function preload() {
   data = loadTable("assets/FH_dataset.csv", "csv", "header");
   torcia = loadImage("img/torcia.png");
+  // font
   fontRegular = loadFont("font/NeueHaasDisplayRoman.ttf");
   fontMedium = loadFont("font/NeueHaasDisplayMedium.ttf");
   fontBold = loadFont("font/NeueHaasDisplayBold.ttf");
+  // icone
+  iconaUs = loadImage("img/icone/us-bianco.png");
+  iconaFh = loadImage("img/icone/fh-bianco.png");
 }
 
 function setup() {
@@ -128,14 +138,26 @@ function estraiPaesiUnici() {
 
 // FUNZIONE MODIFICATA PER MIGLIORE VISIBILITÀ E POSIZIONAMENTO
 function creaBarraRicerca() {
-  const larghezzaBarra = graficoWidth*0.94;
+
+  const diametroBottoneIntro = 60; // Dalla creaBottoniNavigazione
+  const margineSinistroIntro = 30; // Dalla creaBottoniNavigazione
+  const spaziaturaDopoIntro = 20; // Aggiungi spazio dopo il bottone Intro
+
+  const xPosInizioBarra = margineSinistroIntro + diametroBottoneIntro + spaziaturaDopoIntro; // Nuova X iniziale
+  
+  // La larghezza totale del contenitore deve essere ridotta
+  const larghezzaSpazioUsato = xPosInizioBarra + (width - graficoWidth); // Larghezza usata per Intro + Anno/Navigazione
+  const larghezzaBarra = graficoWidth - xPosInizioBarra - 50; // Calcola la nuova larghezza disponibile
   
   // Container principale per la ricerca
   let containerRicerca = createDiv();
   
   // CENTRAGGIO DELLA BARRA SOPRA IL GRAFICO (circa)
-  let xPos = 30;
+  let xPos = xPosInizioBarra; // Usa la nuova posizione calcolata
   let yPos = 30; 
+  
+  containerRicerca.position(xPos, yPos);
+
   
   containerRicerca.position(xPos, yPos);
   containerRicerca.style('position', 'absolute');
@@ -634,7 +656,7 @@ function draw() {
 }
 
 function disegnaGriglia() {
-  const puntiDiRiferimento = [0, 100]; 
+  const puntiDiRiferimento = [0, 25, 50, 75, 100]; 
   let yPositions = []; // array per salvare le posizioni Y
   
   // 1. Ciclo per disegnare linee e numeri (0 e 100)
@@ -662,8 +684,8 @@ function disegnaGriglia() {
   // quindi la sua posizione Y è yPositions[1].
   
   // Se l'array ha almeno due elementi e 100 è il secondo punto di riferimento
-  if (yPositions.length > 1 && puntiDiRiferimento[1] === 100) {
-    const yLinea100 = yPositions[1]; // Posizione Y della linea del 100
+  if (yPositions.length > 1 && puntiDiRiferimento[4] === 100) {
+    const yLinea100 = yPositions[4]; // Posizione Y della linea del 100
     
     push();
     fill(bianco + 80);
@@ -892,7 +914,24 @@ function disegnaBarre() {
     
     // Determina l'opacità in base all'hover
     let opacita = 255;
-    if (regioneHover !== null && regioneHover !== regione) {
+   // --- NUOVA LOGICA: FORZA OPACITÀ QUANDO UN PAESE È CERCATO ---
+    let regionePaeseCercato = null;
+    if (paeseCercato !== null) {
+        let rigaPaese = datiFiltrati.find(r => r.getString('Country/Territory') === paeseCercato);
+        if (rigaPaese) {
+            regionePaeseCercato = rigaPaese.getString('Region');
+        }
+        
+        if (regionePaeseCercato !== null) {
+            // Se la regione corrente NON è quella cercata, riduci l'opacità
+            if (regione !== regionePaeseCercato) {
+                opacita = 80; 
+            }
+            // Se è la regione cercata, opacita resta 255 (100%)
+        }
+    } 
+    // --- FINE NUOVA LOGICA (se la ricerca NON è attiva, usa la logica di hover) ---
+    else if (regioneHover !== null && regioneHover !== regione) {
       opacita = 80; // Trasparenza per le torce non in hover
     }
     
@@ -1039,6 +1078,23 @@ function mouseMoved() {
   let nuovaRegioneHover = null;
   let cursoreDaMostrare = ARROW;
   
+  // --- NUOVA LOGICA: BLOCCO INTERAZIONE CON RICERCA ATTIVA ---
+  let regionePaeseCercato = null;
+  if (paeseCercato !== null) {
+      // Trova la regione del paese cercato
+      let rigaPaese = datiFiltrati.find(r => r.getString('Country/Territory') === paeseCercato);
+      if (rigaPaese) {
+          regionePaeseCercato = rigaPaese.getString('Region');
+      }
+  }
+
+  // Se un paese è cercato E la sua regione è stata trovata, saltiamo il normale calcolo dell'hover
+  if (regionePaeseCercato !== null) {
+      // In questo stato, non permettiamo l'hover su altre regioni/torce
+      regioneHover = null; // Forza la disattivazione dell'hover generico
+      cursor(ARROW); 
+  }
+  
   // PRIORITÀ 1: Controlla se il mouse è sopra il paese cercato
   if (paeseCercato !== null) {
     let paese = paesiConPosizioni.find(p => p.nome === paeseCercato);
@@ -1072,6 +1128,13 @@ function mouseMoved() {
         }
       }
     }
+  }
+  // Se paeseCercato è attivo, l'hover sulla regione deve essere bloccato!
+  if (regionePaeseCercato !== null) {
+      // Se siamo qui, il mouse non è sul pallino del paese cercato.
+      // Dobbiamo terminare la funzione per impedire la scansione delle aree regione/torce.
+      cursor(ARROW); 
+      return; 
   }
   
   // PRIORITÀ 2: Controlla le aree complete delle regioni (barre + torce)
@@ -1164,6 +1227,20 @@ function mousePressed() {
     }
   }
   
+  let regionePaeseCercato = null;
+  if (paeseCercato !== null) {
+      let rigaPaese = datiFiltrati.find(r => r.getString('Country/Territory') === paeseCercato);
+      if (rigaPaese) {
+          regionePaeseCercato = rigaPaese.getString('Region');
+      }
+      // Se il paese è cercato, impediamo i click sulle aree regione/torce.
+      if (regionePaeseCercato !== null) {
+          // Se arriviamo qui, il click non era sul pallino del paese cercato.
+          // Torniamo per impedire il click sulle aree torcia.
+          return;
+      }
+  }
+
   // PRIORITÀ 2: Controlla se è stato cliccato su un'area di una regione
   for (let area of areeRegioni) {
     if (mouseX >= area.x && mouseX <= area.x + area.w &&
@@ -1185,65 +1262,179 @@ function mousePressed() {
 function creaBottoniNavigazione() {
   
   // Calcola il diametro del cerchio in base all'altezza della barra di ricerca
-  // L'altezza della barra è data dal padding verticale (20px + 18px) + font-size (20px) + border (2px)
-  // Utilizziamo 60px come riferimento di altezza/diametro (circa 20+20+18+2)
   const diametroBottone = 60;
   const raggio = diametroBottone / 2;
   
   // Posizionamento
-  // L'area del grafico è graficoWidth, l'area dell'anno è annoWidth
-  // Vogliamo posizionarli all'interno dell'area annoWidth o al confine con essa.
-  // Usiamo graficoWidth come riferimento iniziale per l'area di destra.
-  const margineDestro = 50; 
+  const margineDestro = 25; // Margine dal bordo destro
+  const margineSinistro = 30; // Margine dal bordo sinistro
   const yPos = 30; // Stessa altezza verticale della barra di ricerca
   const spaziaturaTraBottoni = 20;
 
-  // Calcolo della posizione X del secondo bottone (FH)
-  let xFH = width - diametroBottone - 25;
+  // Variabile per la posizione Y comune dei tooltip (10px sotto il bottone)
+  const yTooltip = yPos + diametroBottone + 10; 
+
+  const biancoOpaco = 'rgba(234, 234, 216, 0.8)';
   
-  // Calcolo della posizione X del primo bottone (US)
-  let xUS = xFH - diametroBottone - spaziaturaTraBottoni; 
+  // --- Stili CSS comuni per tutti i tooltip (AGGIORNATO BORDER-RADIUS) ---
+  const stileTooltip = {
+    'position': 'absolute',
+    'background-color': biancoOpaco,
+    'color': nero,
+    'padding': '5px 10px 3px 10px',
+    'border-radius': '15px', 
+    'font-size': '14px',
+    'font-family': 'NeueHaasDisplay, sans-serif', 
+    'font-weight': 'normal',
+    'white-space': 'nowrap',
+    'z-index': '1003',
+    'display': 'none' // Nascosto di default
+  };
   
-  // --- Bottone Freedom House (FH) ---
-  bottoneFH = createButton('FH');
+  // --- 1. Bottone INTRO (Freccia) ---
+  
+  let xIntro = margineSinistro;
+  bottoneIntro = createButton('');
+  bottoneIntro.position(xIntro, yPos);
+  
+  // Inserimento SVG della freccia
+  bottoneIntro.html(`
+    <svg width="${raggio}" height="${raggio}" viewBox="0 0 24 24" fill="none" stroke="${bianco}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="19" x2="12" y2="5"></line>
+      <polyline points="5 12 12 5 19 12"></polyline>
+    </svg>
+  `);
+  bottoneIntro.style('width', diametroBottone + 'px');
+  bottoneIntro.style('height', diametroBottone + 'px');
+  bottoneIntro.style('border-radius', '50%'); 
+  bottoneIntro.style('background-color', nero); 
+  bottoneIntro.style('border', '1px solid' + bianco);
+  bottoneIntro.style('display', 'flex'); 
+  bottoneIntro.style('align-items', 'center'); 
+  bottoneIntro.style('justify-content', 'center'); 
+  bottoneIntro.style('cursor', 'pointer');
+  bottoneIntro.style('z-index', '1000');
+  bottoneIntro.style('padding', '0');
+
+
+  // --- CREAZIONE TOOLTIP INTRO ---
+  tooltipIntro = createDiv('Back to Introduction');
+  for (let key in stileTooltip) {
+    tooltipIntro.style(key, stileTooltip[key]);
+  }
+  
+  // --- GESTIONE HOVER INTRO (CENTRATO) ---
+  bottoneIntro.mouseOver(() => {
+      // 1. Rendi visibile temporaneamente per misurare la larghezza corretta
+      tooltipIntro.style('display', 'block'); 
+      
+      // 2. Ricalcola la posizione X centrata in base alla larghezza misurata
+      let larghezzaTooltip = tooltipIntro.elt.offsetWidth;
+      // Posizione X: Inizio bottone + metà bottone - metà tooltip
+      tooltipIntro.position(xIntro, yTooltip);
+  });
+
+  bottoneIntro.mouseOut(() => {
+      tooltipIntro.style('display', 'none');
+  });
+  
+  // Link
+  bottoneIntro.mousePressed(() => {
+    window.location.href = 'intro.html';
+  });
+  
+  // --- 2. Bottone FH (Freedom House) ---
+
+  let xFH = width - diametroBottone - margineDestro; 
+  bottoneFH = createButton(''); // Rimosso 'FH'
   bottoneFH.position(xFH, yPos);
   
-  // Stile del bottone
+  // *** INSERIMENTO DELL'IMMAGINE FH ***
+  // Trasforma l'oggetto p5.Image in una stringa base64 per usarlo nel tag <img>
+  const immagineFH = iconaFh.canvas.toDataURL();
+  bottoneFH.html(`<img src="${immagineFH}" alt="FH" style="width: 80%; height: 80%; object-fit: contain;">`); // Dimensioni 70% per un look più pulito
+
+  // Stili del bottone (adattati per l'immagine)
   bottoneFH.style('width', diametroBottone + 'px');
   bottoneFH.style('height', diametroBottone + 'px');
-  bottoneFH.style('border-radius', '50%'); // Rende il bottone circolare
+  bottoneFH.style('border-radius', '50%'); 
   bottoneFH.style('background-color', nero); 
-  bottoneFH.style('color', bianco);
   bottoneFH.style('border', '1px solid' + bianco);
-  bottoneFH.style('text-align', 'center');
-  bottoneFH.style('line-height', diametroBottone + 'px'); // Centra il testo verticalmente
-  bottoneFH.style('font-size', '18px');
-  bottoneFH.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
   bottoneFH.style('cursor', 'pointer');
   bottoneFH.style('z-index', '1000');
+  bottoneFH.style('padding', '0');
+  // Aggiunti per centrare l'immagine
+  bottoneFH.style('display', 'flex'); 
+  bottoneFH.style('align-items', 'center'); 
+  bottoneFH.style('justify-content', 'center'); 
   
+  // --- CREAZIONE TOOLTIP FH ---
+  tooltipFH = createDiv('About FreedomHouse');
+  for (let key in stileTooltip) {
+    tooltipFH.style(key, stileTooltip[key]);
+  }
+
+  // --- GESTIONE HOVER FH (ALLINEATO A DESTRA) ---
+  bottoneFH.mouseOver(() => {
+      tooltipFH.style('display', 'block');
+      let larghezzaTooltip = tooltipFH.elt.offsetWidth;
+      
+      // Posizione X: Bordo destro del bottone - Larghezza del tooltip
+      let xAllineatoDestra = xFH + diametroBottone - larghezzaTooltip; 
+      tooltipFH.position(xAllineatoDestra, yTooltip);
+  });
+
+  bottoneFH.mouseOut(() => {
+      tooltipFH.style('display', 'none');
+  });
+
   // Link
   bottoneFH.mousePressed(() => {
     window.location.href = 'freedomhouse.html';
   });
   
-  // --- Bottone USA (US) ---
-  bottoneUS = createButton('US');
+  // --- 3. Bottone ABOUT US
+  
+  let xUS = xFH - diametroBottone - spaziaturaTraBottoni; 
+  bottoneUS = createButton('');
   bottoneUS.position(xUS, yPos);
   
-  // Stile del bottone (uguale al precedente)
+  // *** INSERIMENTO DELL'IMMAGINE US ***
+  // Trasforma l'oggetto p5.Image in una stringa base64 per usarlo nel tag <img>
+  const immagineUS = iconaUs.canvas.toDataURL();
+  bottoneUS.html(`<img src="${immagineUS}" alt="US" style="width: 80%; height: 80%; object-fit: contain;">`); // Dimensioni 70% per un look più pulito
+
+  // Stili del bottone (adattati per l'immagine)
   bottoneUS.style('width', diametroBottone + 'px');
   bottoneUS.style('height', diametroBottone + 'px');
   bottoneUS.style('border-radius', '50%'); 
   bottoneUS.style('background-color', nero);
-  bottoneUS.style('color', bianco);
   bottoneUS.style('border', '1px solid' + bianco);
-  bottoneUS.style('text-align', 'center');
-  bottoneUS.style('line-height', diametroBottone + 'px'); 
-  bottoneUS.style('font-size', '18px');
-  bottoneUS.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
   bottoneUS.style('cursor', 'pointer');
   bottoneUS.style('z-index', '1000');
+  bottoneUS.style('padding', '0');
+  // Aggiunti per centrare l'immagine
+  bottoneUS.style('display', 'flex'); 
+  bottoneUS.style('align-items', 'center'); 
+  bottoneUS.style('justify-content', 'center'); 
+  
+  // --- CREAZIONE TOOLTIP US ---
+  tooltipUS = createDiv('About Us');
+  for (let key in stileTooltip) {
+    tooltipUS.style(key, stileTooltip[key]);
+  }
+
+  // --- GESTIONE HOVER US (CENTRATO) ---
+  bottoneUS.mouseOver(() => {
+      tooltipUS.style('display', 'block');
+      let larghezzaTooltip = tooltipUS.elt.offsetWidth;
+      // Posizione X: Inizio bottone + metà bottone - metà tooltip
+      tooltipUS.position(xUS + diametroBottone / 2 - larghezzaTooltip / 2, yTooltip);
+  });
+
+  bottoneUS.mouseOut(() => {
+      tooltipUS.style('display', 'none');
+  });
 
   // Link
   bottoneUS.mousePressed(() => {
