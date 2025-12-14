@@ -1,7 +1,7 @@
 // variabili globali
 let data;
 let bottoneUS;
-let bottoneFH;
+let bottoneGr;
 let bottoneBack;
 let titolo; 
 let riquadro1;
@@ -12,9 +12,14 @@ let titoloVerticale;
 let titoloVerticale2;
 let titoloVerticale3;
 let titoloVerticale4;
+let tooltipGrButton;
+let tooltipUSButton;
+let iconaGr;
+let iconaUs;
 
 function preload() {
-  // data = loadTable("assets/data.csv", "csv", "header"); // caricamento del dataset
+  iconaGr = loadImage("img/icone/grafico-bianco.png");
+  iconaUs = loadImage("img/icone/us-bianco.png");
 }
 
 function setup() {
@@ -246,18 +251,18 @@ function creaRiquadri() {
   riquadro4.html(`
     <div style="color: #eaead8; font-family: 'NeueHaasGrotDisp-55Roman', sans-serif; font-size: 17px; line-height: 1.6;">
       <p style="margin: 0 0 10px 0;"><strong style="font-family: 'NeueHaasGrotDisp-75Bold', sans-serif; font-size: 17px;">POLITICAL RIGHTS</strong></p>
-      <p style="margin: 0 0 5px 0;">A. Electoral Process</strong></p>
-      <p style="margin: 0 0 5px 0;">B. Political Pluralism & Participation</strong></p>
-      <p style="margin: 0 0 5px 0;">C. Functioning of Government</strong></p>
-      <p style="margin: 0 0 5px 0;">Additional Discretionary Political Rights Question</strong></p>
+      <p style="margin: 0 0 5px 0;">A. Electoral Process</p>
+      <p style="margin: 0 0 5px 0;">B. Political Pluralism & Participation</p>
+      <p style="margin: 0 0 5px 0;">C. Functioning of Government</p>
+      <p style="margin: 0 0 5px 0;">Additional Discretionary Political Rights Question</p>
       <ul style="margin: 0 0 5px 0; padding-left: 20px;">
         <li>Is the government or occupying power deliberately changing the ethnic composition of a country or territory so as to destroy a culture or tip the political balance in favor of another group?</li>
       </ul>
       <p style="margin: 0 0 5px 0;"><strong style="font-family: 'NeueHaasGrotDisp-75Bold', sans-serif; font-size: 17px;">CIVIL LIBERTIES</strong></p>
-      <p style="margin: 0 0 5px 0;">D. Freedom of Expression & Belief</strong></p>
-      <p style="margin: 0 0 5px 0;">E. Associational & Organizational Rights</strong></p>
-      <p style="margin: 0 0 5px 0;">F. Rule of Law</strong></p>
-      <p style="margin: 0 0 5px 0;">G. Personal Autonomy & Individual Rights</strong></p>
+      <p style="margin: 0 0 5px 0;">D. Freedom of Expression & Belief</p>
+      <p style="margin: 0 0 5px 0;">E. Associational & Organizational Rights</p>
+      <p style="margin: 0 0 5px 0;">F. Rule of Law</p>
+      <p style="margin: 0 0 5px 0;">G. Personal Autonomy & Individual Rights</p>
     </div>
   `);
   
@@ -288,37 +293,70 @@ function creaBottoniNavigazione() {
   const yPos = 30;
   const spaziaturaTraBottoni = 20;
 
-  // Calcolo delle posizioni X (bottoni a destra, back a sinistra)
-  let xFH = width - diametroBottone - 25;
-  let xUS = xFH - diametroBottone - spaziaturaTraBottoni;
+  // Calcolo delle posizioni X
+  let xGr = width - diametroBottone - 25;
+  let xUS = xGr - diametroBottone - spaziaturaTraBottoni;
   let xBack = 25;
   
-  // --- Bottone Freedom House (GR) ---
-  bottoneFH = createButton('GR');
-  bottoneFH.position(xFH, yPos);
+  // --- Bottone Global Rankings (GR) ---
+  bottoneGr = createButton('');
+  bottoneGr.position(xGr, yPos);
+  
+  const immagineGr = iconaGr.canvas.toDataURL();
+  bottoneGr.html(`<img src="${immagineGr}" alt="GR" style="width: 80%; height: 80%; object-fit: contain;">`);
   
   // Stile del bottone
-  bottoneFH.style('width', diametroBottone + 'px');
-  bottoneFH.style('height', diametroBottone + 'px');
-  bottoneFH.style('border-radius', '50%');
-  bottoneFH.style('background-color', '#26231d'); 
-  bottoneFH.style('color', '#eaead8');
-  bottoneFH.style('border', '1px solid #eaead8');
-  bottoneFH.style('text-align', 'center');
-  bottoneFH.style('line-height', diametroBottone + 'px');
-  bottoneFH.style('font-size', '18px');
-  bottoneFH.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
-  bottoneFH.style('cursor', 'pointer');
-  bottoneFH.style('z-index', '1000');
+  bottoneGr.style('width', diametroBottone + 'px');
+  bottoneGr.style('height', diametroBottone + 'px');
+  bottoneGr.style('border-radius', '50%');
+  bottoneGr.style('background-color', '#26231d'); 
+  bottoneGr.style('color', '#eaead8');
+  bottoneGr.style('border', '1px solid #eaead8');
+  bottoneGr.style('cursor', 'pointer');
+  bottoneGr.style('z-index', '1000');
+  bottoneGr.style('position', 'absolute');
+  bottoneGr.style('padding', '0');
+  bottoneGr.style('display', 'flex');
+  bottoneGr.style('align-items', 'center');
+  bottoneGr.style('justify-content', 'center');
   
-  // Link
-  bottoneFH.mousePressed(() => {
+  // Tooltip per GR
+  tooltipGrButton = createDiv('Global Rankings');
+  tooltipGrButton.style('display', 'none');
+  tooltipGrButton.style('position', 'absolute');
+  tooltipGrButton.style('background-color', '#eaead8');
+  tooltipGrButton.style('color', '#26231d');
+  tooltipGrButton.style('padding', '8px 12px');
+  tooltipGrButton.style('border-radius', '16px');
+  tooltipGrButton.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
+  tooltipGrButton.style('font-size', '14px');
+  tooltipGrButton.style('font-weight', 'bold');
+  tooltipGrButton.style('z-index', '1001');
+  tooltipGrButton.style('white-space', 'nowrap');
+  tooltipGrButton.style('pointer-events', 'none');
+
+  bottoneGr.mouseOver(() => {
+    tooltipGrButton.style('display', 'block');
+    let larghezzaTooltip = tooltipGrButton.elt.offsetWidth;
+    let xAllineatoDestra = xGr + diametroBottone - larghezzaTooltip;
+    let yTooltip = yPos + diametroBottone + 10;
+    tooltipGrButton.position(xAllineatoDestra, yTooltip);
+  });
+
+  bottoneGr.mouseOut(() => {
+    tooltipGrButton.style('display', 'none');
+  });
+
+  bottoneGr.mousePressed(() => {
     window.location.href = 'index.html';
   });
   
-  // --- Bottone USA (US) ---
-  bottoneUS = createButton('US');
+  // --- Bottone United States (US) ---
+  bottoneUS = createButton('');
   bottoneUS.position(xUS, yPos);
+  
+  const immagineUs = iconaUs.canvas.toDataURL();
+  bottoneUS.html(`<img src="${immagineUs}" alt="US" style="width: 80%; height: 80%; object-fit: contain;">`);
   
   // Stile del bottone
   bottoneUS.style('width', diametroBottone + 'px');
@@ -327,39 +365,72 @@ function creaBottoniNavigazione() {
   bottoneUS.style('background-color', '#26231d'); 
   bottoneUS.style('color', '#eaead8');
   bottoneUS.style('border', '1px solid #eaead8');
-  bottoneUS.style('text-align', 'center');
-  bottoneUS.style('line-height', diametroBottone + 'px'); 
-  bottoneUS.style('font-size', '18px');
-  bottoneUS.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
   bottoneUS.style('cursor', 'pointer');
   bottoneUS.style('z-index', '1000');
+  bottoneUS.style('position', 'absolute');
+  bottoneUS.style('padding', '0');
+  bottoneUS.style('display', 'flex');
+  bottoneUS.style('align-items', 'center');
+  bottoneUS.style('justify-content', 'center');
 
-  // Link
+  // Tooltip per US
+  tooltipUSButton = createDiv('About Us');
+  tooltipUSButton.style('display', 'none');
+  tooltipUSButton.style('position', 'absolute');
+  tooltipUSButton.style('background-color', '#eaead8');
+  tooltipUSButton.style('color', '#26231d');
+  tooltipUSButton.style('padding', '8px 12px');
+  tooltipUSButton.style('border-radius', '16px');
+  tooltipUSButton.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
+  tooltipUSButton.style('font-size', '14px');
+  tooltipUSButton.style('font-weight', 'bold');
+  tooltipUSButton.style('z-index', '1001');
+  tooltipUSButton.style('white-space', 'nowrap');
+  tooltipUSButton.style('pointer-events', 'none');
+
+  bottoneUS.mouseOver(() => {
+    tooltipUSButton.style('display', 'block');
+    let larghezzaTooltip = tooltipUSButton.elt.offsetWidth;
+    let xCentrato = xUS + (diametroBottone - larghezzaTooltip) / 2;
+    let yTooltip = yPos + diametroBottone + 10;
+    tooltipUSButton.position(xCentrato, yTooltip);
+  });
+
+  bottoneUS.mouseOut(() => {
+    tooltipUSButton.style('display', 'none');
+  });
+
   bottoneUS.mousePressed(() => {
     window.location.href = 'us.html';
   });
   
   // --- Bottone BACK (←) ---
-  bottoneBack = createButton('←');
+  const raggio = diametroBottone / 2;
+  const nero = '#26231d';
+  const bianco = '#eaead8';
+  
+  bottoneBack = createButton('');
   bottoneBack.position(xBack, yPos);
   
-  // Stile del bottone
+  bottoneBack.html(`
+    <svg width="${raggio}" height="${raggio}" viewBox="0 0 24 24" fill="none" stroke="${bianco}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12"></line> 
+      <polyline points="12 5 5 12 12 19"></polyline> 
+    </svg>
+  `);
+  
   bottoneBack.style('width', diametroBottone + 'px');
   bottoneBack.style('height', diametroBottone + 'px');
-  bottoneBack.style('border-radius', '50%'); 
-  bottoneBack.style('background-color', '#26231d'); 
-  bottoneBack.style('color', '#eaead8');
-  bottoneBack.style('border', '1px solid #eaead8');
+  bottoneBack.style('border-radius', '50%');
+  bottoneBack.style('background-color', nero);
+  bottoneBack.style('border', '1px solid ' + bianco);
   bottoneBack.style('display', 'flex');
   bottoneBack.style('align-items', 'center');
   bottoneBack.style('justify-content', 'center');
-  bottoneBack.style('font-size', '28px');
-  bottoneBack.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
   bottoneBack.style('cursor', 'pointer');
-  bottoneBack.style('z-index', '1000');
+  bottoneBack.style('z-index', '1002');
   bottoneBack.style('padding', '0');
 
-  // Funzione per tornare indietro nella cronologia del browser
   bottoneBack.mousePressed(() => {
     window.history.back();
   });
@@ -371,11 +442,11 @@ function windowResized() {
   // Riposiziona gli elementi quando la finestra viene ridimensionata
   const diametroBottone = 60;
   const spaziaturaTraBottoni = 20;
-  let xFH = width - diametroBottone - 25;
-  let xUS = xFH - diametroBottone - spaziaturaTraBottoni;
+  let xGr = width - diametroBottone - 25;
+  let xUS = xGr - diametroBottone - spaziaturaTraBottoni;
   let xBack = 25;
   
-  bottoneFH.position(xFH, 30);
+  bottoneGr.position(xGr, 30);
   bottoneUS.position(xUS, 30);
   bottoneBack.position(xBack, 30);
   
