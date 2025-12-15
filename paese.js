@@ -180,6 +180,133 @@ function preload() {
   iconaFh = loadImage("img/icone/fh-bianco.png");
 }
 
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
+
+  // Caratteristiche generali dei testi 
+  textColor = color(232, 233, 214);
+  textFont(mioFont);
+  textSize(16);
+  fill(textColor);
+
+  let urlParams = getURLParams();
+  
+  // DECODIFICA il parametro country
+  let countryFromURL = urlParams.country || "";
+  countrySlug = countryFromURL ? decodeURIComponent(countryFromURL) : "";
+  countrySlug = normalizeCountryName(countrySlug);
+  
+  // Debug
+  console.log("Country dall'URL:", countryFromURL);
+  console.log("Country normalizzato:", countrySlug);
+
+  if (countrySlug === "") {
+    countryName = "Nessun paese selezionato";
+    console.warn("Parametro ?country mancante nell'URL");
+    return; 
+  }
+
+  // Cerco nel CSV la riga che ha lo stesso slug
+  let found = false; 
+  anniDisponibili = [];
+
+  for (let i = 0; i < data.getRowCount(); i++) {
+    let countryCSV = data.getString(i, "Country/Territory").trim();
+    let csvSlug = normalizeCountryName(countryCSV);
+    let edition = data.getString(i, "Edition").trim();
+
+    if (csvSlug === countrySlug) {
+      if (!found) {
+        countryName = countryCSV;
+        found = true;
+      }
+      if (!anniDisponibili.includes(edition)) {
+        anniDisponibili.push(edition); 
+      }
+    }
+  }
+  
+  if (!found) {
+    countryName = "Paese non trovato (" + countrySlug + ")";
+    console.warn("Nessun dato trovato per lo slug:", countrySlug);
+    return; // IMPORTANTE: esci se non trovi il paese
+  }
+  
+  // Leggi l'anno dall'URL
+  let yearFromURL = urlParams.year || "";
+  console.log("Anno dall'URL:", yearFromURL);
+  
+  // SE HO TROVATO GLI ANNI
+  if (anniDisponibili.length > 0) {
+    anniDisponibili.sort((a, b) => int(b) - int(a));
+    
+    // Usa l'anno dall'URL se disponibile e valido
+    if (yearFromURL && anniDisponibili.includes(yearFromURL)) {
+      annoSelezionato = yearFromURL;
+    } else {
+      annoSelezionato = anniDisponibili[0];
+    }
+    
+    console.log("Anno selezionato:", annoSelezionato);
+
+    // Calcola subito i punteggi
+    aggiornaPunteggioTotale();
+
+    // Crea il select per l'anno
+    yearSelect = createSelect();
+    yearSelect.position(YEAR_BASE_X * scaleFactor, YEAR_BASE_Y * scaleFactor);
+
+    for (let y of anniDisponibili) {
+      yearSelect.option(y);
+    }
+
+    yearSelect.selected(annoSelezionato);
+
+    yearSelect.style('background-color', nero);
+    yearSelect.style('color', bianco);
+    yearSelect.style('border', '1px solid' + bianco);
+    yearSelect.style('font-family', 'Open Sans, sans-serif');
+    yearSelect.style('font-size', (55 * scaleFactor) + 'px');
+    yearSelect.style('border-radius', (18 * scaleFactor) + 'px');
+    yearSelect.style('outline', 'none');
+
+    // Tolgo la freccia nativa del browser
+    yearSelect.style('appearance', 'none');
+    yearSelect.style('-webkit-appearance', 'none');
+    yearSelect.style('-moz-appearance', 'none');
+
+    // Aumento il padding a destra per far posto alla freccia finta
+    yearSelect.style(
+      'padding',
+      (6 * scaleFactor) + 'px ' +
+      (60 * scaleFactor) + 'px ' +
+      (6 * scaleFactor) + 'px ' +
+      (24 * scaleFactor) + 'px'
+    );
+
+    // Creo una freccia finta "▾"
+    arrowSpan = createSpan('▾');
+    arrowSpan.style('position', 'absolute');
+    arrowSpan.style('pointer-events', 'none');
+    arrowSpan.style('color', bianco);
+    arrowSpan.style('font-family', 'Open Sans, sans-serif');
+    arrowSpan.style('font-size', (62 * scaleFactor) + 'px');
+
+    yearSelect.changed(() => {
+      annoSelezionato = yearSelect.value();
+      aggiornaPunteggioTotale();
+    });
+    
+    posizionaFreccia();
+  }
+
+  // Crea i bottoni
+  creaBottoneBack();
+  creaBottoniNavigazione();
+  creaBottoneOverview();
+}
+
 //FUNZIONE PER NORMALIZZARE I NOMI 
 //slug --> versione ripulita dei nomi dei paesi, più facile da usare e non crea errori 
 function normalizeCountryName(name) {
@@ -217,7 +344,6 @@ function drawPalliniGrigi(){
     color( "#A4B2B8"),// F
     color("#C0655A")   // G
   ];
-
     noStroke();
 
     let indicePallino = 0; //parto dal basso a sinistra 
@@ -1062,133 +1188,6 @@ return null;
 //k=0 --> A, puntiCat = 3
 //indicePallino <somma+puntiCat --> 0<0+3 --> pallino 0 appartiene a A
 
-function setup() {
-  createCanvas(windowWidth, windowHeight);
-  scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
-
-  // Caratteristiche generali dei testi 
-  textColor = color(232, 233, 214);
-  textFont(mioFont);
-  textSize(16);
-  fill(textColor);
-
-  let urlParams = getURLParams();
-  
-  // DECODIFICA il parametro country
-  let countryFromURL = urlParams.country || "";
-  countrySlug = countryFromURL ? decodeURIComponent(countryFromURL) : "";
-  countrySlug = normalizeCountryName(countrySlug);
-  
-  // Debug
-  console.log("Country dall'URL:", countryFromURL);
-  console.log("Country normalizzato:", countrySlug);
-
-  if (countrySlug === "") {
-    countryName = "Nessun paese selezionato";
-    console.warn("Parametro ?country mancante nell'URL");
-    return; 
-  }
-
-  // Cerco nel CSV la riga che ha lo stesso slug
-  let found = false; 
-  anniDisponibili = [];
-
-  for (let i = 0; i < data.getRowCount(); i++) {
-    let countryCSV = data.getString(i, "Country/Territory").trim();
-    let csvSlug = normalizeCountryName(countryCSV);
-    let edition = data.getString(i, "Edition").trim();
-
-    if (csvSlug === countrySlug) {
-      if (!found) {
-        countryName = countryCSV;
-        found = true;
-      }
-      if (!anniDisponibili.includes(edition)) {
-        anniDisponibili.push(edition); 
-      }
-    }
-  }
-  
-  if (!found) {
-    countryName = "Paese non trovato (" + countrySlug + ")";
-    console.warn("Nessun dato trovato per lo slug:", countrySlug);
-    return; // IMPORTANTE: esci se non trovi il paese
-  }
-  
-  // Leggi l'anno dall'URL
-  let yearFromURL = urlParams.year || "";
-  console.log("Anno dall'URL:", yearFromURL);
-  
-  // SE HO TROVATO GLI ANNI
-  if (anniDisponibili.length > 0) {
-    anniDisponibili.sort((a, b) => int(b) - int(a));
-    
-    // Usa l'anno dall'URL se disponibile e valido
-    if (yearFromURL && anniDisponibili.includes(yearFromURL)) {
-      annoSelezionato = yearFromURL;
-    } else {
-      annoSelezionato = anniDisponibili[0];
-    }
-    
-    console.log("Anno selezionato:", annoSelezionato);
-
-    // Calcola subito i punteggi
-    aggiornaPunteggioTotale();
-
-    // Crea il select per l'anno
-    yearSelect = createSelect();
-    yearSelect.position(YEAR_BASE_X * scaleFactor, YEAR_BASE_Y * scaleFactor);
-
-    for (let y of anniDisponibili) {
-      yearSelect.option(y);
-    }
-
-    yearSelect.selected(annoSelezionato);
-
-    yearSelect.style('background-color', nero);
-    yearSelect.style('color', bianco);
-    yearSelect.style('border', '1px solid' + bianco);
-    yearSelect.style('font-family', 'Open Sans, sans-serif');
-    yearSelect.style('font-size', (55 * scaleFactor) + 'px');
-    yearSelect.style('border-radius', (18 * scaleFactor) + 'px');
-    yearSelect.style('outline', 'none');
-
-    // Tolgo la freccia nativa del browser
-    yearSelect.style('appearance', 'none');
-    yearSelect.style('-webkit-appearance', 'none');
-    yearSelect.style('-moz-appearance', 'none');
-
-    // Aumento il padding a destra per far posto alla freccia finta
-    yearSelect.style(
-      'padding',
-      (6 * scaleFactor) + 'px ' +
-      (60 * scaleFactor) + 'px ' +
-      (6 * scaleFactor) + 'px ' +
-      (24 * scaleFactor) + 'px'
-    );
-
-    // Creo una freccia finta "▾"
-    arrowSpan = createSpan('▾');
-    arrowSpan.style('position', 'absolute');
-    arrowSpan.style('pointer-events', 'none');
-    arrowSpan.style('color', bianco);
-    arrowSpan.style('font-family', 'Open Sans, sans-serif');
-    arrowSpan.style('font-size', (62 * scaleFactor) + 'px');
-
-    yearSelect.changed(() => {
-      annoSelezionato = yearSelect.value();
-      aggiornaPunteggioTotale();
-    });
-    
-    posizionaFreccia();
-  }
-
-  // Crea i bottoni
-  creaBottoneBack();
-  creaBottoniNavigazione();
-  creaBottoneVaiAPagina();
-}
-
 function posizionaFreccia() {
   if (!yearSelect || !arrowSpan) return;
 
@@ -1553,36 +1552,44 @@ function drawTitle(){
   pop();
 }
 
-function creaBottoneVaiAPagina() {
-  // Passa il paese corrente nell'URL
-  const urlDestinazione = 'paesi-overview.html?country=' + encodeURIComponent(countryName);
-  const testoBottone = 'Vai a Paesi Overview';
-
-  // 2. Crea un elemento link (<a>) usando p5.js createA()
-  // Il primo argomento è l'URL, il secondo è il testo visibile.
-  let bottonePagina = createA(urlDestinazione, testoBottone);
-
-  // 3. Applica lo stile e posiziona il bottone (Esempio di posizionamento)
-  // Posizionamento: in basso a destra dello schermo, per esempio.
-  const margineX = 30;
-  const margineY = 30;
+// NUOVA FUNZIONE per creare il bottone "Overview"
+function creaBottoneOverview() {
+  let widthBottone = 200;
+  let heightBottone = 60;
+  const xPos = windowWidth*3/4-30;
+  const yPos = 40;
   
-  // Calcola la posizione x e y finale (qui per esempio: in basso a destra)
-  const xPos = windowWidth - 200 - margineX; // Larghezza approssimativa del bottone è 200px
-  const yPos = windowHeight - margineY;
-
-  bottonePagina.position(xPos, yPos);
-
-  // 4. Stile (opzionale, ma consigliato per farlo sembrare un bottone)
-  bottonePagina.style('background-color', '#4CAF50'); // Verde
-  bottonePagina.style('color', 'white');
-  bottonePagina.style('padding', '10px 20px');
-  bottonePagina.style('text-align', 'center');
-  bottonePagina.style('text-decoration', 'none'); // Rimuove la sottolineatura tipica dei link
-  bottonePagina.style('border-radius', '8px');
-  bottonePagina.style('font-size', '16px');
-  bottonePagina.style('cursor', 'pointer'); // Cambia il cursore
   
-  // Ritorna l'oggetto se devi manipolarlo altrove (opzionale)
-  return bottonePagina;
+  let bottoneOverview = createButton('');
+  bottoneOverview.position(xPos, yPos);
+  
+  // *** INIZIO MODIFICA PER IL TESTO SU DUE RIGHE ***
+  // Crea il contenuto HTML con l'interruzione di riga <br>
+  const testoBottone = "View Years'<br>Overview";
+  // Assegna il contenuto HTML al bottone
+  bottoneOverview.html(testoBottone);
+  // *** FINE MODIFICA PER IL TESTO SU DUE RIGHE ***
+
+  
+  // Stili
+  bottoneOverview.style('width', widthBottone + 'px');
+  bottoneOverview.style('height', heightBottone + 'px');
+  bottoneOverview.style('border-radius', '25px');
+  bottoneOverview.style('background-color', nero);
+  bottoneOverview.style('border', '1px solid' + bianco);
+  bottoneOverview.style('display', 'flex');
+  bottoneOverview.style('align-items', 'center');
+  bottoneOverview.style('justify-content', 'center');
+  bottoneOverview.style('cursor', 'pointer');
+  bottoneOverview.style('z-index', '1002');
+  bottoneOverview.style('padding', '0');
+  bottoneOverview.style('color', bianco); // Assicurati che il colore del testo sia visibile
+  bottoneOverview.style('font-size', '20px'); 
+  bottoneOverview.style('text-align', 'center'); // Allinea il testo centrato
+  
+  // Click: passa il paese come parametro URL
+  bottoneOverview.mousePressed(() => {
+    // Usa countrySlug (già normalizzato) per passare il paese
+    window.location.href = `paesioverview.html?country=${encodeURIComponent(countrySlug)}`;
+  });
 }

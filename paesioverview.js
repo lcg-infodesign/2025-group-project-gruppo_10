@@ -1,4 +1,14 @@
 let data;
+let iconaUs;
+let iconaFh;
+
+// variabili per i nuovi bottoni in alto a destra
+let bottoneUS;
+let bottoneFH;
+let bottoneBack; // bottone per tornare indietro
+let tooltipUS;
+let tooltipFH;
+
 let countryTitle = "";
 let rawCountryName;
 let countryName;
@@ -6,7 +16,7 @@ let countryData = [];
 let params = ["ElectoralProcess", "PoliticalPluralism", "FunctioningofGovernement", "FreedomofExpression","AssociationRights","RuleofLaw","IndividualRights", "AddA"];
 let padding = 100; //distanza del grafico dal lato della pagina
 let bottomPadding = 100;
-let topPadding = 100;
+let topPadding = 130;
 let textPadding = 70;
 
 let dotSize;
@@ -16,18 +26,15 @@ let totalHeight = (dotSize + dotSpacing)*50;
 let viewMode = "overview"; 
 let toggleBox = {};
 
-let currentHoveredIndex = -1; // indice della colonna attualmente sotto il mouse
- 
+let currentHoveredIndex = -1; // indice della colonna attualmente sotto il mouse 
 let backHomeArea = null;   // bottone "back" in alto (pagina principale)
 
-// bottone per tornare indietro -> veccchio non utilizzato 
 let goBackButton;
 let goBackBox = {};
 let goBackTextX = 20;
 let goBackTextY = 20;
 let goBackTextSize = 15;
 
-let sfondo;
 let textColor;
 let lineColor;
 let greyBase;
@@ -40,6 +47,11 @@ let colorRuleLaw;
 let colorPersonalAutonomy;
 let colorAddA;
 
+// colori
+let nero = "#26231d";
+let bianco = "#eaead8";
+let grigio = "#454340ff";
+
 let coloriStatus = {
   'F': ["#c76351", "#d58d3e", "#26231d"],    // Libero
   'PF': ["#e5c38f", "#cad181", "#26231d"],   // Parzialmente Libero
@@ -48,9 +60,13 @@ let coloriStatus = {
 
 function preload() {
   data = loadTable("assets/FH_dataset.csv", "csv", "header");
+  // font
   mioFont = loadFont("font/NeueHaasDisplayRoman.ttf");
   mioFontMedium = loadFont("font/NeueHaasDisplayMedium.ttf");
   mioFontBold = loadFont("font/NeueHaasDisplayBold.ttf");
+  // icone
+  iconaUs = loadImage("img/icone/us-bianco.png");
+  iconaFh = loadImage("img/icone/fh-bianco.png");
 }
 
 //NORMALIZZARE I NOMI così legge tutto 
@@ -65,22 +81,18 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   angleMode(DEGREES);
 
-  creaBottoneBack();
-
-  sfondo = color(38,35,29);
-  textColor = color(234,234,216);
+  textColor = bianco;
   greyBase = color(53, 51, 48);
   lineColor = color(136,135,124);
-  colorElectoralProcess = color(202, 209, 129);
-  colorPoliticalPluralism = color(144, 161, 165);
-  colorFunctioningGovernement = color(21, 95, 128);
-  colorFreedomExpression = color(213, 141, 62);
-  colorAssociationalRights = color(161, 124, 182);
-  colorRuleLaw = color(209, 191, 220);
-  colorPersonalAutonomy = color(199, 99, 81);
+  colorElectoralProcess = color("#D9D97A");
+  colorPoliticalPluralism = color("#6A8AA9");
+  colorFunctioningGovernement = color("#0F3C63");
+  colorFreedomExpression = color("#C47929");
+  colorAssociationalRights = color("#9C6EBF");
+  colorRuleLaw = color("#A4B2B8");
+  colorPersonalAutonomy = color("#C0655A");
   colorAddA = color('#1f863fff')
   
-
   fill(textColor);
   textSize(14);
   textFont(mioFont);
@@ -101,7 +113,6 @@ function setup() {
   let countryKey = normalizeCountryName(rawCountryName);
   countryName = rawCountryName; // lo tengo per scriverlo grande nel titolo
   
-
   // filtra tutti i dati per il paese selezionato
   for (let i = 0; i < data.getRowCount(); i++) {
   let countryCSV = data.getString(i, "Country/Territory").trim();
@@ -125,36 +136,29 @@ function setup() {
       IndividualRights: parseFloat(data.getString(i, "Total G")) || 0,
       AddQ: parseFloat(data.getString(i, "Add Q")) || 0,
       AddA: parseFloat(data.getString(i, "Add A")) || 0,
-      Total: parseFloat(data.getString(i, "TOTAL ")) || 0,
+      Total: parseFloat(data.getString(i, "TOTAL")) || 0,
       Status: data.getString(i, "Status").trim(),
       
     });
   }
-
-  
-
 }
-
 // Ordina per anno crescente
 countryData.sort((a, b) => parseInt(a.year) - parseInt(b.year));
 
+creaBottoneBack();
+creaBottoniNavigazione();
 }
 
 function draw() {
-  background(sfondo);
+  background(nero);
 
   textSize(15)
   fill(textColor);
   if (!countryData || countryData.length === 0) {
-    
     textAlign(CENTER);
-    
     text("Nessun dato disponibile per questo paese", width / 2, height / 2);
     return;
   }
- 
-  
-
 
  if (viewMode === "parameters") {
   if (totaleNegativo()) {
@@ -176,19 +180,15 @@ function draw() {
       } else {
       drawOverviewChart(countryData);
       }
-    drawCountryText(countryName, windowWidth - padding - 300 , 120, 300); // ultimo parametro larghezza box testo 
+    drawCountryText(countryName, windowWidth - padding - 300 , windowHeight/5, 300); // ultimo parametro larghezza box testo 
   }
   drawToggle();
 
   fill(textColor);
   textSize(goBackTextSize);
   textFont(mioFontBold);
-  //drawGoBackButton();
   
   drawTitle();
-  
-
-
 }
 
 // controlla se il total score è negativo 
@@ -256,8 +256,6 @@ function drawDotChart(data, params, padding) {
     colorAddA
   ];
 
-  
-
   // tacche asse y
   for (let t = 0; t <= 100; t += 10) {
     let ty = map(t, 0, 100, 0, totalHeight);
@@ -274,7 +272,6 @@ function drawDotChart(data, params, padding) {
   for (let i = 0; i < data.length; i++) {
 
     let d = data[i];
-
 
     // leggo parametri e coloro i pallini
     let dots = [];
@@ -346,8 +343,6 @@ function drawDotChart(data, params, padding) {
     textAlign(CENTER, CENTER);
     textSize(20);                
     
-
-
     translate(colCenter, yBase + 40);
     rotate(-90);
     fill(textColor);
@@ -440,25 +435,21 @@ function drawOverviewChart() {
 function drawLegend(){
 
   let xText = windowWidth - padding - 280;//come larghezza paragrafo testo
-  let yText = windowHeight - bottomPadding - 360; 
+  let yText = windowHeight/5+10; 
   let dimC = 15
   let c = 40
   let h = 25 // distanza testi
   let b = 5
-
-
   let rectX = xText - 40; // come padding rettangolo testo
   let rectY = yText - 40;
   let rectW = 340;
   let rectH = 340;
 
-
   textAlign(LEFT)
-
   fill(textColor);
   textFont(mioFont);
   textSize(15);
-  text("Electoral Process", xText, yText + h );
+  text("Electoral Process", xText, yText + h);
   
   text("Political Pluralism and Participation", xText, yText + 2*h );
   
@@ -474,13 +465,10 @@ function drawLegend(){
   
   text("Personal Autonomy and Individual Rights", xText, yText+9*h + c);
   
-
-
   textFont(mioFontBold);
   textSize(20)
   text("Political Rights", xText -20, yText -10);
   text("Civil Liberties", xText -20, yText+ 5*h +c -10 );
-
 
   noStroke();
   fill(colorElectoralProcess);
@@ -507,21 +495,21 @@ function drawLegend(){
   fill(colorPersonalAutonomy);
   ellipse(xText-dimC, yText + 9*h + b + c - 5, dimC);
 
-
   noFill();
   stroke(textColor);
-  strokeWeight(2);
+  strokeWeight(1);
   rect(rectX,rectY,rectW,rectH,20);
-
-
-
 }
 
 function drawTitle(){
-
-  fill(textColor);
-  textSize(70);
+  push();
+  fill(bianco);
+  noStroke();
+  textSize(60);
+  textFont(mioFontMedium);
+  textAlign(LEFT, TOP); 
   text(countryTitle, textPadding + 50, 45);
+  pop();
 }
 
 function creaGradienteToggle(x, y, w, h) {
@@ -573,39 +561,169 @@ function drawToggle() {
 // NUOVA FUNZIONE per creare il bottone "Torna Indietro"
 function creaBottoneBack() {
   const diametroBottone = 60; // Stesso diametro dei bottoni US e FH
-  const xPos = 30; // Allineato a sinistra
-  const yPos = 15; 
-  const borderColor = '#EAEAD8';
-  const sfondoCss = '#26231d';
+  const raggio = diametroBottone / 2; // Necessario per l'SVG
+  const xPos = 40; // Allineato a sinistra
+  const yPos = 40; 
   
-  bottoneBack = createButton('←');
+  bottoneBack = createButton(''); // L'HTML viene impostato dall'SVG
   bottoneBack.position(xPos, yPos);
   
-  // Stile del bottone circolare (come US e FH)
+  // --- Contenuto SVG Freccia Sinistra (RIGA MANCANTE INCLUSA) ---
+bottoneBack.html(`
+    <svg width="${raggio}" height="${raggio}" viewBox="0 0 24 24" fill="none" stroke="${bianco}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12"></line> 
+      <polyline points="12 5 5 12 12 19"></polyline> 
+    </svg>
+  `);
+  
+  // --- Stile del bottone circolare (come US e FH) ---
   bottoneBack.style('width', diametroBottone + 'px');
   bottoneBack.style('height', diametroBottone + 'px');
-  bottoneBack.style('border-radius', '50%'); // Rende il bottone circolare
-  bottoneBack.style('background-color', sfondoCss);
-  bottoneBack.style('color', borderColor);
-  bottoneBack.style('border', '2px solid ' + borderColor);
-  bottoneBack.style('text-align', 'center');
-  bottoneBack.style('line-height', diametroBottone + 'px'); // Centra la freccia verticalmente
-  bottoneBack.style('font-size', '24px'); // Dimensione della freccia
-  bottoneBack.style('font-family', 'NeueHaasGrotDisp-75Bold, sans-serif');
+  bottoneBack.style('border-radius', '50%'); 
+  bottoneBack.style('background-color', nero);
+  bottoneBack.style('border', '1px solid' + bianco);
+  bottoneBack.style('display', 'flex'); 
+  bottoneBack.style('align-items', 'center'); 
+  bottoneBack.style('justify-content', 'center'); 
   bottoneBack.style('cursor', 'pointer');
   bottoneBack.style('z-index', '1002');
-  bottoneBack.style('padding', '0'); // Rimuove padding per centrare meglio
-
-  bottoneBack.style('appearance', 'none');
-  bottoneBack.style('-webkit-appearance', 'none');
-  bottoneBack.style('outline', 'none');
-  bottoneBack.style('box-shadow', 'none');
-
-
+  bottoneBack.style('padding', '0'); 
 
   // Funzione per tornare alla pagina precedente nella cronologia del browser
   bottoneBack.mousePressed(() => {
     window.history.back();
+  });
+}
+
+// funzione per creare i bottoni di navigazione in alto a destra
+function creaBottoniNavigazione() {
+  
+  // Calcola il diametro del cerchio in base all'altezza della barra di ricerca
+  const diametroBottone = 60;
+  const raggio = diametroBottone / 2;
+  
+  // Posizionamento
+  const margineDestro = 25; // Margine dal bordo destro
+  const margineSinistro = 30; // Margine dal bordo sinistro
+  const yPos = 40; // Stessa altezza verticale della barra di ricerca
+  const spaziaturaTraBottoni = 20;
+
+  // Variabile per la posizione Y comune dei tooltip (5px sotto il bottone)
+  const yTooltip = yPos + diametroBottone + 10; 
+
+  const biancoOpaco = 'rgba(234, 234, 216, 0.8)';
+  
+  // --- Stili CSS comuni per tutti i tooltip (AGGIORNATO BORDER-RADIUS) ---
+  const stileTooltip = {
+    'position': 'absolute',
+    'background-color': biancoOpaco,
+    'color': nero,
+    'padding': '5px 10px 3px 10px',
+    'border-radius': '15px', 
+    'font-size': '14px',
+    'font-family': 'NeueHaasDisplay, sans-serif', 
+    'font-weight': 'normal',
+    'white-space': 'nowrap',
+    'z-index': '1003',
+    'display': 'none' // Nascosto di default
+  };
+
+// --- 2. Bottone FH (Freedom House) ---
+
+  let xFH = width - diametroBottone - margineDestro; 
+  bottoneFH = createButton(''); // Rimosso 'FH'
+  bottoneFH.position(xFH, yPos);
+  
+  // *** INSERIMENTO DELL'IMMAGINE FH ***
+  // Trasforma l'oggetto p5.Image in una stringa base64 per usarlo nel tag <img>
+  const immagineFH = iconaFh.canvas.toDataURL();
+  bottoneFH.html(`<img src="${immagineFH}" alt="FH" style="width: 80%; height: 80%; object-fit: contain;">`); // Dimensioni 70% per un look più pulito
+
+  // Stili del bottone (adattati per l'immagine)
+  bottoneFH.style('width', diametroBottone + 'px');
+  bottoneFH.style('height', diametroBottone + 'px');
+  bottoneFH.style('border-radius', '50%'); 
+  bottoneFH.style('background-color', nero); 
+  bottoneFH.style('border', '1px solid' + bianco);
+  bottoneFH.style('cursor', 'pointer');
+  bottoneFH.style('z-index', '1000');
+  bottoneFH.style('padding', '0');
+  // Aggiunti per centrare l'immagine
+  bottoneFH.style('display', 'flex'); 
+  bottoneFH.style('align-items', 'center'); 
+  bottoneFH.style('justify-content', 'center'); 
+  
+  // --- CREAZIONE TOOLTIP FH ---
+  tooltipFH = createDiv('About FreedomHouse');
+  for (let key in stileTooltip) {
+    tooltipFH.style(key, stileTooltip[key]);
+  }
+
+  // --- GESTIONE HOVER FH (ALLINEATO A DESTRA) ---
+  bottoneFH.mouseOver(() => {
+      tooltipFH.style('display', 'block');
+      let larghezzaTooltip = tooltipFH.elt.offsetWidth;
+      
+      // Posizione X: Bordo destro del bottone - Larghezza del tooltip
+      let xAllineatoDestra = xFH + diametroBottone - larghezzaTooltip; 
+      tooltipFH.position(xAllineatoDestra, yTooltip);
+  });
+
+  bottoneFH.mouseOut(() => {
+      tooltipFH.style('display', 'none');
+  });
+
+  // Link
+  bottoneFH.mousePressed(() => {
+    window.location.href = 'freedomhouse.html';
+  });
+  
+  // --- 3. Bottone ABOUT US
+  
+  let xUS = xFH - diametroBottone - spaziaturaTraBottoni; 
+  bottoneUS = createButton('');
+  bottoneUS.position(xUS, yPos);
+  
+  // *** INSERIMENTO DELL'IMMAGINE US ***
+  // Trasforma l'oggetto p5.Image in una stringa base64 per usarlo nel tag <img>
+  const immagineUS = iconaUs.canvas.toDataURL();
+  bottoneUS.html(`<img src="${immagineUS}" alt="US" style="width: 80%; height: 80%; object-fit: contain;">`); // Dimensioni 70% per un look più pulito
+
+  // Stili del bottone (adattati per l'immagine)
+  bottoneUS.style('width', diametroBottone + 'px');
+  bottoneUS.style('height', diametroBottone + 'px');
+  bottoneUS.style('border-radius', '50%'); 
+  bottoneUS.style('background-color', nero);
+  bottoneUS.style('border', '1px solid' + bianco);
+  bottoneUS.style('cursor', 'pointer');
+  bottoneUS.style('z-index', '1000');
+  bottoneUS.style('padding', '0');
+  // Aggiunti per centrare l'immagine
+  bottoneUS.style('display', 'flex'); 
+  bottoneUS.style('align-items', 'center'); 
+  bottoneUS.style('justify-content', 'center'); 
+  
+  // --- CREAZIONE TOOLTIP US ---
+  tooltipUS = createDiv('About Us');
+  for (let key in stileTooltip) {
+    tooltipUS.style(key, stileTooltip[key]);
+  }
+
+  // --- GESTIONE HOVER US (CENTRATO) ---
+  bottoneUS.mouseOver(() => {
+      tooltipUS.style('display', 'block');
+      let larghezzaTooltip = tooltipUS.elt.offsetWidth;
+      // Posizione X: Inizio bottone + metà bottone - metà tooltip
+      tooltipUS.position(xUS + diametroBottone / 2 - larghezzaTooltip / 2, yTooltip);
+  });
+
+  bottoneUS.mouseOut(() => {
+      tooltipUS.style('display', 'none');
+  });
+
+  // Link
+  bottoneUS.mousePressed(() => {
+    window.location.href = 'us.html';
   });
 }
 
@@ -657,8 +775,6 @@ function mousePressed() {
     return;
   }
   }
-
-
 }
 
 function drawDotChartNegativesNotColored(data, params, padding) {
@@ -725,13 +841,9 @@ function drawDotChartNegativesNotColored(data, params, padding) {
     }
   }
   //HOVER
-
-  
-
   // asse y tacche
   for (let t = 0; t <= 80; t += 10) {
 
-    
     let ty = map(t, 0, 100, 0, 50 * stepY);
 
     fill(textColor);
@@ -868,8 +980,7 @@ function drawDotChartNegativesNotColored(data, params, padding) {
     text(d.year, 0, 0);
     pop();
 
-    
-
+  
     xStart += columnSpacing;
   }
 }
@@ -918,9 +1029,6 @@ function drawDotChartNegatives(data, params, padding) {
     colorAddA
   ];
 
-
-
-
   // asse y tacche (0–80 sopra lo zero)
   for (let t = 0; t <= 80; t += 10) {
     let ty = map(t, 0, 100, 0, 50 * stepY);
@@ -942,8 +1050,6 @@ function drawDotChartNegatives(data, params, padding) {
 
     let d = data[i];
     let isNegative = d.Total < 0;
-
-  
 
     // costruisco pallini positivi + rimozione Add Q
     let dots = [];
@@ -1204,7 +1310,6 @@ function drawCountryText(countryName, x, y, w) {
     uganda: "In 2015, Uganda’s status dropped from Partly Free to Not Free due to growing violations of civil liberties and political rights, especially targeting opposition supporters, civil society, women, and LGBT communities. In 2019, the country remained classified as Not Free, as the government under long-time leader Yoweri Museveni further restricted free expression and increased surveillance of communications.",
     zimbawe: "In 2016, Zimbabwe’s status improved from Not Free to Partly Free, thanks to marginal gains in civil liberties and court rulings that hinted at greater judicial independence. However, by 2018, the country’s status declined from Partly Free to Not Free due to the manner in which longtime president Robert Mugabe was forced out under military pressure, continuing repression of opposition and media, and lack of genuine democratic reform.",
 
-  
     //asia
     bhutan: "Bhutan’s status improved from Partly Free to Free because free and fair legislative elections and the formation of a new government further consolidated a long democratic reform process in the kingdom, and because physical security and the environment for civil liberties have steadily improved in recent years.",
     india: "India’s status declined from Free to Partly Free due to a multiyear pattern in which the Hindu nationalist government and its allies have presided over rising violence and discriminatory policies affecting the Muslim population and pursued a crackdown on expressions of dissent by the media, academics, civil society groups, and protesters.",
@@ -1238,8 +1343,6 @@ function drawCountryText(countryName, x, y, w) {
     //eurasia
     kyrgyzstan: "Kyrgyzstan’s status declined from Partly Free to Not Free because the aftermath of deeply flawed parliamentary elections featured significant political violence and intimidation that culminated in the irregular seizure of power by a nationalist leader and convicted felon who had been freed from prison by supporters.",
     nagornokarabakh: "Nagorno-Karabakh’s status declined from Partly Free to Not Free due to an Azerbaijani blockade and military offensive that culminated in the dissolution of local political, legal, and civic institutions and the departure of nearly all of the civilian population.",
-    
-   
   };
 
   // prende il testo (oppure stringa vuota)
@@ -1248,8 +1351,6 @@ function drawCountryText(countryName, x, y, w) {
   // no testo no riquadro
   if (testo.trim() === "") return;
 
-
-  
   // --- Preparazione font ---
   textSize(16);
   textFont(mioFont);
@@ -1281,7 +1382,7 @@ function drawCountryText(countryName, x, y, w) {
   // --- Disegno del box ---
   noFill();
   stroke(textColor);
-  strokeWeight(2);
+  strokeWeight(1);
   rect(x - boxPadding, y - boxPadding, boxW, boxH, 15);
 
   // --- Disegno del testo ---
@@ -1293,5 +1394,4 @@ function drawCountryText(countryName, x, y, w) {
     text(line, x, textY);
     textY += lineHeight;
   }
-
 }

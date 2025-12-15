@@ -11,7 +11,7 @@ const texts = [
     "What is freedom to you?",
     "What is freedom to FreedomHouse?",
     // testo lungo 1
-    "FreedomHouse is financed by American government and is founded on the core conviction that freedom flourishes in democratic nations where governments are accountable to their people.",
+    "FreedomHouse is founded on the core conviction that freedom flourishes in democratic nations where governments are accountable to their people.",
     // testo lungo 2
     "Copper oxidation represents the degradation of the freedom of the countries of the world.",
     "Discover our site"
@@ -19,18 +19,18 @@ const texts = [
 
 // fasi di scroll
 const PHASE_WRITE_1_END = 300;              // 1 - fine scrittura del primo testo
-const PHASE_DELETE_END = 400;               // 2 - fine cancellazione "you?"
-const PHASE_WRITE_2_END = 550;              // 3 - fine scrittura "FreedomHouse?" 
-const PHASE_FADE_OUT_Q_END = 600;           // 4 - fade out della domanda 
-const PHASE_TEXT_1_START = 650;             // 5 - inizio fade-in testo 1 + img 1
-const PHASE_TEXT_1_END = 1200;              // 6 -  fine fade-out testo 1 + img 1
-const PHASE_WRITE_2_START = 1250;           // 7 - inizio typing testo 2 + img 2 
-const PHASE_WRITE_2_END_TYPING = 3500;      // 8 - fine typing testo 2
-const PHASE_FADE_OUT_2_END = 3800;          // 9 - fine fade-out testo 2 + img 2 
-const PHASE_BUTTON_SHOW = 4100;            // 10 - bottone link pagina generalissima
+const PHASE_DELETE_END = 500;               // 2 - fine cancellazione "you?"
+const PHASE_WRITE_2_END = 750;              // 3 - fine scrittura "FreedomHouse?" 
+const PHASE_FADE_OUT_Q_END = 900;           // 4 - fade out della domanda 
+const PHASE_TEXT_1_START = 950;             // 5 - inizio fade-in testo 1 + img 1
+const PHASE_TEXT_1_END = 1500;              // 6 -  fine fade-out testo 1 + img 1
+const PHASE_WRITE_2_START = 1550;           // 7 - inizio typing testo 2 + img 2 
+const PHASE_WRITE_2_END_TYPING = 3800;      // 8 - fine typing testo 2
+const PHASE_FADE_OUT_2_END = 4100;          // 9 - fine fade-out testo 2 + img 2 
+const PHASE_BUTTON_SHOW = 5000;            // 10 - bottone link pagina generalissima
 
 const MAX_SCROLL = 4500;                   // limite massimo dello scroll finale
-const BASE_FONT_SIZE = 45;                 // dimensione base del font 
+const BASE_FONT_SIZE = 35;                 // dimensione base del font 
 
 
 // FUNZIONI DI TRASFORMAZIONE DEL TESTO (possono restare globali)
@@ -68,14 +68,11 @@ function sketch(p) {
 
             img1Element = p.select('#img-liberty-1');
             img2Element = p.select('#img-liberty-2'); 
-                
-            // --- CALCOLO VARIABILI PER SVG ---
-            // Se non sono variabili globali, le ridefiniamo qui
-            const buttonSize = 70; // Usiamo 70px come dimensione
+
+            const buttonSize = 60; // Usiamo 70px come dimensione
             const raggio = buttonSize / 2; // Raggio (per SVG)
             const buttonSizePx = buttonSize + 'px';
 
-            // *** MODIFICA QUI: SOSTITUZIONE DEL TESTO CON SVG FRECCIA GIÙ ***
             const svgFrecciaGiu = `
                 <svg width="${raggio}" height="${raggio}" viewBox="0 0 24 24" fill="none" stroke="${BIANCO}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"></line> 
@@ -86,8 +83,6 @@ function sketch(p) {
             button = p.createButton(svgFrecciaGiu); // Inseriamo l'SVG
             button.parent('p5-canvas-container');
             button.id('linkButton');
-
-            // --- STILI AGGIUNTI PER ROTONDO E FRECCIA ---
 
             // 1. Imposta la dimensione
             button.style('width', buttonSizePx);
@@ -111,9 +106,6 @@ function sketch(p) {
             // Altri stili
             button.style('cursor', 'pointer');
             button.style('box-sizing', 'border-box');
-
-            // --- FINE STILI ---
-
             button.style('opacity', 0);
             button.hide();
 
@@ -145,7 +137,7 @@ function sketch(p) {
         p.background(NERO);
         
         // smoothing dello scroll
-        scrollAmount += (targetScrollAmount - scrollAmount) * 0.1;
+        scrollAmount += (targetScrollAmount - scrollAmount) * 0.05;
 
         let displayText = "";
         let showCursor = true;
@@ -164,7 +156,7 @@ function sketch(p) {
         const maxLineWidth = contentWidth * 0.8;
         
         // posizione X: centro della colonna di destra
-        const xContentCenter = p.width * 0.75;
+        const xContentCenter = p.width * 0.7;
         
         // variabili per il cursore 
         let finalFontSize = currentFontSize;
@@ -317,9 +309,9 @@ function sketch(p) {
             showCursor = writeProgress < 1.0;
             finalFontSize = currentFontSize;
 
-            // colori per il gradiente: azzurrino -> rame 
-            const START_COLOR = p.color(145, 162, 166, finalOpacity); // azzurrino
-            const END_COLOR = p.color(199, 99, 81, finalOpacity); // rame
+            // colori per il gradiente: rame -> rame ossidato
+            const START_COLOR = p.color("#c76351"); // rame
+            const END_COLOR = p.color("#75a099"); // rame ossidato
             
             const totalChars = fullText2.length;
             let writtenChars = p.floor(totalChars * writeProgress);
