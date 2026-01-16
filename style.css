@@ -6,3 +6,25 @@ html, body {
 canvas {
   display: block;
 }
+
+/* font */
+@font-face {
+  font-family: 'NeueHaasDisplay';
+  src: url('font/NeueHaasDisplayRoman.ttf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NeueHaasDisplay';
+  src: url('font/NeueHaasDisplayMedium.ttf') format('opentype');
+  font-weight: medium;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NeueHaasDisplay';
+  src: url('font/NeueHaasDisplayBold.ttf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
