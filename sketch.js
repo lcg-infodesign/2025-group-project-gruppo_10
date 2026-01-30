@@ -81,6 +81,65 @@ function setup() {
   creaInterfaccia();
 }
 
+function draw() {
+  background(palette.nero);
+  
+  if (datiFiltrati && datiFiltrati.length > 0) {
+    // Disegna griglia
+    disegnaGriglia(graficoWidth, yBarra, altezzaMassimaBarra, incremento, minTotalScore, maxTotalScore);
+    
+    // Disegna barre
+    let risultatoBarre = disegnaBarre(
+      datiFiltrati,
+      filtroF,
+      filtroPF,
+      filtroNF,
+      maxPaesiPerRegione,
+      yBarra,
+      altezzaMassimaBarra,
+      incremento,
+      minTotalScore,
+      maxTotalScore,
+      graficoWidth,
+      regioneHover,
+      paeseCercato
+    );
+    
+    paesiConPosizioni = risultatoBarre.paesiConPosizioni;
+    
+    // Disegna torce ed etichette
+    let risultatoTorce = disegnaTorceEEtichette(
+      risultatoBarre.etchetteRegioni,
+      torcia,
+      maxPaesiPerRegione,
+      yBarra,
+      fontMedium,
+      risultatoBarre.larghezzaBarra,
+      regioneHover,
+      paeseCercato,
+      datiFiltrati
+    );
+    
+    areeTorce = risultatoTorce.areeTorce;
+    areeRegioni = risultatoTorce.areeRegioni;
+    
+    // Disegna anno
+    let risultatoAnno = disegnaEtichettaAnno(graficoWidth, annoWidth, fontRegular, anniUnici, annoCorrente, progressoScroll);
+    areeAnni = risultatoAnno.areeAnni;
+    xPosAnni = risultatoAnno.xPos;
+    yPosAnni = risultatoAnno.yPos;
+    
+    // Aggiorna posizione paese cercato
+    aggiornaPosizioneContainerPaese(paeseCercato, paesiConPosizioni);
+    
+  } else {
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(20);
+    text(`Nessun dato trovato per l'anno ${annoCorrente}.`, width/2, height/2);
+  }
+}
+
 // FUNZIONI DI SETUP
 function creaInterfaccia() {
   // Bottoni navigazione
@@ -178,65 +237,6 @@ function clickRegione(regione, anno) {
   const regioneEncoded = encodeURIComponent(regione);
   // Se regioni.html è nella cartella html/
   window.location.href = `../html/regioni.html?region=${regioneEncoded}&year=${anno}`;
-}
-
-function draw() {
-  background(palette.nero);
-  
-  if (datiFiltrati && datiFiltrati.length > 0) {
-    // Disegna griglia
-    disegnaGriglia(graficoWidth, yBarra, altezzaMassimaBarra, incremento, minTotalScore, maxTotalScore);
-    
-    // Disegna barre
-    let risultatoBarre = disegnaBarre(
-      datiFiltrati,
-      filtroF,
-      filtroPF,
-      filtroNF,
-      maxPaesiPerRegione,
-      yBarra,
-      altezzaMassimaBarra,
-      incremento,
-      minTotalScore,
-      maxTotalScore,
-      graficoWidth,
-      regioneHover,
-      paeseCercato
-    );
-    
-    paesiConPosizioni = risultatoBarre.paesiConPosizioni;
-    
-    // Disegna torce ed etichette
-    let risultatoTorce = disegnaTorceEEtichette(
-      risultatoBarre.etchetteRegioni,
-      torcia,
-      maxPaesiPerRegione,
-      yBarra,
-      fontMedium,
-      risultatoBarre.larghezzaBarra,
-      regioneHover,
-      paeseCercato,
-      datiFiltrati
-    );
-    
-    areeTorce = risultatoTorce.areeTorce;
-    areeRegioni = risultatoTorce.areeRegioni;
-    
-    // Disegna anno
-    let risultatoAnno = disegnaEtichettaAnno(graficoWidth, annoWidth, fontRegular, anniUnici, annoCorrente, progressoScroll);
-    areeAnni = risultatoAnno.areeAnni;
-    xPosAnni = risultatoAnno.xPos;
-    yPosAnni = risultatoAnno.yPos;
-    
-    // Aggiorna posizione paese cercato
-    aggiornaPosizioneContainerPaese(paeseCercato, paesiConPosizioni);
-    
-  } else {
-    fill(255);
-    textAlign(CENTER, CENTER);
-    textSize(20);
-    text(`Nessun dato trovato per l'anno ${annoCorrente}.`, width/2, height/2);
-  }
 }
 
 // EVENTI MOUSE

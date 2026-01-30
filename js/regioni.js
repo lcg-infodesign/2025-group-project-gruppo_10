@@ -57,6 +57,7 @@ let suggerimentoSelezionato = -1;
 // Aggiungi dopo le altre variabili globali
 let paragrafiRegioni;
 
+
 // colori per status con gradienti
 let coloriStatus = {
   'F': ["#c76351", "#d58d3e", "#26231d"], // Libero (Free)
@@ -99,9 +100,6 @@ function setup() {
   // Trova tutti gli anni unici
   let anni = data.getColumn('Edition').map(Number); 
   let anniUnici = [...new Set(anni)].sort((a, b) => b - a); 
-  
-  // RIMUOVI TUTTO IL CODICE DEL SELETTORE ANNO (createSelect, position, style, ecc.)
-  // E usa invece:
   
   // Recupera l'anno dall'URL se presente, altrimenti usa il più recente
   let annoFromURL = urlParams.get('year');
@@ -1165,26 +1163,6 @@ function aggiornaContenutoBottoniCountriesTerritori() {
   bottoneTerritories.html(htmlTerritories);
 }
 
-// disegnare le etichette dei paesi in hover
-function disegnaEtichetteHover() {
-  if (indiceHover === -1) return;
-  
-  let paeseHover = paesiConPosizioni.find(p => p.indice === indiceHover);
-  if (!paeseHover) return;
-  
-  push();
-  fill(palette.bianco);
-  noStroke();
-  textSize(20);
-  textFont(fontMedium);
-  textAlign(LEFT, CENTER);
-  
-  let offsetX = 15;
-  text(paeseHover.nome, paeseHover.centroPallinoX + offsetX, paeseHover.centroPallinoY);
-  
-  pop();
-}
-
 function mouseClicked() {
   // Controlla se il mouse è sopra qualche barra (in ordine inverso)
   for (let i = paesiConPosizioni.length - 1; i >= 0; i--) {
@@ -1680,4 +1658,24 @@ function mouseWheel(event) {
   }
     // Previeni lo scroll della pagina
   return false;
+}
+
+// disegnare le etichette dei paesi in hover
+function disegnaEtichetteHover() {
+  if (indiceHover === -1) return;
+  
+  let paeseHover = paesiConPosizioni.find(p => p.indice === indiceHover);
+  if (!paeseHover) return;
+  
+  push();
+  fill(palette.bianco);
+  noStroke();
+  textSize(20);
+  textFont(fontMedium);
+  textAlign(LEFT, CENTER);
+  
+  let offsetX = 15;
+  text(paeseHover.nome, paeseHover.centroPallinoX + offsetX, paeseHover.centroPallinoY);
+  
+  pop();
 }

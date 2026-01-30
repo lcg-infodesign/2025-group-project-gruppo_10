@@ -8,7 +8,9 @@ let fontRegular, fontMedium, fontBold;
 let iconaAboutUs, iconaAboutFh, iconaHome, iconaLente, iconaClose; // icone generali
 let iconaArrLeft; // icone frecce
 
-//RESPONSIVE
+// variabili per responsiveness
+let graficoWidth;
+let annoWidth;
 let BASE_W = 1280; // larghezza di riferimento 
 let BASE_H = 665; // altezza di riferimento
 let scaleFactor = 1; // fattore di scala corrente
@@ -16,20 +18,13 @@ let lastScaleFactor = -1; // per capire se la scala è cambiata
 let logicalMouseX = 0; // mouse "nello spazio logico"
 let logicalMouseY = 0;
 
-const YEAR_BASE_X = 750;  // coordinate ORIGINALI del select anno
-const YEAR_BASE_Y = 145;
-
-let textColor;
-let countrySlug = "";   // nome normalizzato (no maiuscole e spazi)
+let countrySlug = "";   // nome normalizzato senza maiuscole e spazi
 let countryName = "";   // il nome leggibile che poi vogliamo scrivere nella pagina come titolo
 
 // CREO UN ARRAY PER CONTENERE GLI ANNI 
 let anniDisponibili = []; //array con tutti gli anni disponibili 
 let annoSelezionato = "" //anno selezionionato 
 let yearSelect; //oggetti select che appare 
-
-// FRECCETTA FINTA MENU A TENDINA 
-let arrowSpan; // per la freccia finta
 
 // TOTAL SCORE
 let punteggioTotale = 0; 
@@ -51,24 +46,6 @@ let questionColumns = [ // per ogni categoria mi associa le colonne del mio data
 
 let questionScores = []; // contiene il punteggio da 0 a 4 di ciascuna Domanda 
 
-// colori
-let palette.nero = "#26231d";
-let palette.bianco = "#eaead8";
-let grigio = "#454340ff";
-
-// leganda colori 
-let coloriLegenda = {
-  electoralProcess: "#D9D97A",
-  politicalPluralism: "#6A8AA9",
-  functioningGovernment: "#0F3C63",
-  addQ: "#C51A1A",
-  addA: "#1f863fff", 
-  freedomExpression: "#C47929",
-  associationalRights: "#9C6EBF",
-  ruleOfLaw: "#A4B2B8",
-  personalAutonomy: "#C0655A"
-};
-
 // COLORI CATEGORIE 
 let coloriCategorie = [];
 
@@ -87,9 +64,23 @@ let hoveredCatIndex = null;
 let selectedCatIndex = null;
 
 let legendHitAreas = []; // zone cliccabili della legenda
+// variabili per selezionare l'anno
+let datiFiltrati;
+let scrollAccumulato = 0;
+let pixelPerAnno = 200; // Quanti pixel di scroll per cambiare anno
+let progressoScroll = 0; // Valore da 0 a 1 per l'animazione tra anni
 
-let backDetailArea = null; // bottone "back" nel pannello domande
-let backHomeArea = null;   // bottone "back" in alto (pagina principale)
+coloriLegenda= {
+  electoralProcess: "#D9D97A",
+  politicalPluralism: "#6A8AA9",
+  functioningGovernment: "#0F3C63",
+  addQ: "#C51A1A",
+  addA: "#1f863fff", 
+  freedomExpression: "#C47929",
+  associationalRights: "#9C6EBF",
+  ruleOfLaw: "#A4B2B8",
+  personalAutonomy: "#C0655A"
+}
 
 //VARIABILI TITOLO (7 parametri)
 let panelTitles = [
@@ -177,11 +168,11 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
 
-  // Caratteristiche generali dei testi 
-  textColor = color(232, 233, 214);
-  textFont(fontRegular);
-  textSize(16);
-  fill(textColor);
+  graficoWidth = width * 0.9;
+  annoWidth = width - graficoWidth;
+
+
+  let margine = 30;
 
   let urlParams = getURLParams();
   
@@ -189,10 +180,6 @@ function setup() {
   let countryFromURL = urlParams.country || "";
   countrySlug = countryFromURL ? decodeURIComponent(countryFromURL) : "";
   countrySlug = normalizeCountryName(countrySlug);
-  
-  // Debug
-  console.log("Country dall'URL:", countryFromURL);
-  console.log("Country normalizzato:", countrySlug);
 
   if (countrySlug === "") {
     countryName = "Nessun paese selezionato";
@@ -200,7 +187,7 @@ function setup() {
     return; 
   }
 
-  // Cerco nel CSV la riga che ha lo stesso slug
+  // cerco nel CSV la riga che ha lo stesso slug
   let found = false; 
   anniDisponibili = [];
 
@@ -248,63 +235,64 @@ function setup() {
 
     // Crea il select per l'anno
     yearSelect = createSelect();
-    yearSelect.position(YEAR_BASE_X * scaleFactor, YEAR_BASE_Y * scaleFactor);
 
-    for (let y of anniDisponibili) {
-      yearSelect.option(y);
-    }
 
     yearSelect.selected(annoSelezionato);
-
-    yearSelect.style('background-color', palette.nero);
-    yearSelect.style('color', palette.bianco);
-    yearSelect.style('border', '1px solid' + palette.bianco);
-    yearSelect.style('font-family', 'Open Sans, sans-serif');
-    yearSelect.style('font-size', (55 * scaleFactor) + 'px');
-    yearSelect.style('border-radius', (18 * scaleFactor) + 'px');
-    yearSelect.style('outline', 'none');
-
-    // Tolgo la freccia nativa del browser
-    yearSelect.style('appearance', 'none');
-    yearSelect.style('-webkit-appearance', 'none');
-    yearSelect.style('-moz-appearance', 'none');
-
-    // Aumento il padding a destra per far posto alla freccia finta
-    yearSelect.style(
-      'padding',
-      (6 * scaleFactor) + 'px ' +
-      (60 * scaleFactor) + 'px ' +
-      (6 * scaleFactor) + 'px ' +
-      (24 * scaleFactor) + 'px'
-    );
-
-    // Creo una freccia finta SVG minimale
-    arrowSpan = createDiv();
-    arrowSpan.style('position', 'absolute');
-    arrowSpan.style('pointer-events', 'none');
-    arrowSpan.html(`
-      <svg width="35" height="35" viewBox="0 0 20 20" fill="none" stroke="${palette.bianco}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="6 9 12 15 18 9"></polyline>
-      </svg>
-    `);
 
     yearSelect.changed(() => {
       annoSelezionato = yearSelect.value();
       aggiornaPunteggioTotale();
     });
-    
-    posizionaFreccia();
-  }
+    yearIndex = anniDisponibili.indexOf(annoSelezionato);
 
-  let margine = 30;
+  }
+  
   // bottoni
   creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back()); // bottone per tornare indietro
   creaBottoneStandard(width - diametro - margine, margine, iconaAboutFh, '../html/aboutFreedomHouse.html'); // bottone Freedom House in alto a destra
   creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaAboutUs, '../html/AboutUs.html'); // bottone About Us a sinistra del primo
 }
 
-//FUNZIONE PER NORMALIZZARE I NOMI 
-//slug --> versione ripulita dei nomi dei paesi, più facile da usare e non crea errori 
+function draw() {
+  background(palette.nero);
+
+    drawTitle();
+
+    scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
+    let translateX = (width - BASE_W * scaleFactor) / 2;
+    let translateY = (height - BASE_H * scaleFactor) / 2;
+    
+    // Ricalcola logicalMouseX e logicalMouseY tenendo conto della traslazione
+    logicalMouseX = (mouseX - translateX) / scaleFactor;
+    logicalMouseY = (mouseY - translateY) / scaleFactor;
+
+    push();
+
+    // La traslazione che devi compensare nel mouse
+    translate(translateX, translateY);
+    scale(scaleFactor);  
+
+  animT += 0.01; 
+
+  fill(palette.bianco);
+  textFont(fontBold);
+
+  // Total Score
+  textSize(72);
+  textAlign(LEFT, TOP);
+  textFont(fontRegular);
+  text("Total: " + punteggioTotale, 560, 130);
+
+  drawPalliniGrigi();
+  updateHoverCategory();
+  checkLegendHover();
+  drawAddQOverlay();
+  drawSidePanel();
+  pop();
+  disegnaEtichettaAnno();
+}
+
+// FUNZIONE PER NORMALIZZARE I NOMI 
 function normalizeCountryName(name) {
   return name
     .toLowerCase()
@@ -312,7 +300,7 @@ function normalizeCountryName(name) {
     .replace(/[^a-z0-9]/g, ""); // tiene solo lettere e numeri
 }
 
-//DISEGNA I PALLINI 
+// DISEGNA I PALLINI 
 function drawPalliniGrigi(){
     //VARIABILI 
     let pallini = 100; //definisco il numero dei pallini 
@@ -357,8 +345,8 @@ function drawPalliniGrigi(){
         let catIndex = categoriaPerIndice(indicePallino);
         let rCerchio = diametroPallino;  // niente hover di grandezza
 
-      if (catIndex === null) { // nessuna categoria: pallino grigio
-        fill(grigio);
+      if (catIndex === null) { // nessuna categoria: pallino palette.grigio
+        fill(palette.grigio);
       } else { // c'è una categoria, quindi pallini colorati
         let baseCol = coloriCategorie[catIndex];
         let cCol = color(baseCol);
@@ -392,13 +380,13 @@ if(punteggioTotale<0) {
     
 //inserisco la LINEA BIANCA di separazione 
 let lineY = startY + grigliaAltezza -15;
-stroke(textColor);
+stroke(palette.bianco);
 strokeWeight(2);
 line(60,lineY, 60+grigliaLarghezza,lineY);
 
 //scritta 0
 noStroke();
-fill(textColor);
+fill(palette.bianco);
 textAlign(LEFT,CENTER);
 textSize(18);
 text("0",40,lineY-3);
@@ -429,7 +417,7 @@ indicePallino++;
 };
 }
 
-//FUNZIONE HOVER PER CATEGORIA (mi aiuta per quella sotto)
+// FUNZIONE HOVER PER CATEGORIA
 function updateHoverCategory() {
   // Se c'è una categoria selezionata con il click,
   // l'hover non deve più cambiare nulla.
@@ -487,19 +475,6 @@ function checkLegendHover() {
   }
 }
 
-// Controlla hover sul bottone X
-function checkBackButtonHover() {
-  if (!backDetailArea) return;
-  
-  let mx = logicalMouseX;
-  let my = logicalMouseY;
-  
-  if (mx >= backDetailArea.x && mx <= backDetailArea.x + backDetailArea.w &&
-      my >= backDetailArea.y && my <= backDetailArea.y + backDetailArea.h) {
-    cursor(HAND);
-  }
-}
-
 //LEGENDA O DOMANDE --> mi gestisce quale delle due funzioni attivare  
 function drawSidePanel() {
   if (selectedCatIndex === null) {
@@ -540,13 +515,13 @@ function drawLegenda() {
   //SE VOGLIO METTERE UN BORDO palette.bianco 
   // sfondo del box
   noFill();
-  stroke(textColor);
+  stroke(palette.bianco);
   strokeWeight(1);
   rect(xx, yy, w, h, 18); 
 
 
   noStroke();
-  fill(textColor);
+  fill(palette.bianco);
   textFont(fontBold);
   textSize(20);
   text("Political Rights", x0, y0);
@@ -555,7 +530,7 @@ function drawLegenda() {
   noStroke();
   fill(coloriLegenda.electoralProcess);
   circle(x0+8, y0 + 35, dimCerchio);
-  fill(textColor);
+  fill(palette.bianco);
   textFont(fontRegular);
   textSize(14);
   text("Electoral Process", categoriaSpazio, y0 + passo + 10);
@@ -580,7 +555,7 @@ function drawLegenda() {
   // 2) Political pluralism
   fill(coloriLegenda.politicalPluralism);
   circle(x0+8, y0 + 55, dimCerchio);
-  fill(textColor);
+  fill(palette.bianco);
   textFont(fontRegular);
   textSize(14);
   text("Political pluralism and participation", categoriaSpazio, y0 + passo*2 + 10);
@@ -604,7 +579,7 @@ legendHitAreas.push({
   // 3) Functioning of government
   fill(coloriLegenda.functioningGovernment);
   circle(x0+8, y0 + 75, dimCerchio);
-  fill(textColor);
+  fill(palette.bianco);
   textFont(fontRegular);
   textSize(14);
   text("Functioning of government", categoriaSpazio, y0 + passo*3 + 10);
@@ -638,7 +613,7 @@ legendHitAreas.push({
   circle(x0+8, y0 + 95, dimCerchio);
 
   noStroke();
-  fill(textColor);
+  fill(palette.bianco);
   textFont(fontBold);
   textSize(16);
   fill("#C51A1A")
@@ -671,16 +646,16 @@ if (anno >= 2013 && anno <= 2017) {
   noStroke();
   circle(x0+8, y0+135, dimCerchio);
 
-  fill(textColor);
+  fill(palette.bianco);
   textFont(fontRegular);
   textSize(14);
-  fill(textColor);
+  fill(palette.bianco);
   text("Additional Discretionary Question A:\nadds points over 100", categoriaSpazio, y0 + passo*6 + 10);
   let maxA = 4;
   let valAc = int(addAVal);
   textFont(fontBold);
   textSize(16);
-  fill(textColor);
+  fill(palette.bianco);
   textAlign(RIGHT, TOP);
   text(valAc, numerino, y0 + passo+108);
   textAlign(LEFT, TOP);
@@ -701,20 +676,20 @@ if (anno >= 2013 && anno <= 2017) {
   let yLib = y0 + passo*6 +55;
 
   textFont(fontBold);
-  fill(textColor);
+  fill(palette.bianco);
   textSize(20);
   text("Civil Liberties", x0, yLib+10);
 
   // 5) Freedom Expression
   fill(coloriLegenda.freedomExpression);
   circle(x0+8, yLib + 45, dimCerchio);
-  fill(textColor);
+  fill(palette.bianco);
   textFont(fontRegular);
   textSize(14);
   text("Freedom of expression and belief", categoriaSpazio, yLib + passo + 20);
 
   textSize(16);
-  fill(textColor);
+  fill(palette.bianco);
   textFont(fontBold);
   textAlign(RIGHT, TOP);
   text(valD, numerino, yLib + passo+19);
@@ -734,12 +709,12 @@ if (anno >= 2013 && anno <= 2017) {
   // 6) Associational rights
   fill(coloriLegenda.associationalRights);
   circle(x0+8, yLib + 65, dimCerchio);
-  fill(textColor);
+  fill(palette.bianco);
   textFont(fontRegular);
   textSize(14);
   text("Associational and organizational right", categoriaSpazio, yLib + passo*2 + 20);
   textSize(16);
-  fill(textColor);
+  fill(palette.bianco);
   textFont(fontBold);
   textAlign(RIGHT, TOP);
   text(valE, numerino, yLib + passo+39);
@@ -759,13 +734,13 @@ if (anno >= 2013 && anno <= 2017) {
   // 7) Rule of Law
   fill(coloriLegenda.ruleOfLaw);
   circle(x0+8, yLib + 85, dimCerchio);
-  fill(textColor);
+  fill(palette.bianco);
   textFont(fontRegular);
   textSize(14);
   text("Rule of Law", categoriaSpazio, yLib + passo*3 + 20);
   
   textSize(16);
-  fill(textColor);
+  fill(palette.bianco);
   textFont(fontBold);
   textAlign(RIGHT, TOP);
   text(valF, numerino, yLib + passo+59);
@@ -785,12 +760,12 @@ if (anno >= 2013 && anno <= 2017) {
   // 8) Personal Autonomy
   fill(coloriLegenda.personalAutonomy);
   circle(x0+8, yLib + 105, dimCerchio);
-  fill(textColor);
+  fill(palette.bianco);
   textFont(fontRegular);
   textSize(14);
   text("Personal autonomy and individual rights", categoriaSpazio, yLib + passo*4 + 20);
   textSize(16);
-  fill(textColor);
+  fill(palette.bianco);
   textFont(fontBold);
   textAlign(RIGHT, TOP);
   text(valG, numerino, yLib + passo+79);
@@ -832,14 +807,14 @@ function drawCategoryPanel(catIndex) {
   let paddingBottom = 0;  // Aumentato per coerenza
   
   // Inizializzazione font per la misurazione
-  textFont(mioFont);
+  textFont(fontRegular);
   textSize(14); 
 
   // Iniziamo il calcolo dell'altezza necessaria (h)
   let h = 0;
   
   // 1. Larghezza del Titolo (inclusa la X)
-  textFont(mioFontBold);
+  textFont(fontBold);
   textSize(20);
   let titolo = panelTitles[catIndex] || "Category details";
   
@@ -851,7 +826,7 @@ function drawCategoryPanel(catIndex) {
   h += titoloMargine + titoloAltezza + dopoTitolo;
   
   // 3. Calcolo Altezza e Larghezza Massima delle DOMANDE
-  textFont(mioFont);
+  textFont(fontRegular);
   textSize(14);
   let questions = panelQuestions[catIndex] || [];
   
@@ -880,7 +855,7 @@ function drawCategoryPanel(catIndex) {
   // --- B. DEFINIZIONE E DISEGNO DEL PANNELLO DINAMICO ---
   
   noFill();
-  stroke(textColor);
+  stroke(palette.bianco);
   strokeWeight(1.5);
   rect(x0, y0, w, h, 18); // h e w ORA SONO DINAMICHE
   noStroke();
@@ -888,9 +863,9 @@ function drawCategoryPanel(catIndex) {
   // --- C. DISEGNO CONTENUTO INTERNO ---
   
   // 1. Titolo
-  textFont(mioFontBold);
+  textFont(fontBold);
   textSize(20);
-  fill(textColor);
+  fill(palette.bianco);
   let currentY = y0 + titoloMargine; 
   text(titolo, x0 + paddingLeft, currentY); 
 
@@ -911,8 +886,8 @@ function drawCategoryPanel(catIndex) {
   // Disegno della 'X'
   push(); // Salviamo lo stato attuale per il simbolo 'X'
   translate(xBtn, yBtn);
-  fill(textColor);
-  stroke(textColor);
+  fill(palette.bianco);
+  stroke(palette.bianco);
   strokeWeight(2);
   
   // Disegna le due linee della 'X'
@@ -925,7 +900,7 @@ function drawCategoryPanel(catIndex) {
   
   currentY += titoloAltezza + dopoTitolo; 
   
-  textFont(mioFont);
+  textFont(fontRegular);
   textSize(14);
 
   let palliniRaggio = 6; 
@@ -964,7 +939,7 @@ function drawCategoryPanel(catIndex) {
                 fill(c);
             }
         } else {
-            fill(grigio);
+            fill(palette.grigio);
         }
 
         let palliniX0 = palliniStartX + i * palliniSpazio;
@@ -972,7 +947,7 @@ function drawCategoryPanel(catIndex) {
     }
 
     // Disegno ogni riga di testo
-    fill(textColor);
+    fill(palette.bianco);
     noStroke();
     for (let r of righe) {
         text(r, textX, currentY);
@@ -1078,7 +1053,6 @@ noStroke();
   }
 
 //FUNZIONE PUNTEGGIO TOTALE + ARRAY CON I VALORI DELLE CATEGORIE 
-//qui associo paese.anno.valori
 function aggiornaPunteggioTotale(){ //e anche categorie 
   punteggioTotale = 0; //azzero la mia variabile per sicurezza 
 
@@ -1153,9 +1127,6 @@ function aggiornaPunteggioTotale(){ //e anche categorie
   }
 };
 
-// creo una funzione di supporto che dopo aver asseganto i valori ai pallini
-// mi dice di un pallino a che categoria appartiene 
-// "dimmi che numero di pallino sei, ti dirò a che categoria appartieni"
 function categoriaPerIndice(indicePallino) {
   let somma = 0;//variabile somma, terrà la somma dei pallini precedenti (pallini già usati fino ad ora)
 
@@ -1172,113 +1143,6 @@ function categoriaPerIndice(indicePallino) {
 }
 return null;
 };
-
-//spiegazione breve con esempio 
-//PALLINO 0
-//all'inizio la somma è 0
-//k=0 --> A, puntiCat = 3
-//indicePallino <somma+puntiCat --> 0<0+3 --> pallino 0 appartiene a A
-
-function posizionaFreccia() {
-  if (!yearSelect || !arrowSpan) return;
-
-  // prendo le coordinate reali del select nella pagina
-  let rect = yearSelect.elt.getBoundingClientRect();
-  let selX = rect.left;
-  let selY = rect.top;
-  let selW = rect.width;
-
-  // posiziono la freccia un po' dentro dal bordo destro
-  arrowSpan.position(selX + selW - 55, selY + 4);
-}
-function aggiornaYearSelect() {
-  if (!yearSelect) return;
-
-  // posizionamento scalato
-  yearSelect.position(
-    YEAR_BASE_X * scaleFactor,
-    YEAR_BASE_Y * scaleFactor
-  );
-
-  // stile scalato
-  yearSelect.style('font-size', (55 * scaleFactor) + 'px');
-  yearSelect.style(
-    'padding',
-    (6 * scaleFactor) + 'px ' +
-    (60 * scaleFactor) + 'px ' +
-    (6 * scaleFactor) + 'px ' +
-    (24 * scaleFactor) + 'px'
-  );
-  yearSelect.style('border-radius', (18 * scaleFactor) + 'px');
-
-  if (arrowSpan) {
-    arrowSpan.style('font-size', (62 * scaleFactor) + 'px');
-    posizionaFreccia(); // la freccia usa già il bounding rect reale
-  }
-}
-
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
-  aggiornaYearSelect();
-}
-
-function draw() {
-  background(palette.nero);
-
-    drawTitle();
-
-    scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
-    let translateX = (width - BASE_W * scaleFactor) / 2;
-    let translateY = (height - BASE_H * scaleFactor) / 2;
-    
-    // Ricalcola logicalMouseX e logicalMouseY tenendo conto della traslazione
-    logicalMouseX = (mouseX - translateX) / scaleFactor;
-    logicalMouseY = (mouseY - translateY) / scaleFactor;
-
-    if (scaleFactor !== lastScaleFactor) {
-        aggiornaYearSelect();
-        lastScaleFactor = scaleFactor;
-    }
-
-    push();
-
-    // La traslazione che devi compensare nel mouse
-    translate(translateX, translateY);
-    scale(scaleFactor);  
-
-  animT += 0.01; 
-
-  fill(textColor);
-  textFont(fontBold);
-
-  //TOTAL 
-  textSize(72);
-  textAlign(LEFT, TOP);
-  textFont(fontRegular);
-  text("Total", 560, 130);
-
-  //TOTAL SCORE 
-  //:
-  textSize(72);
-  textAlign(LEFT, TOP);
-  textFont(fontRegular);
-  text(":",970, 110);
-  //punteggio 
-  textSize(92);
-  textAlign(LEFT, TOP);
-  textFont(fontRegular);
-  text(punteggioTotale,1010, 120);
-
-  drawPalliniGrigi();
-  updateHoverCategory();
-  checkLegendHover();
-  checkBackButtonHover();
-  drawAddQOverlay();
-  drawSidePanel();
-
-  pop();
-}
 
 // SE CLICCO IL MOUSE
 function mousePressed() {
@@ -1348,27 +1212,110 @@ for (let p of palliniInfo) { //PALLINI NEGATIVI
     return;
   }
 }
-
-if (backHomeArea) {
-  if (
-    mx >= backHomeArea.x &&
-    mx <= backHomeArea.x + backHomeArea.w &&
-    my >= backHomeArea.y &&
-    my <= backHomeArea.y + backHomeArea.h
-  ) {
-    window.history.back(); // oppure location.href = "index.html"
-    return;
-  }
-}
 }
 
 function drawTitle(){
   push();
-  fill(palette.palette.bianco);
+  fill(palette.bianco);
   noStroke();
   textSize(65);
   textFont(fontMedium);
   textAlign(LEFT, BOTTOM);
   text(countryName, margine*2+diametro, margine+diametro+10); 
+  pop();
+}
+
+function mouseWheel(event) {
+  if (!anniDisponibili.length) return false;
+
+  // Accumula lo scroll
+  scrollAccumulato += event.delta;
+  
+  // Limita lo scroll ai limiti degli anni
+  let scrollMin = 0;
+  let scrollMax = (anniDisponibili.length - 1) * pixelPerAnno;
+  scrollAccumulato = constrain(scrollAccumulato, scrollMin, scrollMax);
+  
+  // Calcola l'indice dell'anno e il progresso
+  let indiceEsatto = scrollAccumulato / pixelPerAnno;
+  let nuovoYearIndex = floor(indiceEsatto);
+  progressoScroll = indiceEsatto - nuovoYearIndex; // Valore tra 0 e 1
+  
+  // Limita l'indice tra 0 e il numero massimo di anni
+  nuovoYearIndex = constrain(nuovoYearIndex, 0, anniDisponibili.length - 1);
+  
+  // Se l'anno è cambiato, aggiorna
+  if (anniDisponibili[nuovoYearIndex] !== annoSelezionato) {
+    yearIndex = nuovoYearIndex;
+    annoSelezionato = anniDisponibili[yearIndex];
+    yearSelect?.selected(annoSelezionato);
+    aggiornaPunteggioTotale();
+  }
+
+  return false; // Blocca lo scroll della pagina
+}
+
+function disegnaEtichettaAnno() {
+  push(); 
+
+  noStroke();
+  textFont(fontRegular); 
+  textAlign(CENTER, CENTER);
+  
+  // CALCOLO POSIZIONE COME NEL CODICE REGIONE
+  let xPos = graficoWidth + (annoWidth / 2); 
+  let yPos = height / 2;
+  
+  translate(xPos, yPos);
+  rotate(PI / 2 * 3); 
+  
+  const spaziaturaFissaX = 400; 
+  let offsetGlobaleX = map(progressoScroll, 0, 1, 0, spaziaturaFissaX);
+  
+  // Calcola l'indice dell'anno corrente
+  let indiceCorrente = anniDisponibili.indexOf(annoSelezionato);
+  
+  // ANNO PRECEDENTE
+  if (indiceCorrente > 0) {
+    let annoPrecedente = anniDisponibili[indiceCorrente - 1];
+    let baseXPrecedente = spaziaturaFissaX; 
+    let finalXPrecedente = baseXPrecedente + offsetGlobaleX;
+    
+    // USA annoWidth INVECE DI VALORI FISSI
+    let dimensionePrecedente = map(progressoScroll, 0, 1, annoWidth * 0.9, annoWidth * 0.7);
+    let opacitaPrecedente = map(progressoScroll, 0, 1, 100, 70);
+    
+    fill(palette.bianco + hex(floor(opacitaPrecedente), 2));
+    textSize(dimensionePrecedente);
+    text(annoPrecedente, finalXPrecedente, -30);
+  }
+  
+  // ANNO CORRENTE
+  let baseXCorrente = 0;
+  let finalXCorrente = baseXCorrente + offsetGlobaleX;
+
+  // USA annoWidth INVECE DI VALORI FISSI
+  let dimensioneCorrente = map(progressoScroll, 0, 1, annoWidth * 1.3, annoWidth * 0.9);
+  let opacitaCorrente = map(progressoScroll, 0, 1, 255, 100);
+  
+  fill(palette.bianco + hex(floor(opacitaCorrente), 2));
+  textSize(dimensioneCorrente);
+  text(annoSelezionato, finalXCorrente, -30);
+  
+  // ANNO SUCCESSIVO
+  if (indiceCorrente < anniDisponibili.length - 1) {
+    let annoSuccessivo = anniDisponibili[indiceCorrente + 1];
+    let baseXSuccessivo = -spaziaturaFissaX;
+    let finalXSuccessivo = baseXSuccessivo + offsetGlobaleX;
+    
+    // USA annoWidth INVECE DI VALORI FISSI
+    let dimensioneSuccessivo = map(progressoScroll, 0, 1, annoWidth * 0.7, annoWidth * 1.3); 
+    let opacitaSuccessivo = map(progressoScroll, 0, 1, 70, 100);  
+
+    fill(palette.bianco + hex(floor(opacitaSuccessivo), 2));
+    textSize(dimensioneSuccessivo);
+    text(annoSuccessivo, finalXSuccessivo, -30);
+  }
+
   pop();
 }

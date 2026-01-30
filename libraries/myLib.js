@@ -9,15 +9,31 @@ let diametro = 60;
 const palette = {
   nero: "#26231d",
   bianco: "#eaead8",
+  grigio: "#454340ff",
   coloriStatus: {
     'F': ["#c76351", "#d58d3e", "#26231d"],
     'PF': ["#e5c38f", "#cad181", "#26231d"],
     'NF': ["#75a099", "#91a2a6", "#26231d"]
+  },
+  coloriLegenda: {
+  electoralProcess: "#D9D97A",
+  politicalPluralism: "#6A8AA9",
+  functioningGovernment: "#0F3C63",
+  addQ: "#C51A1A",
+  addA: "#1f863fff", 
+  freedomExpression: "#C47929",
+  associationalRights: "#9C6EBF",
+  ruleOfLaw: "#A4B2B8",
+  personalAutonomy: "#C0655A"
   }
 };
 
+// testi
+function titolo(){
+  
+}
 
-// BOTTONI
+// bottoni di navigazione
 
 // Crea un bottone standard circolare di navigazione
 function creaBottoneStandard(x, y, img, url) {
