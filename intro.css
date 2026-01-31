@@ -367,3 +367,35 @@ body {
   .testo-interpretazione { font-size: 1.8rem; }
   .btn-scopri { font-size: 1.1rem; padding: 14px 32px; }
 }
+
+/* --- SKIP INTRO BUTTON --- */
+.skip-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 9999; /* Sopra a tutto */
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--colore-testo-chiaro);
+  border: 1px solid rgba(244, 235, 225, 0.3);
+  padding: 10px 20px;
+  border-radius: 30px;
+  cursor: pointer;
+  pointer-events: auto;
+  background-color: rgba(38, 35, 29, 0.5); /* Sfondo semi-trasparente per leggibilità */
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+.skip-btn:hover {
+  background-color: var(--colore-testo-chiaro);
+  color: var(--colore-sfondo);
+  border-color: var(--colore-testo-chiaro);
+}
+
+/* Nascondi il bottone quando arrivi alla fine del sito */
+.skip-btn.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
