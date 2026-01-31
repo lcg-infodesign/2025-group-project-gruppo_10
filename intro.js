@@ -69,23 +69,20 @@ function setup() {
   });
 }
 
-// GESTIONE CLICK - FIX "SCOMPARSA IMMEDIATA"
+// GESTIONE CLICK
 document.getElementById('click-prompt').addEventListener('click', function() {
   if (canInteract && !interactionStarted) {
     interactionStarted = true;
     
-    // IMPORTANTE: Ferma l'animazione CSS di pulsazione prima di nascondere
+    // Stop pulsazione e nascondi
     this.style.animation = 'none'; 
-    
-    // Fai sparire il bottone velocemente
     gsap.to(this, { 
       opacity: 0, 
       duration: 0.3, 
       pointerEvents: 'none',
-      overwrite: true // Assicura che GSAP sovrascriva tutto
+      overwrite: true
     });
     
-    // Avvia animazione testo
     startComplexTypewriter();
   }
 });
@@ -93,38 +90,24 @@ document.getElementById('click-prompt').addEventListener('click', function() {
 async function startComplexTypewriter() {
   const textElement = document.getElementById('typewriter-text');
   
-  // A. Scrivi "What is freedom to you?"
   await typeText(textElement, "What is freedom to you?", 60);
   await wait(800);
-  
-  // B. Cancella "you?"
   await deleteText(textElement, 4, 100);
   await wait(200);
-  
-  // C. Scrivi "Freedom House?"
   await typeText(textElement, "Freedom House?", 80);
   
-  // D. Apparizione "Scroll to continue"
   gsap.to('#final-cta-container', { 
-    opacity: 1, 
-    y: 0, 
-    duration: 1, 
-    delay: 0.5, 
-    ease: "power2.out",
-    onComplete: () => {
-      // SBLOCCA LO SCROLL
-      lenis.start();
-    }
+    opacity: 1, y: 0, duration: 1, delay: 0.5, ease: "power2.out",
+    onComplete: () => { lenis.start(); } // SBLOCCA SCROLL
   });
 }
 
-// --- Funzioni Helper ---
+// Helper
 function typeText(element, text, speed) {
   return new Promise(resolve => {
     let i = 0;
     let interval = setInterval(() => {
-      element.innerHTML += text.charAt(i);
-      i++;
+      element.innerHTML += text.charAt(i); i++;
       if (i >= text.length) { clearInterval(interval); resolve(); }
     }, speed);
   });
@@ -135,8 +118,7 @@ function deleteText(element, count, speed) {
     let deleted = 0;
     let interval = setInterval(() => {
       let current = element.innerHTML;
-      element.innerHTML = current.substring(0, current.length - 1);
-      deleted++;
+      element.innerHTML = current.substring(0, current.length - 1); deleted++;
       if (deleted >= count) { clearInterval(interval); resolve(); }
     }, speed);
   });
@@ -160,4 +142,3 @@ function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   ScrollTrigger.refresh();
 }
-
