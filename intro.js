@@ -1,184 +1,107 @@
-let font;
-let alone;
-let offsetSferaY = 0;
-let lenis;
-let canInteract = false;
-let interactionStarted = false;
+// --- CONFIGURAZIONE DINAMICA ---
+const THEME = {
+  gradients: {
+    free: "linear-gradient(to top, #c76351, #e5c38f)",
+    notFree: "linear-gradient(to top, #2f3e46, #6b8c85)",
+    transition: "linear-gradient(to top, #2f3e46, #e5c38f)"
+  },
+  fiammeData: [
+    { id: ".f1", h: 180, type: "free" },
+    { id: ".f2", h: 240, type: "transition" },
+    { id: ".f3", h: 100, type: "notFree" },
+    { id: ".f4", h: 150, type: "notFree" }
+  ]
+};
 
-function preload() {
-  font = loadFont('font/NeueHaasDisplayLight.ttf');
-}
+let font, alone, lenis, offsetSferaY = 0;
+let canInteract = false, interactionStarted = false;
+
+function preload() { font = loadFont('font/NeueHaasDisplayLight.ttf'); }
 
 function setup() {
-  let canvas = createCanvas(windowWidth, windowHeight);
-  canvas.parent('canvasContainer');
-  
+  createCanvas(windowWidth, windowHeight).parent('canvasContainer');
   alone = new AloneAnimato();
-  alone.accendi(); 
+  alone.accendi();
   
   gsap.registerPlugin(ScrollTrigger);
   initLenis();
-  
-  gsap.to('.scroll-indicator', { opacity: 1, duration: 1.5, delay: 2 });
+  initScrollAnimations();
+}
 
-  // 1. Spegnimento alone (Sezione Titolo)
+function initScrollAnimations() {
+  // 1. Alone e Sfera
   ScrollTrigger.create({
-    trigger: '#sezione-titolo',
-    start: 'top top',
-    end: 'bottom top',
-    scrub: true,
-    onUpdate: (self) => { alone.spegni(self.progress); }
+    trigger: '#sezione-titolo', start: 'top top', end: 'bottom top', scrub: true,
+    onUpdate: (self) => alone.spegni(self.progress)
   });
 
-  // 2. Discesa sfera (Sezione Transizione)
   ScrollTrigger.create({
-    trigger: '#sezione-transizione',
-    start: 'top top',
-    end: 'bottom top',
-    scrub: true,
-    onUpdate: (self) => { offsetSferaY = height * 1.5 * self.progress; }
+    trigger: '#sezione-transizione', start: 'top top', end: 'bottom top', scrub: true,
+    onUpdate: (self) => offsetSferaY = height * 1.5 * self.progress
   });
 
-  // 3. Blocco Scroll (Typewriter)
+  // 2. Typewriter Logic
   ScrollTrigger.create({
-    trigger: '.spacer-finale',
-    start: 'top top', 
+    trigger: '.spacer-finale', start: 'top top',
     onEnter: () => {
       if (!interactionStarted) {
-        lenis.stop(); 
+        lenis.stop();
         canInteract = true;
-        const overlay = document.getElementById('ui-overlay');
-        overlay.style.pointerEvents = 'auto'; 
-        gsap.to(overlay, { opacity: 1, duration: 1 });
-        gsap.to('.scroll-indicator', { opacity: 0, duration: 0.5 });
+        gsap.to('#ui-overlay', { opacity: 1, duration: 1, pointerEvents: 'auto' });
       }
     }
   });
 
-  // 4. Dissolvenza UI all'inizio della spiegazione
-  ScrollTrigger.create({
-    trigger: '#sezione-spiegazione',
-    start: 'top bottom', 
-    end: 'top center',
-    scrub: true,
-    onUpdate: (self) => {
-      gsap.to('#ui-overlay', { opacity: 1 - self.progress, duration: 0.1 });
-    }
-  });
-
-  // 5. ANIMAZIONE STATUA (Immagini + Linea)
+  // 3. Statua & Path
   let tlStatua = gsap.timeline({
-    scrollTrigger: {
-      trigger: "#statua-master-container",
-      start: "top top",      
-      end: "bottom bottom", 
-      scrub: true,          
-    }
+    scrollTrigger: { trigger: "#statua-master-container", start: "top top", end: "bottom bottom", scrub: true }
   });
-
-  tlStatua.fromTo(".statua-img.blu", 
-    { opacity: 1 }, 
-    { opacity: 0, ease: "none" }, 
-    0
-  );
+  tlStatua.to(".statua-img.blu", { opacity: 0, ease: "none" });
 
   let path = document.querySelector(".linea-curva-svg path");
   if(path) {
-    let length = path.getTotalLength();
-    gsap.set(path, { strokeDasharray: length, strokeDashoffset: length });
+    let len = path.getTotalLength();
+    gsap.set(path, { strokeDasharray: len, strokeDashoffset: len });
     tlStatua.to(path, { strokeDashoffset: 0, ease: "none" }, 0);
   }
 
-  // Animazione testi Statua
-  gsap.to("#statua-parte-1", {
-    opacity: 0,
-    scrollTrigger: {
-      trigger: "#statua-parte-1",
-      start: "center center",
-      end: "bottom top",
-      scrub: true
-    }
-  });
+  // 4. Testi Statua (Fade in/out)
+  gsap.to("#statua-parte-1", { opacity: 0, scrollTrigger: { trigger: "#statua-parte-1", start: "center center", end: "bottom top", scrub: true }});
+  gsap.to("#statua-parte-2", { opacity: 1, scrollTrigger: { trigger: "#statua-parte-2", start: "top bottom", end: "center center", scrub: true }});
 
-  gsap.to("#statua-parte-2", {
-    opacity: 1,
-    scrollTrigger: {
-      trigger: "#statua-parte-2",
-      start: "top bottom",
-      end: "center center",
-      scrub: true
-    }
+  // 5. FIAMME (Configurazione da oggetto THEME)
+  THEME.fiammeData.forEach(f => {
+    gsap.set(f.id, { background: THEME.gradients[f.type] });
+    gsap.fromTo(f.id, { height: 0 }, {
+      height: f.h, duration: 1.5, ease: "power3.out",
+      scrollTrigger: { trigger: "#sezione-regioni", start: "top 70%" }
+    });
   });
-
-  // --- 6. NUOVA SEZIONE REGIONI (POSIZIONATA IN FONDO) ---
-  
-  // Animazione comparsa fiamme
-  gsap.from(".fiamma", {
-    height: 0,
-    stagger: 0.15,
-    duration: 1.5,
-    ease: "power3.out",
-    scrollTrigger: {
-      trigger: "#sezione-regioni",
-      start: "top 70%", // Parte quando la sezione entra bene nella vista
-      toggleActions: "play none none reverse"
-    }
-  });
-
-  // Animazione testo regioni
-  gsap.from(".testo-regioni", {
-    opacity: 0,
-    y: 30,
-    duration: 1,
-    scrollTrigger: {
-      trigger: "#sezione-regioni",
-      start: "top 80%",
-      toggleActions: "play none none reverse"
-    }
-  });
-
-  // Animazione comparsa sezione finale
-gsap.from("#sezione-scopri .container-scopri", {
-  opacity: 0,
-  y: 50,
-  duration: 1.5,
-  ease: "power3.out",
-  scrollTrigger: {
-    trigger: "#sezione-scopri",
-    start: "top 80%",
-    toggleActions: "play none none reverse"
-  }
-});
 }
 
-// GESTIONE CLICK TYPEWRITER
-document.getElementById('click-prompt').addEventListener('click', function() {
+// --- TYPEWRITER & INTERACTION ---
+document.getElementById('click-prompt').addEventListener('click', async function() {
   if (canInteract && !interactionStarted) {
     interactionStarted = true;
-    this.style.animation = 'none'; 
-    gsap.to(this, { opacity: 0, duration: 0.3, pointerEvents: 'none', overwrite: true });
-    startComplexTypewriter();
+    gsap.to(this, { opacity: 0, duration: 0.3 });
+    const txt = document.getElementById('typewriter-text');
+    await typeText(txt, "What is freedom to you?", 60);
+    await wait(800);
+    await deleteText(txt, 4, 100);
+    await typeText(txt, "Freedom House?", 80);
+    
+    gsap.to('#final-cta-container', { opacity: 1, y: 0, duration: 1, onComplete: () => lenis.start() });
   }
 });
 
-async function startComplexTypewriter() {
-  const textElement = document.getElementById('typewriter-text');
-  await typeText(textElement, "What is freedom to you?", 60);
-  await wait(800);
-  await deleteText(textElement, 4, 100);
-  await wait(200);
-  await typeText(textElement, "Freedom House?", 80);
-  
-  gsap.to('#final-cta-container', { 
-    opacity: 1, y: 0, duration: 1, delay: 0.5, ease: "power2.out",
-    onComplete: () => { lenis.start(); } 
-  });
+// --- HELPERS ---
+function initLenis() {
+  lenis = new Lenis({ duration: 1.2, smooth: true });
+  gsap.ticker.add((t) => lenis.raf(t * 1000));
+  gsap.ticker.lagSmoothing(0);
 }
-
-// Helpers
-function typeText(e, t, s) { return new Promise(r => { let i=0; let v=setInterval(()=>{e.innerHTML+=t.charAt(i);i++;if(i>=t.length){clearInterval(v);r()}},s) }) }
-function deleteText(e, c, s) { return new Promise(r => { let d=0; let v=setInterval(()=>{e.innerHTML=e.innerHTML.slice(0,-1);d++;if(d>=c){clearInterval(v);r()}},s) }) }
-function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
-function initLenis() { lenis=new Lenis({duration:1.2,smooth:true}); lenis.on('scroll', ScrollTrigger.update); gsap.ticker.add((t)=>{lenis.raf(t*1000)}); gsap.ticker.lagSmoothing(0); }
-function draw() { background('#26231d'); alone.disegna(width/2, height/2+offsetSferaY); }
+function draw() { background('#26231d'); alone.disegna(width/2, height/2 + offsetSferaY); }
 function windowResized() { resizeCanvas(windowWidth, windowHeight); ScrollTrigger.refresh(); }
+function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+async function typeText(e, t, s) { for(let char of t) { e.innerHTML += char; await wait(s); } }
+async function deleteText(e, n, s) { for(let i=0; i<n; i++) { e.innerHTML = e.innerHTML.slice(0,-1); await wait(s); } }
