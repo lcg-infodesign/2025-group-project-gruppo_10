@@ -19,7 +19,6 @@ function setup() {
   gsap.registerPlugin(ScrollTrigger);
   initLenis();
   
-  // Indicatore iniziale
   gsap.to('.scroll-indicator', { opacity: 1, duration: 1.5, delay: 2 });
 
   // 1. Spegnimento alone
@@ -40,14 +39,13 @@ function setup() {
     onUpdate: (self) => { offsetSferaY = height * 1.5 * self.progress; }
   });
 
-  // 3. BLOCCO SCROLL E ATTIVAZIONE UI
+  // 3. Blocco Scroll
   ScrollTrigger.create({
     trigger: '.spacer-finale',
     start: 'top top', 
     onEnter: () => {
       if (!interactionStarted) {
-        lenis.stop(); // Blocca lo scroll qui
-        
+        lenis.stop(); 
         canInteract = true;
         const overlay = document.getElementById('ui-overlay');
         overlay.style.pointerEvents = 'auto'; 
@@ -57,7 +55,7 @@ function setup() {
     }
   });
 
-  // 4. Transizione verso nuova slide
+  // 4. Dissolvenza UI
   ScrollTrigger.create({
     trigger: '#sezione-spiegazione',
     start: 'top bottom', 
@@ -67,29 +65,69 @@ function setup() {
       gsap.to('#ui-overlay', { opacity: 1 - self.progress, duration: 0.1 });
     }
   });
+
+  // 5. ANIMAZIONE STATUA (Immagini + Linea)
+  let tlStatua = gsap.timeline({
+    scrollTrigger: {
+      trigger: "#statua-master-container",
+      start: "top top",     
+      end: "bottom bottom", 
+      scrub: true,          
+    }
+  });
+
+  // Cambio immagine statua
+  tlStatua.fromTo(".statua-img.blu", 
+    { opacity: 1 }, 
+    { opacity: 0, ease: "none" }, 
+    0
+  );
+
+  // Linea Curva
+  let path = document.querySelector(".linea-curva-svg path");
+  if(path) {
+    let length = path.getTotalLength();
+    gsap.set(path, { strokeDasharray: length, strokeDashoffset: length });
+    tlStatua.to(path, { strokeDashoffset: 0, ease: "none" }, 0);
+  }
+
+  // --- NUOVA LOGICA: ANIMAZIONE TESTI ---
+  
+  // Testo 1: Svanisce mentre scorri via
+  gsap.to("#statua-parte-1", {
+    opacity: 0,
+    scrollTrigger: {
+      trigger: "#statua-parte-1",
+      start: "center center", // Inizia a svanire quando è al centro
+      end: "bottom top",      // Sparito quando esce in alto
+      scrub: true
+    }
+  });
+
+  // Testo 2: Appare mentre entra
+  gsap.to("#statua-parte-2", {
+    opacity: 1,
+    scrollTrigger: {
+      trigger: "#statua-parte-2",
+      start: "top bottom",    // Inizia ad apparire appena entra dal basso
+      end: "center center",   // Completamente visibile al centro
+      scrub: true
+    }
+  });
 }
 
 // GESTIONE CLICK
 document.getElementById('click-prompt').addEventListener('click', function() {
   if (canInteract && !interactionStarted) {
     interactionStarted = true;
-    
-    // Stop pulsazione e nascondi
     this.style.animation = 'none'; 
-    gsap.to(this, { 
-      opacity: 0, 
-      duration: 0.3, 
-      pointerEvents: 'none',
-      overwrite: true
-    });
-    
+    gsap.to(this, { opacity: 0, duration: 0.3, pointerEvents: 'none', overwrite: true });
     startComplexTypewriter();
   }
 });
 
 async function startComplexTypewriter() {
   const textElement = document.getElementById('typewriter-text');
-  
   await typeText(textElement, "What is freedom to you?", 60);
   await wait(800);
   await deleteText(textElement, 4, 100);
@@ -98,47 +136,14 @@ async function startComplexTypewriter() {
   
   gsap.to('#final-cta-container', { 
     opacity: 1, y: 0, duration: 1, delay: 0.5, ease: "power2.out",
-    onComplete: () => { lenis.start(); } // SBLOCCA SCROLL
+    onComplete: () => { lenis.start(); } 
   });
 }
 
-// Helper
-function typeText(element, text, speed) {
-  return new Promise(resolve => {
-    let i = 0;
-    let interval = setInterval(() => {
-      element.innerHTML += text.charAt(i); i++;
-      if (i >= text.length) { clearInterval(interval); resolve(); }
-    }, speed);
-  });
-}
-
-function deleteText(element, count, speed) {
-  return new Promise(resolve => {
-    let deleted = 0;
-    let interval = setInterval(() => {
-      let current = element.innerHTML;
-      element.innerHTML = current.substring(0, current.length - 1); deleted++;
-      if (deleted >= count) { clearInterval(interval); resolve(); }
-    }, speed);
-  });
-}
-
+// Helpers
+function typeText(e, t, s) { return new Promise(r => { let i=0; let v=setInterval(()=>{e.innerHTML+=t.charAt(i);i++;if(i>=t.length){clearInterval(v);r()}},s) }) }
+function deleteText(e, c, s) { return new Promise(r => { let d=0; let v=setInterval(()=>{e.innerHTML=e.innerHTML.slice(0,-1);d++;if(d>=c){clearInterval(v);r()}},s) }) }
 function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-function initLenis() {
-  lenis = new Lenis({ duration: 1.2, smooth: true });
-  lenis.on('scroll', ScrollTrigger.update);
-  gsap.ticker.add((time) => { lenis.raf(time * 1000); });
-  gsap.ticker.lagSmoothing(0);
-}
-
-function draw() {
-  background('#26231d');
-  alone.disegna(width / 2, height / 2 + offsetSferaY);
-}
-
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  ScrollTrigger.refresh();
-}
+function initLenis() { lenis=new Lenis({duration:1.2,smooth:true}); lenis.on('scroll', ScrollTrigger.update); gsap.ticker.add((t)=>{lenis.raf(t*1000)}); gsap.ticker.lagSmoothing(0); }
+function draw() { background('#26231d'); alone.disegna(width/2, height/2+offsetSferaY); }
+function windowResized() { resizeCanvas(windowWidth, windowHeight); ScrollTrigger.refresh(); }
