@@ -4,11 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Freedom in the World</title>
+  
   <link rel="stylesheet" href="intro.css">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
 </head>
+
 <body>
 
- <div id="skip-intro" class="skip-btn">Skip Intro</div>
+  <div id="skip-intro" class="skip-btn">Skip Intro</div>
 
   <div id="canvasContainer"></div>
 
@@ -86,9 +93,10 @@
     <div id="statua-master-container">
       
       <div class="statue-sticky-wrapper">
-        <img src="img/rame.PNG" class="statua-img rame" alt="Statue Copper">
-        
-        <img src="img/rame_o2.PNG" class="statua-img blu" alt="Statue Blue">
+        <div class="statue-move-wrapper">
+          <img src="img/rame.PNG" class="statua-img rame" alt="Statue Copper">
+          <img src="img/rame_o2.PNG" class="statua-img blu" alt="Statue Blue">
+        </div>
       </div>
 
       <div class="statue-content-wrapper">
@@ -123,51 +131,51 @@
     </div>
 
     <section class="sezione" id="sezione-regioni">
-  <div class="container-regioni">
-    <div class="testo-regioni">
-      <p>Each torch represents a geopolitical region.</p>
-      <p>Each flame or column is a country.</p>
-      <p>Flame height shows the freedom score.</p>
-      <p>Color indicates the status.</p>
-      
-      <div class="cambio-status">
-        <div class="icona-stella">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 3L14.5 9H21L16 13L18 20L12 16L6 20L8 13L3 9H9.5L12 3Z" fill="white"/>
-          </svg>
+      <div class="container-regioni">
+        <div class="testo-regioni">
+          <p>Each torch represents a geopolitical region.</p>
+          <p>Each flame or column is a country.</p>
+          <p>Flame height shows the freedom score.</p>
+          <p>Color indicates the status.</p>
+          
+          <div class="cambio-status">
+            <div class="icona-stella">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 3L14.5 9H21L16 13L18 20L12 16L6 20L8 13L3 9H9.5L12 3Z" fill="white"/>
+              </svg>
+            </div>
+            <div class="testo-stella">
+              <p>Some countries changed status over the years.</p>
+              <p class="sub-stella">A star symbol marks these shifts.<br>Click to explore the context behind the change.</p>
+            </div>
+          </div>
         </div>
-        <div class="testo-stella">
-          <p>Some countries changed status over the years.</p>
-          <p class="sub-stella">A star symbol marks these shifts.<br>Click to explore the context behind the change.</p>
+
+        <div class="visualizzazione-torcia">
+          <div class="container-fiamme">
+            <div class="fiamma f1" style="height: 180px; background: linear-gradient(to top, #c76351, #d58d3e); opacity: 0.85;"></div>
+            <div class="fiamma f2" style="height: 240px; background: linear-gradient(to top, #e5c38f, #cad181); opacity: 0.85;"></div>
+            <div class="fiamma f3" style="height: 100px; background: linear-gradient(to top, #75a099, #91a2a6); opacity: 0.85;"></div>
+            <div class="fiamma f4" style="height: 150px; background: linear-gradient(to top, #c76351, #d58d3e); opacity: 0.85;"></div>
+          </div>
+          <img src="img/torcia.png" class="img-torcia-base" alt="Torch base">
         </div>
       </div>
-    </div>
+    </section>
 
-    <div class="visualizzazione-torcia">
-      
-      <div class="container-fiamme">
-        <div class="fiamma f1" style="height: 180px; background: linear-gradient(to top, #c76351, #e5c38f);"></div>
-        <div class="fiamma f2" style="height: 240px; background: linear-gradient(to top, #2f3e46, #e5c38f); opacity: 0.8;"></div>
-        <div class="fiamma f3" style="height: 100px; background: linear-gradient(to top, #2f3e46, #6b8c85);"></div>
-        <div class="fiamma f4" style="height: 150px; background: linear-gradient(to top, #6b8c85, #dcb06d);"></div>
+    <section class="sezione" id="sezione-scopri">
+      <div class="container-scopri">
+        <p class="testo-interpretazione">
+          One organization. One interpretation.<br>
+          One of many ways of measuring freedom.
+        </p>
+        <a href="#" class="btn-scopri">Discover our site</a>
       </div>
+    </section>
 
-      <img src="img/torcia.png" class="img-torcia-base" alt="Torch base">
-    </div>
   </div>
-</section>
 
-<section class="sezione" id="sezione-scopri">
-  <div class="container-scopri">
-    <p class="testo-interpretazione">
-      One organization. One interpretation.<br>
-      One of many ways of measuring freedom.
-    </p>
-    <a href="#" class="btn-scopri">Discover our site</a>
-  </div>
-</section>
-
-  </div> <div id="ui-overlay">
+  <div id="ui-overlay">
     <div id="typewriter-wrapper">
       <span id="typewriter-text"></span><span class="cursor">|</span>
     </div>
@@ -181,16 +189,15 @@
   </div>
 
   <div class="scroll-indicator">
-    <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    <span class="scroll-indicator-text">scroll to explore</span>
+    <div class="scroll-indicator-arrow">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-  <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
-  
   <script src="aloneAnimato.js"></script>
   <script src="intro.js"></script>
+
 
 </body>
 </html>
