@@ -178,13 +178,13 @@ body {
   animation: pulseColor 1.8s ease-in-out infinite;
 }
 
-.dot.scuro1 { background-color: #4a4a4a; }
-.dot.scuro2 { background-color: #2f3e46; }
-.dot.verde { background-color: #c8d697; }
-.dot.giallo { background-color: #dcb06d; }
-.dot.rosso { background-color: #c76351; }
-.dot.viola { background-color: #5c546b; }
-.dot.grigio { background-color: #6b6b6b; }
+.dot.scuro1 { background-color: #d9d97a; }
+.dot.scuro2 { background-color: #6a8aa9; }
+.dot.verde { background-color: #0f3c63; }
+.dot.giallo { background-color: #c47929; }
+.dot.rosso { background-color: #9c6ebf; }
+.dot.viola { background-color: #a4b2b8; }
+.dot.grigio { background-color: #c0655a; }
 
 .segno { 
   font-size: 2rem; 
@@ -361,21 +361,21 @@ body {
 
 .badge {
   padding: 5px 15px;
-  border-radius: 6px;
-  font-weight: 700;
+  border-radius: 15px;
+  font-weight: 800;
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: #fff;
+  color: #000000;
 }
 
 .badge.free { 
-  background: linear-gradient(90deg, #e5c38f 0%, #c76351 100%); 
+  background: linear-gradient(90deg, #c76351, #d58d3e 100%); 
   box-shadow: 0 2px 10px rgba(199, 99, 81, 0.3); 
 }
 
 .badge.not-free { 
-  background: linear-gradient(90deg, #6b8c85 0%, #2f3e46 100%); 
+  background: linear-gradient(90deg, #75a099, #91a2a6 100%); 
   box-shadow: 0 2px 10px rgba(47, 62, 70, 0.3); 
 }
 
