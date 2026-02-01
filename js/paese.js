@@ -2941,3 +2941,4 @@ function measureCountryTextHeight(countryName, w) {
 
   return lines.length * lineHeight + boxPadding * 2;
 }
+
