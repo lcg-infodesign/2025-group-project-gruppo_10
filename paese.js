@@ -1,17 +1,8 @@
-// variabili globali
-let data;
+let data; //variabile che contiene il mio csv
+let iconaUs;
+let iconaFh;
 
-// variabili per font
-let fontRegular, fontMedium, fontBold;
-
-// variabili per bottoni
-let iconaAboutUs, iconaAboutFh, iconaHome, iconaLente, iconaClose; // icone generali
-let iconaArrLeft; // icone frecce
-let btnBack, btnAboutFH, btnAboutUs; // Variabili globali
-
-// variabili per responsiveness
-let graficoWidth;
-let annoWidth;
+//RESPONSIVE
 let BASE_W = 1280; // larghezza di riferimento 
 let BASE_H = 665; // altezza di riferimento
 let scaleFactor = 1; // fattore di scala corrente
@@ -19,22 +10,34 @@ let lastScaleFactor = -1; // per capire se la scala è cambiata
 let logicalMouseX = 0; // mouse "nello spazio logico"
 let logicalMouseY = 0;
 
-let countrySlug = "";   // nome normalizzato senza maiuscole e spazi
+const YEAR_BASE_X = 750;  // coordinate ORIGINALI del select anno
+const YEAR_BASE_Y = 145;
+
+//font 
+let mioFont; 
+let mioFontBold;
+let fontSimboli;
+
+let textColor;
+let countrySlug = "";   // nome normalizzato (no maiuscole e spazi)
 let countryName = "";   // il nome leggibile che poi vogliamo scrivere nella pagina come titolo
 
-// CREO UN ARRAY PER CONTENERE GLI ANNI 
+//CREO UN ARRAY PER CONTENERE GLI ANNI 
 let anniDisponibili = []; //array con tutti gli anni disponibili 
 let annoSelezionato = "" //anno selezionionato 
 let yearSelect; //oggetti select che appare 
 
-// TOTAL SCORE
+//FRECCETTA FINTA MENU A TENDINA 
+let arrowSpan; // per la freccia finta
+
+//TOTAL SCORE
 let punteggioTotale = 0; 
 
-// TOTAL CATEGORIE [A,B,C,D,E,F,G]-->positivi
+//TOTAL CATEGORIE [A,B,C,D,E,F,G]-->positivi
 let totaliCategorie = [0,0,0,0,0,0,0,0];
 let maxCategorie = [12, 16, 12, 4, 16, 12, 16, 16];
 
-let questionColumns = [ // per ogni categoria mi associa le colonne del mio dataset che contengono i valori delle domande 
+let questionColumns = [ //per ogni categoria mi associa le colonne del mio dataset che contengono i valori delle domande 
   ["Question A1", "Question A2", "Question A3"], // 0:A
   ["Question B1", "Question B2", "Question B3", "Question B4"], // 1:B
   ["Question C1", "Question C2", "Question C3"],  // 2:C
@@ -45,33 +48,22 @@ let questionColumns = [ // per ogni categoria mi associa le colonne del mio data
   ["Question G1", "Question G2", "Question G3", "Question G4"]  // 7:G
 ];
 
-let questionScores = []; // contiene il punteggio da 0 a 4 di ciascuna Domanda 
+let questionScores = []; //contiene il punteggio da 0 a 4 di ciascuna Domanda 
 
-// COLORI CATEGORIE 
-let coloriCategorie = [];
+// variabili per i nuovi bottoni in alto a destra
+let bottoneUS;
+let bottoneFH;
+let bottoneBack; // bottone per tornare indietro
+let tooltipUS;
+let tooltipFH;
 
-// valore AddQ (positivo nel CSV, ma negativo nella realtà)
-let addQVal = 0;
-let addAVal = 0;
-// info di tutti i pallini (per sapere coordinate e categoria)
-let palliniInfo = [];
-// per l'animazione di lampeggio
-let animT = 0;
-const diametroPallino = 48;
+// colori
+let nero = "#26231d";
+let bianco = "#eaead8";
+let grigio = "#454340ff";
 
-//VARIABILE HOVER PER CATEGORIA 
-let hoveredCatIndex = null; 
-//VARIABILE CATEGORIA CLICCATA 
-let selectedCatIndex = null;
-
-let legendHitAreas = []; // zone cliccabili della legenda
-// variabili per selezionare l'anno
-let datiFiltrati;
-let scrollAccumulato = 0;
-let pixelPerAnno = 200; // Quanti pixel di scroll per cambiare anno
-let progressoScroll = 0; // Valore da 0 a 1 per l'animazione tra anni
-
-coloriLegenda= {
+//leganda colori 
+let coloriLegenda = {
   electoralProcess: "#D9D97A",
   politicalPluralism: "#6A8AA9",
   functioningGovernment: "#0F3C63",
@@ -81,83 +73,28 @@ coloriLegenda= {
   associationalRights: "#9C6EBF",
   ruleOfLaw: "#A4B2B8",
   personalAutonomy: "#C0655A"
-}
+};
+//COLORI CATEGORIE 
+let coloriCategorie = [];
 
-const whiteHover = "#eaead8"; //bianco solito
+//valore AddQ (positivo nel CSV, ma negativo nella realtà)
+let addQVal = 0;
+let addAVal = 0;
+// info di tutti i pallini (per sapere coordinate e categoria)
+let palliniInfo = [];
+// per l'animazione di lampeggio
+let animT = 0;
+const diametroPallino = 44;
 
-//VARIABILI PER REGOLARE MEGLIO L'HOVER 
-let hoveredLegendCatIndex = null;
-let hoveredPalliniCatIndex = null;
+//VARIABILE HOVER PER CATEGORIA 
+let hoveredCatIndex = null; 
+//VARIABILE CATEGORIA CLICCATA 
+let selectedCatIndex = null;
 
-//VARIABILI TITOLO (7 parametri)
-let panelTitles = [
-  "Electoral process",
-  "Political pluralism and participation",
-  "Functioning of government",
-  "Additional Answer",
-  "Freedom of expression and belief",
-  "Associational and organizational rights",
-  "Rule of Law",
-  "Personal autonomy and individual rights",
-  "Additional Discretionary Question B" 
-];
+let legendHitAreas = []; // zone cliccabili della legenda
 
-//per  ogni categoria del mio array creo un array con le domande 
-let panelQuestions = [
-  [ //Electoral process
-    "Was the current head of government or other chief national\nauthority elected through free and fair elections? ",
-    "Were the current national legislative representatives elected\nthrough free and fair elections?",
-    "Are the electoral laws and framework fair, and are they implemented\nimpartially by the relevant election management bodies? ",
-  ],
-  //Political pluralism and participation
-  [
-    "Do the people have the right to organize in different political parties or other\ncompetitivepolitical groupings of their choice, and is the system free of undue\nobstacles to the rise and fall of these competing parties or groupings?",
-    "Is there a realistic opportunity for the opposition to increase\nits support or gain power through elections?",
-    "Are the people's political choices free from domination\nby forces that are external to the political sphere,\nor by political forces that employ extrapolitical means?",
-    "Do various segments of the population (including ethnic, racial,\nreligious, gender, LGBT+, and other relevant groups)\nhave full political rights and electoral opportunities?"
-  ],
-  // Functioning of government
-  [
-    "Do the freely elected head of government\nand national legislative representatives determine\nthe policies of the government?",
-    "Are safeguards against official corruption strong and effective?",
-    "Does the government operate with openness and transparency?",
-  ],
-  // Add A
-  [
-  "For traditional monarchies that have no parties or electoral process,\ndoes the system provide for genuine, meaningful consultation\nwith the people encourage public discussion of policy choices,\nand allow the right to petition the ruler?"
-  ],
-  // Freedom of expression and belief
-  [
-    "Are there free and independent media?",
-    "Are individuals free to practice and express their religious faith\nor nonbelief in public and private?",
-    "Is there academic freedom, and is the educational system free\nfrom extensive political indoctrination?",
-    "Are individuals free to express their personal views on political\nor other sensitive topics without fear of surveillance or retribution?"
-  ],
-  // Associational and organizational rights
-  [
-    "Is there freedom of assembly?",
-    "Is there freedom for nongovernmental organizations, particularly those\nthat are engaged in human rights -and governance- related work?",
-    "Is there freedom for trade unions and similar\nprofessional or labor organizations?",
-  ],
-  // Rule of Law
-  [
-    "Is there an independent judiciary?",
-    "Does due process prevail in civil and criminal matters?",
-    "Is there protection from the illegitimate use of physical force\nand freedom from war and insurgencies?",
-    "Do laws, policies, and practices guarantee equal treatment\nof various segments of the population?"
-  ],
-  // Personal autonomy and individual rights
-  [
-    "Do individuals enjoy freedom of movement, including the ability\nto change their place of residence, employment, or education?",
-    "Are individuals able to exercise the right to own property and establish\nprivate businesses without undue interference\nfrom state or nonstate actors?",
-    "Do individuals enjoy personal social freedoms, including choice\nof marriage partner and size of family, protection from domestic violence,\nand control over appearance?",
-    "Do individuals enjoy equality of opportunity and freedom\nfrom economic exploitation?"
-  ],
-  //Additional Discretionary Question B
-  [
-    "Is the government or occupying power deliberately changing the ethnic\ncomposition of a country or territory so as to destroy a culture\nor tip the political balance in favor of another group?"
-  ]
-];
+let backDetailArea = null; // bottone "back" nel pannello domande
+let backHomeArea = null;   // bottone "back" in alto (pagina principale)
 
 //VARIABILI OVERVIEWCHART
 let overviewExpanded = false;   // mini / fullscreen
@@ -262,28 +199,108 @@ const countryTexts = {
     nagornokarabakh: "Nagorno-Karabakh’s status declined from Partly Free to Not Free due to an Azerbaijani blockade and military offensive that culminated in the dissolution of local political, legal, and civic institutions and the departure of nearly all of the civilian population.",
   };
 
+
+
+
+
+
+
+
+
+
+
+//VARIABILI TITOLO (7 parametri)
+let panelTitles = [
+  "Electoral process",
+  "Political pluralism and participation",
+  "Functioning of government",
+  "Additional Answer",
+  "Freedom of expression and belief",
+  "Associational and organizational rights",
+  "Rule of Law",
+  "Personal autonomy and individual rights",
+  "Additional Discretionary Question B" 
+];
+
+//per  ogni categoria del mio array creo un array con le domande 
+let panelQuestions = [
+  [ //Electoral process
+    "Was the current head of government or other chief national\nauthority elected through free and fair elections? ",
+    "Were the current national legislative representatives elected\nthrough free and fair elections?",
+    "Are the electoral laws and framework fair, and are they implemented\nimpartially by the relevant election management bodies? ",
+  ],
+  //Political pluralism and participation
+  [
+    "Do the people have the right to organize in different political parties\nor other competitivepolitical groupings of their choice, and is the system free\nof undue obstacles to the rise and fall of these competing parties or groupings?",
+    "Is there a realistic opportunity for the opposition to increase\nits support or gain power through elections?",
+    "Are the people's political choices free from domination by forces that are external\nto the political sphere, or by political forces that employ extrapolitical means?",
+    "Do various segments of the population (including ethnic, racial, religious, gender,\nLGBT+, and other relevant groups) have full political rights and electoral opportunities?"
+  ],
+  // Functioning of government
+  [
+    "Do the freely elected head of government and national legislative\nrepresentatives determine the policies of the government?",
+    "Are safeguards against official corruption strong and effective?",
+    "Does the government operate with openness and transparency?",
+  ],
+  // Add A
+  [
+  "For traditional monarchies that have no parties or electoral process,\ndoes the system provide for genuine, meaningful consultation with the people\n encourage public discussion of policy choices, and allow the right to petition the ruler?"
+  ],
+  // Freedom of expression and belief
+  [
+    "Are there free and independent media?",
+    "Are individuals free to practice and express their religious faith\nor nonbelief in public and private?",
+    "Is there academic freedom, and is the educational system free\nfrom extensive political indoctrination?",
+    "Are individuals free to express their personal views on political or other sensitive\ntopics without fear of surveillance or retribution?"
+  ],
+  // Associational and organizational rights
+  [
+    "Is there freedom of assembly?",
+    "Is there freedom for nongovernmental organizations, particularly those\nthat are engaged in human rights -and governance- related work?",
+    "Is there freedom for trade unions and similar\nprofessional or labor organizations?",
+  ],
+  // Rule of Law
+  [
+    "Is there an independent judiciary?",
+    "Does due process prevail in civil and criminal matters?",
+    "Is there protection from the illegitimate use of physical force\nand freedom from war and insurgencies?",
+    "Do laws, policies, and practices guarantee equal treatment\nof various segments of the population?"
+  ],
+  // Personal autonomy and individual rights
+  [
+    "Do individuals enjoy freedom of movement, including the ability to change\ntheir place of residence, employment, or education?",
+    "Are individuals able to exercise the right to own property and establish\nprivate businesses without undue interference from state or nonstate actors?",
+    "Do individuals enjoy personal social freedoms, including choice of marriage\npartner and size of family, protection from domestic violence,\nand control over appearance?",
+    "Do individuals enjoy equality of opportunity and freedom\nfrom economic exploitation?"
+  ],
+  //Additional Discretionary Question B
+  [
+    "Is the government or occupying power deliberately changing the ethnic\ncomposition of a country or territory so as to destroy a culture\nor tip the political balance in favor of another group?"
+  ]
+];
+
+// CARICO LE COSE 
 function preload() {
-  data = loadTable("../assets/FH_dataset.csv", "csv", "header"); // caricamento del dataset (con header)
+  data = loadTable("assets/FH_dataset.csv", "csv", "header");
   // font
-  fontRegular = loadFont("../font/NeueHaasDisplayRoman.ttf");
-  fontMedium = loadFont("../font/NeueHaasDisplayMedium.ttf");
-  fontBold = loadFont("../font/NeueHaasDisplayBold.ttf");
+  mioFont = loadFont("font/NeueHaasDisplayRoman.ttf");
+  fontMedium = loadFont("font/NeueHaasDisplayMedium.ttf");
+  mioFontBold = loadFont("font/NeueHaasDisplayBold.ttf");
+  fontSimboli = loadFont("font/NeueHaasDisplayRoman.ttf");
   // icone
-  iconaAboutUs = loadImage("../img/icone/person.png");
-  iconaAboutFh = loadImage("../img/icone/info.png");
-  iconaArrLeft = loadImage("../img/icone/frecce/arrowleft.png");
-  iconaClose = loadImage("../img/icone/close.png");
+  iconaUs = loadImage("img/icone/us-bianco.png");
+  iconaFh = loadImage("img/icone/fh-bianco.png");
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
 
-  graficoWidth = width * 0.9;
-  annoWidth = width - graficoWidth;
-
-
-  let margine = 30;
+  // Caratteristiche generali dei testi 
+  textColor = color(232, 233, 214);
+  textFont(mioFont);
+  textSize(16);
+  fill(textColor);
 
   let urlParams = getURLParams();
   
@@ -291,6 +308,10 @@ function setup() {
   let countryFromURL = urlParams.country || "";
   countrySlug = countryFromURL ? decodeURIComponent(countryFromURL) : "";
   countrySlug = normalizeCountryName(countrySlug);
+  
+  // Debug
+  console.log("Country dall'URL:", countryFromURL);
+  console.log("Country normalizzato:", countrySlug);
 
   if (countrySlug === "") {
     countryName = "Nessun paese selezionato";
@@ -298,7 +319,7 @@ function setup() {
     return; 
   }
 
-  // cerco nel CSV la riga che ha lo stesso slug
+  // Cerco nel CSV la riga che ha lo stesso slug
   let found = false; 
   anniDisponibili = [];
 
@@ -350,6 +371,11 @@ function setup() {
     }
   }
   
+
+// ordina per anno crescente
+countryData.sort((a, b) => int(a.year) - int(b.year));
+
+  
   if (!found) {
     countryName = "Paese non trovato (" + countrySlug + ")";
     console.warn("Nessun dato trovato per lo slug:", countrySlug);
@@ -378,115 +404,60 @@ function setup() {
 
     // Crea il select per l'anno
     yearSelect = createSelect();
+    yearSelect.position(YEAR_BASE_X * scaleFactor, YEAR_BASE_Y * scaleFactor);
 
+    for (let y of anniDisponibili) {
+      yearSelect.option(y);
+    }
 
     yearSelect.selected(annoSelezionato);
+
+    yearSelect.style('background-color', nero);
+    yearSelect.style('color', bianco);
+    yearSelect.style('border', '1px solid' + bianco);
+    yearSelect.style('font-family', 'Open Sans, sans-serif');
+    yearSelect.style('font-size', (55 * scaleFactor) + 'px');
+    yearSelect.style('border-radius', (18 * scaleFactor) + 'px');
+    yearSelect.style('outline', 'none');
+
+    // Tolgo la freccia nativa del browser
+    yearSelect.style('appearance', 'none');
+    yearSelect.style('-webkit-appearance', 'none');
+    yearSelect.style('-moz-appearance', 'none');
+
+    // Aumento il padding a destra per far posto alla freccia finta
+    yearSelect.style(
+      'padding',
+      (6 * scaleFactor) + 'px ' +
+      (60 * scaleFactor) + 'px ' +
+      (6 * scaleFactor) + 'px ' +
+      (24 * scaleFactor) + 'px'
+    );
+
+    // Creo una freccia finta "▾"
+    arrowSpan = createSpan('▾');
+    arrowSpan.style('position', 'absolute');
+    arrowSpan.style('pointer-events', 'none');
+    arrowSpan.style('color', bianco);
+    arrowSpan.style('font-family', 'Open Sans, sans-serif');
+    arrowSpan.style('font-size', (62 * scaleFactor) + 'px');
 
     yearSelect.changed(() => {
       annoSelezionato = yearSelect.value();
       aggiornaPunteggioTotale();
     });
-    yearIndex = anniDisponibili.indexOf(annoSelezionato);
-
-  }
-  
-  // bottoni
-  btnBack = creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back());//bottone torna indietro
-  btnAboutFH = creaBottoneStandard(width - diametro - margine, margine, iconaAboutFh, '../html/aboutFreedomHouse.html');// bottone fh
-  btnAboutUs = creaBottoneStandard(width - (diametro * 2) - margine * 1.5, margine, iconaAboutUs, '../html/AboutUs.html'); // bottone About Us a sinistra del primo
-}
-
-function draw() {
-  background(palette.nero);
-
-    drawTitle();
-
-    scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
-    let translateX = (width - BASE_W * scaleFactor) / 2;
-    let translateY = (height - BASE_H * scaleFactor) / 2;
     
-    // Ricalcola logicalMouseX e logicalMouseY tenendo conto della traslazione
-    logicalMouseX = (mouseX - translateX) / scaleFactor;
-    logicalMouseY = (mouseY - translateY) / scaleFactor;
-
-    push();
-
-    // La traslazione che devi compensare nel mouse
-    translate(translateX, translateY);
-    scale(scaleFactor);  
-
-  animT += 0.04; 
-
-  fill(palette.bianco);
-  textFont(fontBold);
-
-  
-
-  drawPalliniGrigi();
-  updateHoverCategory();
-  checkLegendHover();
-  drawAddQOverlay();
-  drawSidePanel();
-  drawTotalScore();  
-  pop();
-
-   //overviewchart mini
-  if (!overviewExpanded) {
-  drawOverviewMini();
+    posizionaFreccia();
   }
 
-  //CHART GRANDE (EXPANDED)
-  if (overviewExpanded) {
-
-  // box del grafico
-  overviewBox = {
-      x: 100,
-      y: 120,
-      w: BASE_W - 160,
-      h: BASE_H - 200
-    };
+  // Crea i bottoni
+  creaBottoneBack();
+  creaBottoniNavigazione();
   
-  // overlay per coprire le cose sotto
-  fill(0, 180); // semi-trasparente
-  noStroke();
-  rect(0, 0, BASE_W, BASE_H);
-  
-  //sfondo overview
-  fill(palette.nero);
-  rect(
-      overviewBox.x,
-      overviewBox.y,
-      overviewBox.w,
-      overviewBox.h,
-      30
-  );
-
-  //grafico
-
-  if (overviewExpanded) {
-    drawOverviewExpanded();
-  } else {
-    drawOverviewMini();
-  }
-
-  
-
-  //toggle solo se il grafico è esteso 
-  drawToggle();
-
-  // X per chiudere il grafico in versione extended 
-  drawOverviewCloseButton();
-
-  //funzione che rende non visibili i pulsanti back,home e aboutus-> necessaria perchè questi appartengono al csv
-  aggiornaVisibilitaPulsanti();
-
-  pop();
-
-  }
-  disegnaEtichettaAnno();
 }
 
-// FUNZIONE PER NORMALIZZARE I NOMI 
+//FUNZIONE PER NORMALIZZARE I NOMI 
+//slug --> versione ripulita dei nomi dei paesi, più facile da usare e non crea errori 
 function normalizeCountryName(name) {
   return name
     .toLowerCase()
@@ -494,12 +465,7 @@ function normalizeCountryName(name) {
     .replace(/[^a-z0-9]/g, ""); // tiene solo lettere e numeri
 }
 
-//FUNZIONE PER CAPIRE LA POSIZIONE DEL NOSTRO CURSORE 
-function pointInRect(px, py, rx, ry, rw, rh) {
-  return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
-}
-
-// DISEGNA I PALLINI 
+//DISEGNA I PALLINI 
 function drawPalliniGrigi(){
     //VARIABILI 
     let pallini = 100; //definisco il numero dei pallini 
@@ -512,9 +478,8 @@ function drawPalliniGrigi(){
     let grigliaLarghezza = colonne*diametro + (colonne-1)*spazio; //calcolo la larghezza che occuperanno i pallini 
     let grigliaAltezza = righeQuadrato*diametro + (righeQuadrato-1)*spazio; //calcolo l'altezza occupata 
 
-    //se si deve cambiare la posizione del quadrato di pallini !!!
-    let startX = 60;
-    let startY = 140; 
+    let startX = 80;
+    let startY = 150; 
 
     palliniInfo = [];
 
@@ -528,7 +493,6 @@ function drawPalliniGrigi(){
     color( "#A4B2B8"),// F
     color("#C0655A")   // G
   ];
-
     noStroke();
 
     let indicePallino = 0; //parto dal basso a sinistra 
@@ -546,8 +510,8 @@ function drawPalliniGrigi(){
         let catIndex = categoriaPerIndice(indicePallino);
         let rCerchio = diametroPallino;  // niente hover di grandezza
 
-      if (catIndex === null) { // nessuna categoria: pallino palette.grigio
-        fill(palette.grigio);
+      if (catIndex === null) { // nessuna categoria: pallino grigio
+        fill(grigio);
       } else { // c'è una categoria, quindi pallini colorati
         let baseCol = coloriCategorie[catIndex];
         let cCol = color(baseCol);
@@ -580,17 +544,17 @@ function drawPalliniGrigi(){
 if(punteggioTotale<0) {
     
 //inserisco la LINEA BIANCA di separazione 
-let lineY = startY + grigliaAltezza -20;
-stroke(palette.bianco);
+let lineY = startY + grigliaAltezza -15;
+stroke(textColor);
 strokeWeight(2);
-line(30,lineY, 60+grigliaLarghezza,lineY);
+line(60,lineY, 60+grigliaLarghezza,lineY);
 
 //scritta 0
 noStroke();
-fill(palette.bianco);
+fill(textColor);
 textAlign(LEFT,CENTER);
 textSize(18);
-text("0",15,lineY-3);
+text("0",40,lineY-3);
 
 //10 PALLINI NEGATIVI 
 let distanzaLineaPallini = 27;  // distanza verticale tra linea e riga extra
@@ -618,50 +582,48 @@ indicePallino++;
 };
 }
 
-// FUNZIONE HOVER PER CATEGORIA
-//funzione che aggiorna quale categoria è in hover 
+//FUNZIONE HOVER PER CATEGORIA (mi aiuta per quella sotto)
+function updateHoverCategory() {
   // Se c'è una categoria selezionata con il click,
   // l'hover non deve più cambiare nulla.
-  function updateHoverCategory() {
   if (selectedCatIndex !== null) {
-    hoveredPalliniCatIndex = null; //--> in modalità selezione mi elimina l'hover
+    hoveredCatIndex = null;
+    cursor(ARROW);
     return;
   }
- //se non c'è nessuna seleione attiva, per dafaul metti nessuna categoria in hover 
-  hoveredPalliniCatIndex = null;
+  hoveredCatIndex = null;
+  let cursorChanged = false;
 
-  // hover sui pallini positivi
   for (let p of palliniInfo) {
     if (p.type === "pos" && p.catIndex !== null) {
       let d = dist(logicalMouseX, logicalMouseY, p.x, p.y);
       if (d < diametroPallino / 2) {
-        hoveredPalliniCatIndex = p.catIndex;
+        hoveredCatIndex = p.catIndex;
+        cursor(HAND);
+        cursorChanged = true;
         break;
       }
     }
   }
-
-  // se non ho hover sui positivi, controllo i negativi (AddQ = 8)
-  if (hoveredPalliniCatIndex === null) {
+  
+  // Controlla anche i pallini negativi
+  if (!cursorChanged) {
     for (let p of palliniInfo) {
       if (p.type === "neg") {
         let d = dist(logicalMouseX, logicalMouseY, p.x, p.y);
         if (d < diametroPallino / 2) {
-          hoveredPalliniCatIndex = 8;
+          cursor(HAND);
+          cursorChanged = true;
           break;
         }
       }
     }
   }
-
-  // hover “globale” = legenda ha priorità sui pallini
-  hoveredCatIndex = (hoveredLegendCatIndex !== null) ? hoveredLegendCatIndex : hoveredPalliniCatIndex;
-
-  // cursore
-  if (hoveredCatIndex !== null) cursor(HAND); //cambia il cursore a manina
-  else cursor(ARROW);
+  
+  if (!cursorChanged) {
+    cursor(ARROW);
+  }
 }
-
 
 // Controlla hover sulla legenda
 function checkLegendHover() {
@@ -678,639 +640,507 @@ function checkLegendHover() {
   }
 }
 
+// Controlla hover sul bottone X
+function checkBackButtonHover() {
+  if (!backDetailArea) return;
+  
+  let mx = logicalMouseX;
+  let my = logicalMouseY;
+  
+  if (mx >= backDetailArea.x && mx <= backDetailArea.x + backDetailArea.w &&
+      my >= backDetailArea.y && my <= backDetailArea.y + backDetailArea.h) {
+    cursor(HAND);
+  }
+}
+
 //LEGENDA O DOMANDE --> mi gestisce quale delle due funzioni attivare  
 function drawSidePanel() {
   if (selectedCatIndex === null) {
-
-    // stato normale → legenda
-    backDetailArea = null;
+    // nessuna categoria cliccata: mostro la legenda normale
+   backDetailArea = null;
     drawLegenda();
-
   } else {
-
-    // stato dettaglio → cursore normale OVUNQUE
-    cursor(ARROW);              // ← QUESTA È LA CHIAVE
+    // c'è una categoria cliccata: mostro il pannello di dettaglio
     drawCategoryPanel(selectedCatIndex);
-
   }
 }
 
 //DISEGNO LA LEGENDA 
 function drawLegenda() {
+  let x0 = 575;   // posizione X della legenda
+  let y0 = 260;   // posizione Y della legenda
+  let passo = 20; // distanza verticale tra le righe
+  let dimCerchio = 16;
+  let numerino = 870;
+  let massimo = numerino+2;
+  let categoriaSpazio = 600;
 
-  //COSTANTE ANNI --> per addA che compare solo fino al 2017
-  const anno = int(annoSelezionato);
-  const showAddA = (anno >= 2013 && anno <= 2017);
+  let valA = int(totaliCategorie[0]);
+  let valB = int(totaliCategorie[1]);
+  let valC = int(totaliCategorie[2]);
+  let valD = int(totaliCategorie[4]);
+  let valE = int(totaliCategorie[5]);
+  let valF = int(totaliCategorie[6]);
+  let valG = int(totaliCategorie[7]);
 
-  //definisco delle costanti per la mia legenda 
-  const x = 540;
-  const y = 120;
-  const w = 570;
-  const h = 270;
+  let xx = 560;
+  let yy = 240;
+  let w  = 350;
+  let h  = 330;
 
-  legendHitAreas = [];
-  hoveredLegendCatIndex = null;
-  
-  //definsico un bordo 
+  legendHitAreas = [] //svuoto l'array 
+
+  //SE VOGLIO METTERE UN BORDO BIANCO 
+  // sfondo del box
   noFill();
-  stroke("#eaead8");   // bianco semi-trasparente
+  stroke(textColor);
   strokeWeight(1);
-  rect(x, y, w, h, 30); // 22 = raggio angoli
+  rect(xx, yy, w, h, 18); 
+
+
   noStroke();
+  fill(textColor);
+  textFont(mioFontBold);
+  textSize(20);
+  text("Political Rights", x0, y0);
 
-  //inserisco un padding per separare scritte e bordo bianco 
-  const padX = w * 0.04;  
-  const padY = h * 0.18;  
-
-  //definisco variabili per le colonne 
-  const colGap = w * 0.04;
-  const colW = (w - padX * 2 - colGap) / 2;
-
-  const leftX  = x + padX;
-  const rightX = x + padX + colW + colGap;
-  const topY   = y + padY;
-
-  //scrivo i titoli delle due categorie 
-  fill("#eaead8");
+  // 1) Electoral Process
   noStroke();
-  textFont(fontBold || fontRegular);
-  textSize(18);
-  textAlign(LEFT, BOTTOM);
-  text("Political Rights", leftX,  y + padY - 10);
-  text("Civil Liberties",  rightX, y + padY - 10);
-
-//cambia gli a capo del mio testo quando cambi ail layout della legenda
-const labelFunctioning = showAddA
-  ? "Functioning of government"
-  : "Functioning\nof government";
-
-const labelPluralism = showAddA
-? "Political pluralism and participation"
-: "Political pluralism\nand participation";
-
-const labelAddQ = showAddA
-?"Additional Question: subtracts points"
-: "Additional Question:\nsubtracts points";
-
-
-
-  const leftItems = [
-  { label: "Electoral Process", color: coloriLegenda.electoralProcess, addQ: false, catIndex: 0},
-  { label: labelPluralism, color: coloriLegenda.politicalPluralism, addQ: false, catIndex: 1},
-  { label: labelFunctioning, color: coloriLegenda.functioningGovernment, addQ: false, catIndex: 2},
-  { label: labelAddQ, color: coloriLegenda.addQ, addQ: true, catIndex:8} // speciale: cerchio vuoto bordo rosso
-];
-
-//inserisco AddA solo per gli anni specifici 
-if (showAddA) {
-  leftItems.push({
-    label: "Additional Answer:adds points over 100",
-    color: coloriLegenda.addA,
-    addQ: false,
-    catIndex: 3
-  });
-}
-const pillTextSize = showAddA ? 12 : 14;
-
-const labelFreedom = showAddA 
-? "Freedom of expression and belief"
-: "Freedom of expression\nand belief";
-
-const labelAss = showAddA 
-? "Associational and organizational rights"
-: "Associational and\norganizational rights";
-
-const labelPersonal = showAddA
-? "Personal autonomy and individual rights"
-: "Personal autonomy\nand individual rights";
-
-
-const rightItems = [
-  { label: labelFreedom, color: coloriLegenda.freedomExpression, catIndex: 4},
-  { label: labelAss, color: coloriLegenda.associationalRights, catIndex: 5},
-  { label: "Rule of Law", color: coloriLegenda.ruleOfLaw, catIndex: 6 },
-  { label: labelPersonal, color: coloriLegenda.personalAutonomy, catIndex: 7}
-];
-
-//definisco un numero di righe comune 
-const rows = max(leftItems.length, rightItems.length);
-
-//VARIABILI DELLE MIE PILLOLE 
-  // quanto spazio verticale ho per le pillole (sotto i titoli)
-  const bottomPad = h * 0.06;
-  const availableH = (y + h) - bottomPad - topY;
-
-  // spazio tra pillole --> dipende da AddA
-  const pillGap = showAddA ? availableH * 0.03 : availableH * 0.05;
-
-  // altezza pillola calcolata per far stare "rows" righe
-  const pillH = (availableH - (rows - 1) * pillGap) / rows;
-  const dotR     = pillH * 0.26;   // raggio del cerchio
-  const innerPad = pillH * 0.50;   // distanza dal bordo sinistro
-
-//PRIMA COLONNA 
-//CICLO ripeti il mio codice per tutti gli elementi inseriti nella mia "cartella"
-for (let i = 0; i < rows; i++) {
-  const it = leftItems[i];
-  if (!it) continue;   // se non esiste, non disegno nulla
-
-  // posizione verticale della pillola i-esima
-  //La pillola parte da topY e scende di un tot ogni volta
-  let py = topY + i * (pillH + pillGap);
-  let pillX = leftX;
-  let pillY = py;
-
-  let hoverByMouse = pointInRect(logicalMouseX, logicalMouseY, pillX, pillY, colW, pillH);
-let hoverByPallini = (hoveredPalliniCatIndex !== null && hoveredPalliniCatIndex === it.catIndex);
-let isHover = (selectedCatIndex === null) && (hoverByMouse || hoverByPallini);
-
-legendHitAreas.push({ x: pillX, y: pillY, w: colW, h: pillH, catIndex: it.catIndex });
-if (isHover) hoveredLegendCatIndex = it.catIndex;
-
-  //SCALA IN HOVER ingrandendo un pochetto 
-  let scaleHover = isHover ? 1.08 : 1; // ← quanto cresce (1.05–1.1 va benissimo)
-  // centro della pillola
-  let cx = pillX + colW / 2;
-  let cy = pillY + pillH / 2;
-
-  //hover solo se non c'è selezione 
-  
-
-push();
-translate(cx, cy);
-scale(scaleHover);
-translate(-cx, -cy);
-
-if (isHover) {
-  fill(whiteHover);
-  stroke(whiteHover);
-} else {
-  noFill();
-  stroke("#eaead8");
-}
-strokeWeight(1);
-rect(pillX, pillY, colW, pillH, pillH * 0.45);
-noStroke();
-
-
-
-  // coordinate icona
-   let iconX = pillX + innerPad;
-  let iconY = pillY + pillH / 2;
-
-  // ICONE:
-  if (it.addQ) {
-    // AddQ: cerchio vuoto con SOLO bordo rosso
-    noFill();
-    stroke(it.color);
-    strokeWeight(4);
-    circle(iconX, iconY, dotR * 2);
-    noStroke();
-  } else {
-    // tutte le altre: cerchio pieno
-    fill(it.color);
-    noStroke();
-    circle(iconX, iconY, dotR * 2);
-  }
-
-  // TESTO
-  fill(isHover ? palette.nero : "#eaead8");
-  
-  textFont(fontRegular);
-  textSize(pillTextSize);
-  textAlign(LEFT, CENTER);
-
-  let textX = pillX + innerPad + dotR * 2.2;
-  text(it.label, textX, iconY);
-
-  pop();
-}
-//SECONDA COLONNA, STESSO CICLO FOR 
-for (let i = 0; i < rows; i++) {
-  const it = rightItems[i];
-  if (!it) continue;
-
-  let py = topY + i * (pillH + pillGap);
-  let pillX = rightX;
-  let pillY = py;
-
-
-  let hoverByMouse = pointInRect(logicalMouseX, logicalMouseY, pillX, pillY, colW, pillH);
-let hoverByPallini = (hoveredPalliniCatIndex !== null && hoveredPalliniCatIndex === it.catIndex);
-let isHover = (selectedCatIndex === null) && (hoverByMouse || hoverByPallini);
-  legendHitAreas.push({ x: pillX, y: pillY, w: colW, h: pillH, catIndex: it.catIndex });
-
-  if (isHover) hoveredLegendCatIndex = it.catIndex;
-let scaleHover = isHover ? 1.08 : 1;
-
-let cx = pillX + colW / 2;
-let cy = pillY + pillH / 2;
-
-push();
-translate(cx, cy);
-scale(scaleHover);
-translate(-cx, -cy);
-
-if (isHover) {
-  fill(whiteHover);
-  stroke(whiteHover);
-} else {
-  noFill();
-  stroke("#eaead8");
-}
-strokeWeight(1);
-rect(pillX, pillY, colW, pillH, pillH * 0.45);
-noStroke();
-
-
-  let iconX = pillX + innerPad;
-  let iconY = pillY + pillH / 2;
-
-  fill(it.color);
-  noStroke();
-  circle(iconX, iconY, dotR * 2);
-
-  fill(isHover ? palette.nero : "#eaead8");
-  textFont(fontRegular);
-  textSize(pillTextSize);
-  textAlign(LEFT, CENTER);
-
-  let textX = pillX + innerPad + dotR * 2.2;
-  text(it.label, textX, iconY);
-
-  pop();
-}
-
-
-//BOX ACCANTO LAVORO DI FEDE 
-const boxW = 290;
-const boxH = 220;
-const boxX = 820;   // distanza dal numero
-const boxY = 400;
-
-noFill();
-stroke(255);
-strokeWeight(1);
-rect(boxX, boxY, boxW, boxH, 18);
-noStroke();
-
-  }
-
-//FUNZIONE PER DISEGNARE IL TOTAL SCORE 
-function drawTotalScore() {
-//TOTAL SCORE 
-const x = 540;
-  const y = 120;
-  const w = 570;
-  const h = 270;
-// inserimento degli elementi legati al total score sotto la legenda 
-const scoreRightX = x + w * 0.32;  // sposta tutto il blocco a dx/sx
-const scoreBaseY  = y + h + 170;   // distanza sotto la legenda
-
-//  testo e "numero cifre"
-const scoreVal = int(punteggioTotale);
-const scoreStr = str(scoreVal);
-
-// cifre = lunghezza del numero senza il segno "-"
-const digits = str(abs(scoreVal)).length;
-
-// 2) layout che cambia per 1/2/3 cifre
-let bigSize, slashDY, slashDX, labelDY1, labelDY2;
-
-if (digits === 1) {
-  bigSize  = 140;   // dimensione numero 
-  slashDX  = 10;    // /100 distanza
-  slashDY  = 0.52;  // quanto sale /100 
-  labelDY1 = 0.2;  // TOTAL SCORE (sotto)
-  labelDY2 = 0.30;  // IN 2024 (sotto)
-} else if (digits === 2) {
-  bigSize  = 140;
-  slashDX  = 10;
-  slashDY  = 0.52;
-  labelDY1 = 0.2;
-  labelDY2 = 0.30;
-} else { // 3 cifre (es. 100)
-  bigSize  = 110;   
-  slashDX  = 6;     
-  slashDY  = 0.49; 
-  labelDY1 = 0.255;  
-  labelDY2 = 0.382;
-}
-
-// 3) disegno
-push();
-fill("#eaead8");
-noStroke();
-
-// NUMERO GRANDE (allineato a destra)
-textFont(fontMedium);
-textSize(bigSize);
-textAlign(RIGHT, BASELINE);
-text(scoreStr, scoreRightX, scoreBaseY);
-
-// /100 (in alto a destra del numero)
-textFont(fontRegular);
-textSize(26);
-textAlign(LEFT, BASELINE);
-
-const slashX = scoreRightX + slashDX;
-const slashY = scoreBaseY - bigSize * slashDY;
-text("/100", slashX, slashY);
-
-// LABELS sotto
-textAlign(RIGHT, BASELINE);
-
-textFont(fontBold);
-textSize(16);
-text("TOTAL SCORE", scoreRightX, scoreBaseY + bigSize * labelDY1);
-
-textFont(fontRegular);
-textSize(14);
-text("IN " + annoSelezionato, scoreRightX, scoreBaseY + bigSize * labelDY2);
-
-pop();
-}
-
-// FUNZIONE PUNTEGGIO CATEGORIA (stile TOTAL SCORE)
-function drawCategoryScore(catIndex) {
-
-  // POSIZIONE (stesso riferimento di drawTotalScore) 
-  const x = 540;
-  const y = 120;
-  const w = 570;
-  const hLegend = 270;
-
-  // stessa base del total score
-  const scoreBaseY = y + hLegend + 170;
-
-  // POSIZIONE ORIZZONTALE DEL BLOCCO CATEGORIA (MANOPOLA)
-  // spostalo a destra/sinistra se vuoi
-  const catRightX = x + w * 0.78;
-
-  // --- BLOCCO 2: PRENDO VALORE + MASSIMO ---
-  let val = 0;
-  let maxVal = 0;
-
-  // categorie 0..7
-  if (catIndex >= 0 && catIndex <= 7) {
-    val = int(totaliCategorie[catIndex] || 0);
-    maxVal = int(maxCategorie[catIndex] || 0);
-  }
-
-  // AddQ (indice 8) -> scala 0..4
-  if (catIndex === 8) {
-    val = int(constrain(addQVal, 0, 4));
-    maxVal = 4;
-  }
-
-  // --- BLOCCO 3: COLORE (numero grande in colore categoria) ---
-  let numCol;
-  if (catIndex === 8) {
-    numCol = color("#C51A1A");
-  } else {
-    numCol = color(coloriCategorie[catIndex]);
-  }
-
-  // --- BLOCCO 4: LAYOUT DINAMICO (come total score: 1/2 cifre vs 3 cifre) ---
-  const digits = str(abs(val)).length;
-
-  let bigSize, slashDY, slashDX, labelDY1, labelDY2;
-
-  if (digits === 1) {
-    bigSize  = 140;
-    slashDX  = 10;
-    slashDY  = 0.52;
-    labelDY1 = 0.20;
-    labelDY2 = 0.30;
-  } else if (digits === 2) {
-    bigSize  = 140;
-    slashDX  = 10;
-    slashDY  = 0.52;
-    labelDY1 = 0.20;
-    labelDY2 = 0.30;
-  } else {
-    bigSize  = 110;
-    slashDX  = 6;
-    slashDY  = 0.49;
-    labelDY1 = 0.255;
-    labelDY2 = 0.382;
-  }
-
-  // DISEGNO (stessa gerarchia del total score) 
-  push();
-  noStroke();
-
-  // NUMERO GRANDE (colorato)
-  fill(numCol);
-  textFont(fontMedium || fontBold);
-  textSize(bigSize);
-  textAlign(RIGHT, BASELINE);
-  text(str(val), catRightX, scoreBaseY);
-
-  // "/max" (bianco)
-  fill("#eaead8");
-  textFont(fontRegular);
-  textSize(26);
-  textAlign(LEFT, BASELINE);
-
-  const slashX = catRightX + slashDX;
-  const slashY = scoreBaseY - bigSize * slashDY;
-  text("/" + str(maxVal), slashX, slashY);
-
-  // LABELS sotto (bianco, come total score)
-  textAlign(RIGHT, BASELINE);
-
-  textFont(fontBold);
-  textSize(16);
-  text("CATEGORY SCORE", catRightX, scoreBaseY + bigSize * labelDY1);
-
-  textFont(fontRegular);
+  fill(coloriLegenda.electoralProcess);
+  circle(x0+8, y0 + 35, dimCerchio);
+  fill(textColor);
+  textFont(mioFont);
   textSize(14);
-  text("IN " + annoSelezionato, catRightX, scoreBaseY + bigSize * labelDY2);
+  text("Electoral Process", categoriaSpazio, y0 + passo + 10);
+  textFont(mioFontBold);
+  textSize(16);
+  textAlign(RIGHT, TOP);
+  text(valA, numerino, y0 + passo + 8);
+  textAlign(LEFT, TOP);
+  textFont(mioFont);
+  textSize(10);
+  text("/"+ maxCategorie[0],massimo, y0 + passo + 13)
 
-  pop();
-}
+  legendHitAreas.push({
+    x: x0,          // da sinistra del box
+    y: y0 + 20,     // inizio riga A (aggiusta se serve)
+    w: 350,         // larghezza area cliccabile
+    h: 24,          // altezza riga
+    catIndex: 0     // categoria A
+  });
+  
 
-//FUNZIONE DOMANDE 
-//disegna il nuvo pannello che compare con un click 
-function drawCategoryPanel(catIndex) {
+  // 2) Political pluralism
+  fill(coloriLegenda.politicalPluralism);
+  circle(x0+8, y0 + 55, dimCerchio);
+  fill(textColor);
+  textFont(mioFont);
+  textSize(14);
+  text("Political pluralism and participation", categoriaSpazio, y0 + passo*2 + 10);
+  textFont(mioFontBold);
+  textSize(16);
+  textAlign(RIGHT, TOP);
+  text(valB, numerino, y0 + passo + 28);
+  textAlign(LEFT, TOP);
+  textFont(mioFont);
+  textSize(10);
+  text("/"+ maxCategorie[1],massimo, y0 + passo + 33)
 
-// BLOCCO CONFIGURAZIONE BASE (stile legenda)
-// box IDENTICO alla legenda (stessa X/Y e stessa larghezza)
-  let x0 = 540; 
-  let y0 = 120; 
-  let w  = 570; 
-  let r  = 30;
+legendHitAreas.push({
+    x: x0,
+    y: y0 + 40,   // riga più in basso
+    w: 350,
+    h: 24,
+    catIndex: 1   // categoria B
+  });
 
-  // padding interni uguali
-  let paddingLeft   = 24;
-  let paddingRight  = 24;
-  let paddingBottom = 20;
+  // 3) Functioning of government
+  fill(coloriLegenda.functioningGovernment);
+  circle(x0+8, y0 + 75, dimCerchio);
+  fill(textColor);
+  textFont(mioFont);
+  textSize(14);
+  text("Functioning of government", categoriaSpazio, y0 + passo*3 + 10);
+  textFont(mioFontBold);
+  textSize(16);
+  textAlign(RIGHT, TOP);
+  text(valC, numerino, y0 + passo + 48)
+  textAlign(LEFT, TOP);
+  textFont(mioFont);
+  textSize(10);
+  text("/" + maxCategorie[2],massimo, y0 + passo + 53)
 
-  // layout “header” identico alla legenda
-  const padY = 270 * 0.18;  // uso la stessa proporzione della legenda
-  const headerBaselineY = y0 + padY - 10; // stessa Y dei titoli legenda
+  legendHitAreas.push({
+    x: x0,
+    y: y0 + 60,
+    w: 350,
+    h: 24,
+    catIndex: 2   // categoria C
+  });
 
-  // tipografia domande
-  let lineHeight = 18; 
-  let textSizeQ  = 14;
 
-  // distanza tra header e inizio contenuto
-  let gapAfterTitle = 22;
-  let gapBetweenQuestions = 14;  
 
-  // pallini
-  let palliniOffset  = 100;
-  let palliniRaggio  = 8;
-  let palliniSpazio  = 18;
+  // 4) Add Q
 
-  // contenuti
-  let titolo = panelTitles[catIndex] || "Category details";
-  let questions = panelQuestions[catIndex] || [];
+  let valQ = int(addQVal);   
+  let maxQ = 4; // massimo teorico Add Q
+  // Add Q è concettualmente NEGATIVO → lo trasformo
+  let valQneg = -valQ;
 
- 
-  // BLOCCO CALCOLO ALTEZZA DINAMICA (h cambia con le domande)
+  stroke(coloriLegenda.addQ);
+  strokeWeight(2);
+  noFill();
+  circle(x0+8, y0 + 95, dimCerchio);
 
-  // 1) calcolo quante righe totali di testo ho (considerando \n)
-  let totalLines = 0;
-  for (let q of questions) {
-    totalLines += q.split("\n").length;
+  noStroke();
+  fill(textColor);
+  textFont(mioFontBold);
+  textSize(16);
+  fill("#C51A1A")
+  textAlign(RIGHT, TOP);
+  text(valQneg, numerino, y0 + passo+68);
+  textAlign(LEFT, TOP);
+  textFont(mioFont);
+  textSize(10);
+  text("/" + "-"+maxQ,massimo, y0 + passo + 73)
+
+ noStroke();
+  fill("#C51A1A");
+  textFont(mioFont);
+  textSize(14);
+  text("Additional Discretionary Question B:\nsubtracts points from other parameters", categoriaSpazio, y0 + passo*4 + 10);
+
+  legendHitAreas.push({
+    x: x0,
+    y: y0 + 80,   // aggiusta un po' se non combacia perfettamente
+    w: 350,
+    h: 48,
+    catIndex: 8   // 👈 corrisponde al pannello AddQ
+  });
+
+  //AddA
+let anno = int(annoSelezionato);
+if (anno >= 2013 && anno <= 2017) {
+
+  fill(coloriLegenda.addA);
+  noStroke();
+  circle(x0+8, y0+135, dimCerchio);
+
+  fill(textColor);
+  textFont(mioFont);
+  textSize(14);
+  fill(textColor);
+  text("Additional Discretionary Question A:\nadds points over 100", categoriaSpazio, y0 + passo*6 + 10);
+  let maxA = 4;
+  let valAc = int(addAVal);
+  textFont(mioFontBold);
+  textSize(16);
+  fill(textColor);
+  textAlign(RIGHT, TOP);
+  text(valAc, numerino, y0 + passo+108);
+  textAlign(LEFT, TOP);
+  textFont(mioFont);
+  textSize(10);
+  text("/" + maxA,massimo, y0 + passo + 113)
+
+  legendHitAreas.push({
+      x: x0,
+      y: y0 + 120,   // altezza riga AddA
+      w: 350,
+      h: 48,
+      catIndex: 3    // categoria 3 = Additional Answer
+    });
   }
 
-  // 2) altezza del blocco domande = righe * lineHeight
-  let questionsTextH = totalLines * lineHeight;
-  let gapsH = max(0, questions.length - 1) * gapBetweenQuestions;
 
 
-  // 3) calcolo top del contenuto 
-  let contentTop = headerBaselineY + gapAfterTitle;
+  //SPAZIO//
+  let yLib = y0 + passo*6 +55;
 
-  // 4) altezza totale = distanza dall’inizio box a contentTop + testo + paddingBottom
-  let h = (contentTop - y0) + questionsTextH + gapsH + paddingBottom; 
+  textFont(mioFontBold);
+  fill(textColor);
+  textSize(20);
+  text("Civil Liberties", x0, yLib+10);
 
-  // BLOCCO DISEGNO BOX + TITOLO
+  // 5) Freedom Expression
+  fill(coloriLegenda.freedomExpression);
+  circle(x0+8, yLib + 45, dimCerchio);
+  fill(textColor);
+  textFont(mioFont);
+  textSize(14);
+  text("Freedom of expression and belief", categoriaSpazio, yLib + passo + 20);
 
-  // BOX
+  textSize(16);
+  fill(textColor);
+  textFont(mioFontBold);
+  textAlign(RIGHT, TOP);
+  text(valD, numerino, yLib + passo+19);
+  textAlign(LEFT, TOP);
+  textFont(mioFont);
+  textSize(10);
+  text("/" + maxCategorie[4],massimo, yLib + passo+24)
+
+  legendHitAreas.push({
+    x: x0,
+    y: yLib + 30,
+    w: 350,
+    h: 24,
+    catIndex: 4
+  });
+
+  // 6) Associational rights
+  fill(coloriLegenda.associationalRights);
+  circle(x0+8, yLib + 65, dimCerchio);
+  fill(textColor);
+  textFont(mioFont);
+  textSize(14);
+  text("Associational and organizational right", categoriaSpazio, yLib + passo*2 + 20);
+  textSize(16);
+  fill(textColor);
+  textFont(mioFontBold);
+  textAlign(RIGHT, TOP);
+  text(valE, numerino, yLib + passo+39);
+  textAlign(LEFT, TOP);
+  textFont(mioFont);
+  textSize(10);
+  text("/" + maxCategorie[5],massimo, yLib + passo+44)
+
+  legendHitAreas.push({
+    x: x0,
+    y: yLib + 50,
+    w: 350,
+    h: 24,
+    catIndex: 5
+  });
+
+
+  // 7) Rule of Law
+  fill(coloriLegenda.ruleOfLaw);
+  circle(x0+8, yLib + 85, dimCerchio);
+  fill(textColor);
+  textFont(mioFont);
+  textSize(14);
+  text("Rule of Law", categoriaSpazio, yLib + passo*3 + 20);
+  
+  textSize(16);
+  fill(textColor);
+  textFont(mioFontBold);
+  textAlign(RIGHT, TOP);
+  text(valF, numerino, yLib + passo+59);
+  textAlign(LEFT, TOP);
+  textFont(mioFont);
+  textSize(10);
+  text("/" + maxCategorie[6],massimo, yLib + passo+64)
+
+  legendHitAreas.push({
+    x: x0,
+    y: yLib + 70,
+    w: 350,
+    h: 24,
+    catIndex: 6
+  });
+
+  // 8) Personal Autonomy
+  fill(coloriLegenda.personalAutonomy);
+  circle(x0+8, yLib + 105, dimCerchio);
+  fill(textColor);
+  textFont(mioFont);
+  textSize(14);
+  text("Personal autonomy and individual rights", categoriaSpazio, yLib + passo*4 + 20);
+  textSize(16);
+  fill(textColor);
+  textFont(mioFontBold);
+  textAlign(RIGHT, TOP);
+  text(valG, numerino, yLib + passo+79);
+  textAlign(LEFT, TOP);
+  textFont(mioFont);
+  textSize(10);
+  text("/" + maxCategorie[7],massimo, yLib + passo+84)
+
+  legendHitAreas.push({
+    x: x0,
+    y: yLib + 90,
+    w: 350,
+    h: 24,
+    catIndex: 7
+  });
+
+}
+
+// FUNZIONE DISEGNA PANNELLO DOMANDE 
+function drawCategoryPanel(catIndex) {
+  // Configurazione base fissa
+  let x0 = 560; // X di partenza
+  let y0 = 240; // Y di partenza (dove inizia il pannello)
+  
+  // Variabili di misurazione
+  let paddingLeft = 30;   // Padding a sinistra per titolo e pallini
+  let paddingRight = 30;  // Padding a destra per il testo più lungo (AUMENTATO per la X)
+  let palliniSpazioTotale = 16 * 4; 
+  let palliniOffset = 95;   
+  let maxTextWidth = 0; 
+  
+  // --- A. VARIABILI DI CALCOLO ALTEZZA & TEXTWIDTH ---
+  
+  let titoloAltezza = 20;  
+  let titoloMargine = 20;  
+  let dopoTitolo = 20;     
+  let lineHeight = 20;     
+  let gap = 20;            
+  let paddingBottom = 0;  // Aumentato per coerenza
+  
+  // Inizializzazione font per la misurazione
+  textFont(mioFont);
+  textSize(14); 
+
+  // Iniziamo il calcolo dell'altezza necessaria (h)
+  let h = 0;
+  
+  // 1. Larghezza del Titolo (inclusa la X)
+  textFont(mioFontBold);
+  textSize(20);
+  let titolo = panelTitles[catIndex] || "Category details";
+  
+  // Larghezza del titolo + spazio per la 'X' sul lato destro
+  // (La 'X' ha bisogno di circa 30px, la usiamo come offset dal bordo destro)
+  maxTextWidth = textWidth(titolo) + paddingLeft + 30; 
+  
+  // 2. Altezza iniziale (Titolo + Spazi)
+  h += titoloMargine + titoloAltezza + dopoTitolo;
+  
+  // 3. Calcolo Altezza e Larghezza Massima delle DOMANDE
+  textFont(mioFont);
+  textSize(14);
+  let questions = panelQuestions[catIndex] || [];
+  
+  for (let qi = 0; qi < questions.length; qi++) {
+      let q = questions[qi];
+      let righe = q.split("\n");
+      
+      for (let r of righe) {
+          let currentLineWidth = textWidth(r);
+          let totalQuestionWidth = palliniOffset + currentLineWidth + paddingRight;
+          
+          if (totalQuestionWidth > maxTextWidth) {
+              maxTextWidth = totalQuestionWidth;
+          }
+      }
+      
+      h += (righe.length * lineHeight) + gap;
+  }
+  
+  // 4. Larghezza finale del pannello (w)
+  let w = maxTextWidth + paddingLeft; 
+  
+  // 5. Altezza finale
+  h += paddingBottom;
+
+  // --- B. DEFINIZIONE E DISEGNO DEL PANNELLO DINAMICO ---
+  
   noFill();
-  stroke("#eaead8");
-  strokeWeight(1);
-  rect(x0, y0, w, h, r);
+  stroke(textColor);
+  strokeWeight(1.5);
+  rect(x0, y0, w, h, 18); // h e w ORA SONO DINAMICHE
   noStroke();
 
-  // TITOLO (stesso stile e posizione della legenda)
-  fill("#eaead8");
-  noStroke();
-  textFont(fontBold);
-  textSize(18);
-  textAlign(LEFT, BOTTOM);
-  text(titolo, x0 + paddingLeft, headerBaselineY);
+  // --- C. DISEGNO CONTENUTO INTERNO ---
+  
+  // 1. Titolo
+  textFont(mioFontBold);
+  textSize(20);
+  fill(textColor);
+  let currentY = y0 + titoloMargine; 
+  text(titolo, x0 + paddingLeft, currentY); 
 
- 
-    // BLOCCO BOTTONE CLOSE (immagine, allineata bene)
+  // --- D. BOTTONE 'X' (CLOSE) ---
+  
+  let xBtn = x0 + w - paddingRight; // X a destra, all'interno del padding
+  let yBtn = y0 + titoloMargine + titoloAltezza / 2; // Y allineata al centro del titolo
+  let btnSize = 16; // Dimensione della 'X'
 
-  let btnSize = 46;      // <-- più grande (cambia qui la dimensione base)
-  let closePad = 18;     // <-- gap dal bordo interno del box (cambia qui il "bel gap")
-
-  // posizione: ancorata all'angolo alto-destro del BOX
-  let xBtn = x0 + w - closePad - btnSize+5;
-  let yBtn = y0 + closePad-10;
-
-  // area cliccabile (un po' più grande dell'icona)
-  backDetailArea = {
-    x: xBtn - 8,
-    y: yBtn - 8,
-    w: btnSize + 16,
-    h: btnSize + 16
+  // Imposta l'area cliccabile per la 'X'
+  backDetailArea = { 
+    x: xBtn - btnSize / 2, // Centro X della 'X'
+    y: yBtn - btnSize / 2, // Centro Y della 'X'
+    w: btnSize * 1.5,      // Area più generosa per il click
+    h: btnSize * 1.5
   };
 
-  // hover
-  let hoverClose = pointInRect(
-    logicalMouseX, logicalMouseY,
-    backDetailArea.x, backDetailArea.y, backDetailArea.w, backDetailArea.h
-  );
+  // Disegno della 'X'
+  push(); // Salviamo lo stato attuale per il simbolo 'X'
+  translate(xBtn, yBtn);
+  fill(textColor);
+  stroke(textColor);
+  strokeWeight(2);
+  
+  // Disegna le due linee della 'X'
+  line(-btnSize / 2, -btnSize / 2, btnSize / 2, btnSize / 2); // Diagonale \
+  line(btnSize / 2, -btnSize / 2, -btnSize / 2, btnSize / 2); // Diagonale /
+  
+  pop(); // Ripristina lo stato
+  
+  // --- E. DOMANDE E PALLINI ---
+  
+  currentY += titoloAltezza + dopoTitolo; 
+  
+  textFont(mioFont);
+  textSize(14);
 
-  // cursore: torna normale di default, mano solo sulla X
-  if (hoverClose) cursor(HAND);
-
-  // scale hover
-  let hoverScale = hoverClose ? 1.12 : 1.0;
-  let drawSize = btnSize * hoverScale;
-
-  // centra il disegno quando cresce (così NON si sposta)
-  let dx = (drawSize - btnSize) / 2;
-  let dy = (drawSize - btnSize) / 2;
-
-  imageMode(CORNER);
-  image(iconaClose, xBtn - dx, yBtn - dy, drawSize, drawSize);
-
-
-  // BLOCCO DISEGNO DOMANDE + PALLINI (pallini sulla prima riga)
-
-  textFont(fontRegular);
-  textSize(textSizeQ);
-  fill("#eaead8");
-  noStroke();
-
- 
-  textAlign(LEFT, TOP);
-
-  let palliniStartX = x0 + paddingLeft;
-  let textX = x0 + palliniOffset;
-
-  let currentY = contentTop;
+  let palliniRaggio = 6; 
+  let palliniSpazio = 16;
+  let palliniStartX = x0 + paddingLeft; 
+  let textX = x0 + palliniOffset; 
 
   for (let qi = 0; qi < questions.length; qi++) {
-
     let q = questions[qi];
-
-    // punteggio
     let score = 0;
+
+    // Calcolo del punteggio (omesso per brevità, ma identico al tuo originale)
     if (catIndex === 8) {
-      score = int(constrain(addQVal, 0, 4));
-    } else if (questionScores[catIndex]) {
-      score = int(constrain(questionScores[catIndex][qi] || 0, 0, 4));
-    }
-
-    // righe della domanda
-    let righe = q.split("\n");
-
-    // PALLINI ALLINEATI ALLA PRIMA RIGA:
-    // currentY è il TOP della prima riga => centro pallino = currentY + lineHeight/2
-    let palliniY0 = currentY + lineHeight / 2 ; //ATTENZIONE MENO TRE ME LO ALLINEA BENE 
-
-    // disegno pallini
-    for (let i = 0; i < 4; i++) {
-
-      if (i < score) {
-        if (catIndex === 8) {
-          fill("#C51A1A");
-        } else {
-          let c = color(coloriCategorie[catIndex]);
-          c.setAlpha(255);
-          fill(c);
+        score = int(constrain(addQVal, 0, 4));
+    } else {
+        if (questionScores[catIndex] && questionScores[catIndex][qi] != null) {
+            score = questionScores[catIndex][qi];
         }
-      } else {
-        fill(palette.grigio);
-      }
-
-      let px = palliniStartX + i * palliniSpazio +6 ;
-      circle(px, palliniY0 -3, palliniRaggio * 2);
+        score = int(constrain(score, 0, 4));
     }
 
-    // testo (tutte le righe)
-    fill("#eaead8");
-    for (let riga of righe) {
-      text(riga, textX, currentY);
-      currentY += lineHeight;
+    let righe = q.split("\n");
+    noStroke();
+    let palliniY0 = currentY + 6; 
+
+    // Disegno dei 4 pallini 
+    for (let i = 0; i < 4; i++) {
+        // ... Logica colori ...
+        if (i < score) {
+            if (catIndex === 8) {
+                fill("#C51A1A");
+            } else {
+                let baseCol = coloriCategorie[catIndex];
+                let c = color(baseCol); 
+                c.setAlpha(255); 
+                fill(c);
+            }
+        } else {
+            fill(grigio);
+        }
+
+        let palliniX0 = palliniStartX + i * palliniSpazio;
+        circle(palliniX0, palliniY0, palliniRaggio * 2);
     }
 
-    // gap fisso tra domande (se vuoi più aria, aumenta di poco)
-    currentY += gapBetweenQuestions; 
+    // Disegno ogni riga di testo
+    fill(textColor);
+    noStroke();
+    for (let r of righe) {
+        text(r, textX, currentY);
+        currentY += lineHeight;
+    }
+
+    // Gap tra una domanda e la successiva
+    currentY += gap;
   }
-
-drawCategoryScore(catIndex);
 }
-  
 
 //FUNZIONE ADDQ (domanda negativa)
 function drawAddQOverlay() {
@@ -1406,6 +1236,7 @@ noStroke();
   }
 
 //FUNZIONE PUNTEGGIO TOTALE + ARRAY CON I VALORI DELLE CATEGORIE 
+//qui associo paese.anno.valori
 function aggiornaPunteggioTotale(){ //e anche categorie 
   punteggioTotale = 0; //azzero la mia variabile per sicurezza 
 
@@ -1480,6 +1311,9 @@ function aggiornaPunteggioTotale(){ //e anche categorie
   }
 };
 
+//creo una funzione di supporto che dopo aver asseganto i valori ai pallini
+//mi dice di un pallino a che categoria appartiene 
+//"dimmi che numero di pallino sei, ti dirò a che categoria appartieni"
 function categoriaPerIndice(indicePallino) {
   let somma = 0;//variabile somma, terrà la somma dei pallini precedenti (pallini già usati fino ad ora)
 
@@ -1497,12 +1331,178 @@ function categoriaPerIndice(indicePallino) {
 return null;
 };
 
-// SE CLICCO IL MOUSE
+//spiegazione breve con esempio 
+//PALLINO 0
+//all'inizio la somma è 0
+//k=0 --> A, puntiCat = 3
+//indicePallino <somma+puntiCat --> 0<0+3 --> pallino 0 appartiene a A
+
+function posizionaFreccia() {
+  if (!yearSelect || !arrowSpan) return;
+
+  // prendo le coordinate reali del select nella pagina
+  let rect = yearSelect.elt.getBoundingClientRect();
+  let selX = rect.left;
+  let selY = rect.top;
+  let selW = rect.width;
+
+  // posiziono la freccia un po' dentro dal bordo destro
+  arrowSpan.position(selX + selW - 55, selY + 4);
+}
+function aggiornaYearSelect() {
+  if (!yearSelect) return;
+
+  // posizionamento scalato
+  yearSelect.position(
+    YEAR_BASE_X * scaleFactor,
+    YEAR_BASE_Y * scaleFactor
+  );
+
+  // stile scalato
+  yearSelect.style('font-size', (55 * scaleFactor) + 'px');
+  yearSelect.style(
+    'padding',
+    (6 * scaleFactor) + 'px ' +
+    (60 * scaleFactor) + 'px ' +
+    (6 * scaleFactor) + 'px ' +
+    (24 * scaleFactor) + 'px'
+  );
+  yearSelect.style('border-radius', (18 * scaleFactor) + 'px');
+
+  if (arrowSpan) {
+    arrowSpan.style('font-size', (62 * scaleFactor) + 'px');
+    posizionaFreccia(); // la freccia usa già il bounding rect reale
+  }
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
+  aggiornaYearSelect();
+}
+
+function draw() {
+  background(nero);
+
+    scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
+    let translateX = (width - BASE_W * scaleFactor) / 2;
+    let translateY = (height - BASE_H * scaleFactor) / 2;
+    
+    // per toggle
+    // Ricalcola logicalMouseX e logicalMouseY tenendo conto della traslazione
+    logicalMouseX = (mouseX - translateX) / scaleFactor;
+    logicalMouseY = (mouseY - translateY) / scaleFactor;
+    // 
+
+    if (scaleFactor !== lastScaleFactor) {
+        aggiornaYearSelect();
+        lastScaleFactor = scaleFactor;
+    }
+
+    push();
+
+    // La traslazione che devi compensare nel mouse
+    translate(translateX, translateY);
+    scale(scaleFactor);  
+
+  animT += 0.01; 
+
+  fill(textColor);
+  textFont(mioFontBold);
+
+  //TOTAL 
+  textSize(72);
+  textAlign(LEFT, TOP);
+  textFont(mioFont);
+  text("Total", 560, 130);
+
+  //TOTAL SCORE 
+  //:
+  textSize(72);
+  textAlign(LEFT, TOP);
+  textFont(fontSimboli);
+  text(":",970, 110);
+  //punteggio 
+  textSize(92);
+  textAlign(LEFT, TOP);
+  textFont(mioFont);
+  text(punteggioTotale,1010, 120);
+
+  drawTitle();
+  drawPalliniGrigi();
+  updateHoverCategory();
+  checkLegendHover();
+  checkBackButtonHover();
+  drawAddQOverlay();
+  drawSidePanel();
+
+  
+  
+  //overviewchart mini
+  if (!overviewExpanded) {
+  drawOverviewMini();
+  }
+
+  //CHART GRANDE (EXPANDED)
+  if (overviewExpanded) {
+
+  // box del grafico
+  overviewBox = {
+      x: 100,
+      y: 120,
+      w: BASE_W - 160,
+      h: BASE_H - 200
+    };
+  
+  // overlay per coprire le cose sotto
+  fill(0, 180); // semi-trasparente
+  noStroke();
+  rect(0, 0, BASE_W, BASE_H);
+  
+  //sfondo overview
+  fill(nero);
+  rect(
+      overviewBox.x,
+      overviewBox.y,
+      overviewBox.w,
+      overviewBox.h,
+      30
+  );
+
+  //grafico
+
+  if (overviewExpanded) {
+    drawOverviewExpanded();
+  } else {
+    drawOverviewMini();
+  }
+
+  
+
+  //toggle solo se il grafico è esteso 
+  drawToggle();
+
+  // X per chiudere il grafico in versione extended 
+  drawOverviewCloseButton();
+
+  //funzione che rende non visibili i pulsanti back,home e aboutus-> necessaria perchè questi appartengono al csv
+  aggiornaVisibilitaPulsanti();
+
+  pop();
+
+}
+
+
+
+
+}
+
+//SE CLICCO IL MOUSE
 function mousePressed() {
-  let mx = logicalMouseX; 
-  let my = logicalMouseY;;
 
-
+  //GRAFICO IN MINIATURA
+  let mx = logicalMouseX;
+  let my = logicalMouseY;
    if (overviewExpanded) {
 
     // X per chiudere 
@@ -1544,168 +1544,249 @@ function mousePressed() {
 
   // DA QUI IN POI PAGINA TUA AURO !!!!!
 
-  // SE SONO NEL DETTAGLIO E CLICCO LA X → CHIUDO
-  if (selectedCatIndex !== null && backDetailArea) {
-  if (pointInRect(logicalMouseX, logicalMouseY,
-                  backDetailArea.x, backDetailArea.y,
-                  backDetailArea.w, backDetailArea.h)) {
-    selectedCatIndex = null;
-    backDetailArea = null;
-    return;
-  }
-}
-
-  // controllo se ho cliccato su un pallino "positivo" con categoria
+  // pallini positivi
   for (let p of palliniInfo) {
     if (p.type === "pos" && p.catIndex !== null) {
-      // Usa mx e my (che sono già nello spazio corretto)
-      let d = dist(mx, my, p.x, p.y); 
-      if (d < diametroPallino / 2) {
-        // se clicco sulla stessa categoria già selezionata: la "disattivo"
-        if (selectedCatIndex === p.catIndex) {
-          selectedCatIndex = null;
-        } else {
-          // altrimenti seleziono questa categoria
-          selectedCatIndex = p.catIndex;
-        }
-        return; // ho gestito il click, posso uscire dalla funzione
-      }
-    }
-  }
-
-for (let p of palliniInfo) { //PALLINI NEGATIVI 
-    if (p.type === "neg") {
-      let d = dist(mx, my, p.x, p.y);
-      if (d < diametroPallino / 2) {
-        // AddQ è indice 8
-        if (selectedCatIndex === 8) {
-          selectedCatIndex = null;
-        } else {
-          selectedCatIndex = 8;
-        }
+      if (dist(mx, my, p.x, p.y) < diametroPallino / 2) {
+        selectedCatIndex =
+          selectedCatIndex === p.catIndex ? null : p.catIndex;
         return;
       }
     }
   }
 
-//CLICCARE SULLA LEGENDA 
- for (let area of legendHitAreas) {
-    if (pointInRect(mx, my, area.x, area.y, area.w, area.h)) {
-      if (selectedCatIndex === area.catIndex) selectedCatIndex = null;
-      else selectedCatIndex = area.catIndex;
+  // pallini negativi (AddQ)
+  for (let p of palliniInfo) {
+    if (p.type === "neg") {
+      if (dist(mx, my, p.x, p.y) < diametroPallino / 2) {
+        selectedCatIndex =
+          selectedCatIndex === 8 ? null : 8;
+        return;
+      }
+    }
+  }
+
+  // legenda
+  if (selectedCatIndex === null) {
+    for (let area of legendHitAreas) {
+      if (
+        mx >= area.x &&
+        mx <= area.x + area.w &&
+        my >= area.y &&
+        my <= area.y + area.h
+      ) {
+        selectedCatIndex =
+          selectedCatIndex === area.catIndex ? null : area.catIndex;
+        return;
+      }
+    }
+  }
+
+  // chiudi pannello domande
+  if (backDetailArea) {
+    if (
+      mx >= backDetailArea.x &&
+      mx <= backDetailArea.x + backDetailArea.w &&
+      my >= backDetailArea.y &&
+      my <= backDetailArea.y + backDetailArea.h
+    ) {
+      selectedCatIndex = null;
       return;
     }
   }
 
+  // back home
+  if (backHomeArea) {
+    if (
+      mx >= backHomeArea.x &&
+      mx <= backHomeArea.x + backHomeArea.w &&
+      my >= backHomeArea.y &&
+      my <= backHomeArea.y + backHomeArea.h
+    ) {
+      window.history.back();
+      return;
+    }
+  }
+}
+
+
+// funzione per creare i bottoni di navigazione in alto a destra
+function creaBottoniNavigazione() {
   
+  // Calcola il diametro del cerchio in base all'altezza della barra di ricerca
+  const diametroBottone = 60;
+  const raggio = diametroBottone / 2;
+  
+  // Posizionamento
+  const margineDestro = 25; // Margine dal bordo destro
+  const margineSinistro = 30; // Margine dal bordo sinistro
+  const yPos = 40; // Stessa altezza verticale della barra di ricerca
+  const spaziaturaTraBottoni = 20;
+
+  // Variabile per la posizione Y comune dei tooltip (5px sotto il bottone)
+  const yTooltip = yPos + diametroBottone + 10; 
+
+  const biancoOpaco = 'rgba(234, 234, 216, 0.8)';
+  
+  // --- Stili CSS comuni per tutti i tooltip (AGGIORNATO BORDER-RADIUS) ---
+  const stileTooltip = {
+    'position': 'absolute',
+    'background-color': biancoOpaco,
+    'color': nero,
+    'padding': '5px 10px 3px 10px',
+    'border-radius': '15px', 
+    'font-size': '14px',
+    'font-family': 'NeueHaasDisplay, sans-serif', 
+    'font-weight': 'normal',
+    'white-space': 'nowrap',
+    'z-index': '1003',
+    'display': 'none' // Nascosto di default
+  };
+
+// --- 2. Bottone FH (Freedom House) ---
+
+  let xFH = width - diametroBottone - margineDestro; 
+  bottoneFH = createButton(''); // Rimosso 'FH'
+  bottoneFH.position(xFH, yPos);
+  
+  // *** INSERIMENTO DELL'IMMAGINE FH ***
+  // Trasforma l'oggetto p5.Image in una stringa base64 per usarlo nel tag <img>
+  const immagineFH = iconaFh.canvas.toDataURL();
+  bottoneFH.html(`<img src="${immagineFH}" alt="FH" style="width: 80%; height: 80%; object-fit: contain;">`); // Dimensioni 70% per un look più pulito
+
+  // Stili del bottone (adattati per l'immagine)
+  bottoneFH.style('width', diametroBottone + 'px');
+  bottoneFH.style('height', diametroBottone + 'px');
+  bottoneFH.style('border-radius', '50%'); 
+  bottoneFH.style('background-color', nero); 
+  bottoneFH.style('border', '1px solid' + bianco);
+  bottoneFH.style('cursor', 'pointer');
+  bottoneFH.style('z-index', '1000');
+  bottoneFH.style('padding', '0');
+  // Aggiunti per centrare l'immagine
+  bottoneFH.style('display', 'flex'); 
+  bottoneFH.style('align-items', 'center'); 
+  bottoneFH.style('justify-content', 'center'); 
+  
+  // --- CREAZIONE TOOLTIP FH ---
+  tooltipFH = createDiv('About FreedomHouse');
+  for (let key in stileTooltip) {
+    tooltipFH.style(key, stileTooltip[key]);
+  }
+
+  // --- GESTIONE HOVER FH (ALLINEATO A DESTRA) ---
+  bottoneFH.mouseOver(() => {
+      tooltipFH.style('display', 'block');
+      let larghezzaTooltip = tooltipFH.elt.offsetWidth;
+      
+      // Posizione X: Bordo destro del bottone - Larghezza del tooltip
+      let xAllineatoDestra = xFH + diametroBottone - larghezzaTooltip; 
+      tooltipFH.position(xAllineatoDestra, yTooltip);
+  });
+
+  bottoneFH.mouseOut(() => {
+      tooltipFH.style('display', 'none');
+  });
+
+  // Link
+  bottoneFH.mousePressed(() => {
+    window.location.href = 'freedomhouse.html';
+  });
+  
+  // --- 3. Bottone ABOUT US
+  
+  let xUS = xFH - diametroBottone - spaziaturaTraBottoni; 
+  bottoneUS = createButton('');
+  bottoneUS.position(xUS, yPos);
+  
+  // *** INSERIMENTO DELL'IMMAGINE US ***
+  // Trasforma l'oggetto p5.Image in una stringa base64 per usarlo nel tag <img>
+  const immagineUS = iconaUs.canvas.toDataURL();
+  bottoneUS.html(`<img src="${immagineUS}" alt="US" style="width: 80%; height: 80%; object-fit: contain;">`); // Dimensioni 70% per un look più pulito
+
+  // Stili del bottone (adattati per l'immagine)
+  bottoneUS.style('width', diametroBottone + 'px');
+  bottoneUS.style('height', diametroBottone + 'px');
+  bottoneUS.style('border-radius', '50%'); 
+  bottoneUS.style('background-color', nero);
+  bottoneUS.style('border', '1px solid' + bianco);
+  bottoneUS.style('cursor', 'pointer');
+  bottoneUS.style('z-index', '1000');
+  bottoneUS.style('padding', '0');
+  // Aggiunti per centrare l'immagine
+  bottoneUS.style('display', 'flex'); 
+  bottoneUS.style('align-items', 'center'); 
+  bottoneUS.style('justify-content', 'center'); 
+  
+  // --- CREAZIONE TOOLTIP US ---
+  tooltipUS = createDiv('About Us');
+  for (let key in stileTooltip) {
+    tooltipUS.style(key, stileTooltip[key]);
+  }
+
+  // --- GESTIONE HOVER US (CENTRATO) ---
+  bottoneUS.mouseOver(() => {
+      tooltipUS.style('display', 'block');
+      let larghezzaTooltip = tooltipUS.elt.offsetWidth;
+      // Posizione X: Inizio bottone + metà bottone - metà tooltip
+      tooltipUS.position(xUS + diametroBottone / 2 - larghezzaTooltip / 2, yTooltip);
+  });
+
+  bottoneUS.mouseOut(() => {
+      tooltipUS.style('display', 'none');
+  });
+
+  // Link
+  bottoneUS.mousePressed(() => {
+    window.location.href = 'us.html';
+  });
+}
+
+// NUOVA FUNZIONE per creare il bottone "Torna Indietro"
+function creaBottoneBack() {
+  const diametroBottone = 60; // Stesso diametro dei bottoni US e FH
+  const raggio = diametroBottone / 2; // Necessario per l'SVG
+  const xPos = 40; // Allineato a sinistra
+  const yPos = 40; 
+  
+  bottoneBack = createButton(''); // L'HTML viene impostato dall'SVG
+  bottoneBack.position(xPos, yPos);
+  
+  // --- Contenuto SVG Freccia Sinistra (RIGA MANCANTE INCLUSA) ---
+bottoneBack.html(`
+    <svg width="${raggio}" height="${raggio}" viewBox="0 0 24 24" fill="none" stroke="${bianco}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12"></line> 
+      <polyline points="12 5 5 12 12 19"></polyline> 
+    </svg>
+  `);
+  
+  // --- Stile del bottone circolare (come US e FH) ---
+  bottoneBack.style('width', diametroBottone + 'px');
+  bottoneBack.style('height', diametroBottone + 'px');
+  bottoneBack.style('border-radius', '50%'); 
+  bottoneBack.style('background-color', nero);
+  bottoneBack.style('border', '1px solid' + bianco);
+  bottoneBack.style('display', 'flex'); 
+  bottoneBack.style('align-items', 'center'); 
+  bottoneBack.style('justify-content', 'center'); 
+  bottoneBack.style('cursor', 'pointer');
+  bottoneBack.style('z-index', '1002');
+  bottoneBack.style('padding', '0'); 
+
+  // Funzione per tornare alla pagina precedente nella cronologia del browser
+  bottoneBack.mousePressed(() => {
+    window.history.back();
+  });
 }
 
 function drawTitle(){
   push();
-  fill(palette.bianco);
+  fill(bianco);
   noStroke();
-  textSize(65);
+  textSize(60);
   textFont(fontMedium);
-  textAlign(LEFT, BOTTOM);
-  text(countryName, margine*2+diametro, margine+diametro+10); 
-  pop();
-}
-
-function mouseWheel(event) {
-  if (!anniDisponibili.length) return false;
-
-  
-
-
-  // Accumula lo scroll
-  scrollAccumulato += event.delta;
-  
-  // Limita lo scroll ai limiti degli anni
-  let scrollMin = 0;
-  let scrollMax = (anniDisponibili.length - 1) * pixelPerAnno;
-  scrollAccumulato = constrain(scrollAccumulato, scrollMin, scrollMax);
-  
-  // Calcola l'indice dell'anno e il progresso
-  let indiceEsatto = scrollAccumulato / pixelPerAnno;
-  let nuovoYearIndex = floor(indiceEsatto);
-  progressoScroll = indiceEsatto - nuovoYearIndex; // Valore tra 0 e 1
-  
-  // Limita l'indice tra 0 e il numero massimo di anni
-  nuovoYearIndex = constrain(nuovoYearIndex, 0, anniDisponibili.length - 1);
-  
-  // Se l'anno è cambiato, aggiorna
-  if (anniDisponibili[nuovoYearIndex] !== annoSelezionato) {
-    yearIndex = nuovoYearIndex;
-    annoSelezionato = anniDisponibili[yearIndex];
-    yearSelect?.selected(annoSelezionato);
-    aggiornaPunteggioTotale();
-  }
-
-  return false; // Blocca lo scroll della pagina
-}
-
-function disegnaEtichettaAnno() {
-  push(); 
-
-  noStroke();
-  textFont(fontRegular); 
-  textAlign(CENTER, CENTER);
-  
-  // CALCOLO POSIZIONE COME NEL CODICE REGIONE
-  let xPos = graficoWidth + (annoWidth / 2); 
-  let yPos = height / 2;
-  
-  translate(xPos, yPos);
-  rotate(PI / 2 * 3); 
-  
-  const spaziaturaFissaX = 400; 
-  let offsetGlobaleX = map(progressoScroll, 0, 1, 0, spaziaturaFissaX);
-  
-  // Calcola l'indice dell'anno corrente
-  let indiceCorrente = anniDisponibili.indexOf(annoSelezionato);
-  
-  // ANNO PRECEDENTE
-  if (indiceCorrente > 0) {
-    let annoPrecedente = anniDisponibili[indiceCorrente - 1];
-    let baseXPrecedente = spaziaturaFissaX; 
-    let finalXPrecedente = baseXPrecedente + offsetGlobaleX;
-    
-    // USA annoWidth INVECE DI VALORI FISSI
-    let dimensionePrecedente = map(progressoScroll, 0, 1, annoWidth * 0.9, annoWidth * 0.7);
-    let opacitaPrecedente = map(progressoScroll, 0, 1, 100, 70);
-    
-    fill(palette.bianco + hex(floor(opacitaPrecedente), 2));
-    textSize(dimensionePrecedente);
-    text(annoPrecedente, finalXPrecedente, -30);
-  }
-  
-  // ANNO CORRENTE
-  let baseXCorrente = 0;
-  let finalXCorrente = baseXCorrente + offsetGlobaleX;
-
-  // USA annoWidth INVECE DI VALORI FISSI
-  let dimensioneCorrente = map(progressoScroll, 0, 1, annoWidth * 1.3, annoWidth * 0.9);
-  let opacitaCorrente = map(progressoScroll, 0, 1, 255, 100);
-  
-  fill(palette.bianco + hex(floor(opacitaCorrente), 2));
-  textSize(dimensioneCorrente);
-  text(annoSelezionato, finalXCorrente, -30);
-  
-  // ANNO SUCCESSIVO
-  if (indiceCorrente < anniDisponibili.length - 1) {
-    let annoSuccessivo = anniDisponibili[indiceCorrente + 1];
-    let baseXSuccessivo = -spaziaturaFissaX;
-    let finalXSuccessivo = baseXSuccessivo + offsetGlobaleX;
-    
-    // USA annoWidth INVECE DI VALORI FISSI
-    let dimensioneSuccessivo = map(progressoScroll, 0, 1, annoWidth * 0.7, annoWidth * 1.3); 
-    let opacitaSuccessivo = map(progressoScroll, 0, 1, 70, 100);  
-
-    fill(palette.bianco + hex(floor(opacitaSuccessivo), 2));
-    textSize(dimensioneSuccessivo);
-    text(annoSuccessivo, finalXSuccessivo, -30);
-  }
-
+  textAlign(LEFT, TOP);
+  text(countryName, 110, 10); 
   pop();
 }
 
@@ -1771,9 +1852,9 @@ function drawOverviewChart(area, data) {
   let xStart = padL;
 
   // asse y
-  textFont(fontRegular);
+  textFont(mioFont);
   textSize(10);
-  fill(palette.bianco);
+  fill(textColor);
   noStroke();
 
   for (let t = 0; t <= 100; t += 10) {
@@ -1809,7 +1890,7 @@ function drawOverviewChart(area, data) {
     rotate(-HALF_PI);
     textAlign(CENTER, CENTER);
     textSize(30 * scale);
-    fill(palette.bianco);
+    fill(textColor);
     text(d.year, 0, 0);
     pop();
 
@@ -1968,11 +2049,11 @@ function drawOverviewMini() {
 
   
   strokeWeight(1.5);
-  stroke(palette.bianco);
-  fill(palette.nero);
+  stroke(bianco);
+  fill(nero);
   
   rect(x, y, w, h, 20);
-  fill(palette.bianco);
+  fill(bianco);
   
   
   //per scalare correttamente 
@@ -2017,9 +2098,9 @@ function drawOverviewMini() {
 
 // testo
 push();
-fill(palette.bianco);
+fill(bianco);
 noStroke();
-textFont(fontMedium);
+textFont(mioFont);
 textSize(14);
 textAlign(LEFT, CENTER);
 text("Historical content available",
@@ -2063,7 +2144,7 @@ function drawOverviewChartMini() {
   for (let t = 0; t <= 100; t += 50) {
     let ty = yBase - map(t, 0, 100, 0, totalHeight);
     
-    stroke(palette.bianco);
+    stroke(bianco);
     strokeWeight(2);
     
     line(xScala -5, ty, xScala + 5, ty);
@@ -2100,7 +2181,7 @@ function drawOverviewChartMini() {
     rotate(-HALF_PI);
     textAlign(CENTER, CENTER);
     textSize(35*scale);
-    textFont(fontRegular);
+    textFont(mioFont);
     fill(200);
     text(d.year, 0, 0);
     pop();
@@ -2212,7 +2293,7 @@ function drawOverviewChartMiniNegative() {
 function drawOverviewExpanded() {
 
   // overlay
-  fill(palette.nero);
+  fill(nero);
   noStroke();
   rect(0, 0, BASE_W, BASE_H);
 
@@ -2235,7 +2316,7 @@ function drawOverviewExpanded() {
   };
 
   noFill();
-  stroke(palette.bianco);
+  stroke(bianco);
   strokeWeight(1.5);
   rect(chartArea.x, chartArea.y, chartArea.w, chartArea.h, 30);
 
@@ -2308,7 +2389,7 @@ pop();
 //icona per ingrandire
 function drawExpandIcon(x, y) {
   push();
-  stroke(palette.bianco);
+  stroke(bianco);
   strokeWeight(2);
   noFill();
   rectMode(CENTER);
@@ -2333,7 +2414,7 @@ function drawCountryText(countryName, x, y, w) {
   if (testo.trim() === "") return 0;
 
   textSize(16);
-  textFont(fontRegular);
+  textFont(mioFont);
   textAlign(LEFT, TOP);
 
   let words = testo.split(" ");
@@ -2356,7 +2437,7 @@ function drawCountryText(countryName, x, y, w) {
   let boxPadding = 20;
   let boxH = lines.length * lineHeight + boxPadding * 2;
 
-  fill(palette.bianco);
+  fill(textColor);
   noStroke();
   let textY = y;
 
@@ -2396,9 +2477,9 @@ function drawOverviewText() {
 
   // TITOLO
   push();
-  textFont(fontBold);
+  textFont(mioFontBold);
   textSize(16);
-  fill(palette.bianco);
+  fill(textColor);
   noStroke();
   textAlign(LEFT, TOP);
   text("HISTORICAL CONTEXT", x, y);
@@ -2428,13 +2509,13 @@ function drawToggle() {
 
   // sfondo toggle
   noFill();
-  stroke(palette.bianco);
+  stroke(bianco);
   rect(x, y, w, h, 30);
   
 
   // labels
   noStroke();
-  textFont(fontRegular);
+  textFont(mioFont);
   textSize(14);
   textAlign(LEFT, CENTER);
 
@@ -2451,7 +2532,7 @@ function drawToggle() {
   }
 
   // knob
-  fill(palette.bianco);
+  fill(bianco);
   let cx = (viewMode === "parameters") ? x + 14 : x + w - 14;
   circle(cx, y + h / 2, h - 6);
 
@@ -2772,7 +2853,7 @@ function drawOverviewCloseButton() {
 
   // disegno X
   push();
-  stroke(palette.bianco);
+  stroke(bianco);
   strokeWeight(3);
   noFill();
 
@@ -2784,16 +2865,14 @@ function drawOverviewCloseButton() {
 
 // per nascondere i pulsanti aboutus, home e freccia indietro
 function aggiornaVisibilitaPulsanti() {
-  // Se il grafico è espanso, nascondi tutto
   if (overviewExpanded) {
-    btnBack.hide();
-    btnAboutFH.hide();
-    btnAboutUs.hide();
+    bottoneBack?.style('display', 'none');
+    bottoneUS?.style('display', 'none');
+    bottoneFH?.style('display', 'none');
   } else {
-    // Altrimenti, mostrali
-    btnBack.show();
-    btnAboutFH.show();
-    btnAboutUs.show();
+    bottoneBack?.style('display', 'flex');
+    bottoneUS?.style('display', 'flex');
+    bottoneFH?.style('display', 'flex');
   }
 }
 
@@ -2813,7 +2892,7 @@ function drawStatusTag(x, y, label, colors) {
   const paddingY =6;
   const radius = 14;
 
-  textFont(fontBold);
+  textFont(mioFontBold);
   textSize(15);
   textAlign(LEFT, CENTER);
 
@@ -2827,7 +2906,7 @@ function drawStatusTag(x, y, label, colors) {
   rect(x, y, w, h, radius);
 
   // testo
-  fill(palette.nero);
+  fill(nero);
   text(label, x + paddingX, y + h / 2);
 
   return h; // utile per posizionare la prossima
@@ -2839,7 +2918,7 @@ function measureCountryTextHeight(countryName, w) {
   let testo = countryTexts[key] || "";
   if (testo.trim() === "") return 0;
 
-  textFont(fontRegular);
+  textFont(mioFont);
   textSize(16);
 
   let words = testo.split(" ");
@@ -2862,4 +2941,3 @@ function measureCountryTextHeight(countryName, w) {
 
   return lines.length * lineHeight + boxPadding * 2;
 }
-
