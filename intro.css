@@ -104,6 +104,7 @@ body {
   gap: 4rem; 
   width: 100%; 
   flex-wrap: wrap; 
+  font-size: 2rem;
 }
 
 .colonna-domanda { 
@@ -133,7 +134,7 @@ body {
 }
 
 .testo-spiegazione-footer { 
-  font-size: 1.3rem; 
+  font-size: 1.8rem; 
   color: var(--colore-testo-chiaro); 
   margin-top: 1rem; 
 }
@@ -221,7 +222,7 @@ body {
 .testo-punteggio-container { 
   text-align: center; 
   color: var(--colore-testo-chiaro); 
-  font-size: 1.4rem; 
+  font-size: 1.6rem; 
   line-height: 1.4; 
 }
 
@@ -347,7 +348,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  font-size: 1.3rem;
+  font-size: 1.8rem;
 }
 
 .legenda-item {
@@ -401,11 +402,13 @@ body {
 .testo-regioni {
   flex: 1;
   color: var(--colore-testo-chiaro);
-  font-size: 1.5rem;
-  line-height: 1.4;
+  font-size: 1.3rem;
+  line-height: 1.1;
 }
 
-.testo-regioni p { margin-bottom: 0.5rem; }
+.testo-regioni p { 
+    margin-bottom: 0.2rem; 
+}
 
 .cambio-status {
   margin-top: 3rem;
@@ -451,6 +454,7 @@ body {
   border-radius: 2px;
   transition: transform 0.3s ease;
   will-change: height;
+  mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
 }
 
 .img-torcia-base {
