@@ -7,11 +7,6 @@ let canInteract = false;
 let interactionStarted = false;
 let typewriterCompleted = false;
 
-// --- PRELOAD ---
-function preload() {
-  font = loadFont('font/NeueHaasDisplayLight.ttf');
-}
-
 // --- SETUP ---
 function setup() {
   // Canvas Setup

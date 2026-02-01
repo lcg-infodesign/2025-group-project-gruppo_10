@@ -9,16 +9,31 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 /* --- FONT --- */
+
 @font-face {
-  font-family: 'NeueHaas';
-  src: url('font/NeueHaasDisplayLight.ttf') format('truetype');
+  font-family: 'NeueHaasDisplay';
+  src: url('../font/NeueHaasDisplayRoman.ttf') format('opentype');
   font-weight: 300;
-  font-display: swap; 
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NeueHaasDisplay';
+  src: url('../font/NeueHaasDisplayMedium.ttf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NeueHaasDisplay';
+  src: url('../font/NeueHaasDisplayBold.ttf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
 }
 
 /* --- BODY --- */
 body {
-  font-family: 'NeueHaas', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'NeueHaasDisplay';
   background-color: var(--colore-sfondo);
   color: #ffffff;
   overflow-x: hidden;
@@ -56,8 +71,8 @@ body {
 }
 
 .titolo-principale {
-  font-size: 3.2rem; 
-  font-weight: 300; 
+  font-size: 5.2rem; 
+  font-weight: 300;
   letter-spacing: 0.12em;
   text-align: center; 
   color: #26231d; 
@@ -92,8 +107,8 @@ body {
 }
 
 .testo-spiegazione-main { 
-  font-size: 2.2rem; 
-  font-weight: 300; 
+  font-size: 2.5rem;
+  font-weight: 300;  
   line-height: 1.3; 
   color: var(--colore-testo-chiaro); 
 }
@@ -104,14 +119,16 @@ body {
   gap: 4rem; 
   width: 100%; 
   flex-wrap: wrap; 
-  font-size: 2rem;
+  font-size: 4rem;
+  font-weight: 300;
 }
 
 .colonna-domanda { 
+  font-size: 3.5rem;
   display: flex; 
   flex-direction: column; 
   align-items: center; 
-  gap: 1.5rem; 
+  gap: 1.8rem; 
   flex: 1; 
   min-width: 200px; 
 }
@@ -134,7 +151,8 @@ body {
 }
 
 .testo-spiegazione-footer { 
-  font-size: 1.8rem; 
+  font-size: 2.2rem; 
+  font-weight: 300;
   color: var(--colore-testo-chiaro); 
   margin-top: 1rem; 
 }
@@ -161,9 +179,11 @@ body {
   gap: 2rem;
   width: 100%; 
   max-width: 1000px;
+  font-weight: 300;
 }
 
 .riga-pallini { 
+  font-weight: 300;
   display: flex; 
   align-items: center; 
   justify-content: center; 
@@ -189,13 +209,11 @@ body {
 .segno { 
   font-size: 2rem; 
   color: var(--colore-testo-chiaro); 
-  font-weight: 300; 
 }
 
 .segno-uguale { 
   font-size: 3rem; 
   color: var(--colore-testo-chiaro); 
-  font-weight: 300; 
   margin: 0.5rem 0; 
 }
 
@@ -222,7 +240,8 @@ body {
 .testo-punteggio-container { 
   text-align: center; 
   color: var(--colore-testo-chiaro); 
-  font-size: 1.6rem; 
+  font-size: 2.2rem; 
+  font-weight: 300;
   line-height: 1.4; 
 }
 
@@ -232,16 +251,16 @@ body {
   justify-content: center; 
   flex-wrap: wrap; 
   margin-top: 1rem; 
+  font-weight: 500;
 }
 
 .box-class{
   border: 1px solid var(--colore-testo-chiaro); 
   border-radius: 30px;
   padding: 10px 30px; 
-  color: var(--colore-testo-chiaro);
-  font-weight: 600; 
+  color: var(--colore-testo-chiaro); 
   text-transform: uppercase; 
-  font-size: 1.1rem; 
+  font-size: 1.3rem; 
   letter-spacing: 1px;
 }
 
@@ -318,6 +337,7 @@ body {
   justify-content: center;
   padding: 2rem 4rem;
   box-sizing: border-box;
+  font-weight: 300;
 }
 
 #statua-parte-2 {
@@ -329,26 +349,28 @@ body {
   max-width: 500px;
   color: var(--colore-testo-chiaro);
   text-align: left;
+  font-weight: 300;
 }
 
 .statua-text-box h3 {
-  font-size: 2rem;
-  font-weight: 400;
+  font-size: 2.2rem;
   margin-bottom: 1.5rem;
-  line-height: 1.2;
+  line-height: 1.4;
+  font-weight: 300;
 }
 
 .statua-text-box p {
-  font-size: 1.2rem;
+  font-size: 2rem;
   color: var(--colore-testo-grigio);
-  line-height: 1.4;
+  line-height: 1.2;
+  font-weight: 300;
 }
 
 .legenda-box {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  font-size: 1.8rem;
+  font-size: 2.2rem;
+  line-height: 1.4;
 }
 
 .legenda-item {
@@ -357,13 +379,14 @@ body {
   gap: 10px;
   flex-wrap: wrap;
   color: #f4ebe1;
+  font-weight: 300;
 }
 
 .badge {
   padding: 5px 15px;
   border-radius: 15px;
-  font-weight: 800;
-  font-size: 0.9rem;
+  font-size: 1.3rem;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: #000000;
@@ -402,7 +425,8 @@ body {
 .testo-regioni {
   flex: 1;
   color: var(--colore-testo-chiaro);
-  font-size: 1.3rem;
+  font-size: 2.3rem;
+  font-weight: 300;
   line-height: 1.1;
 }
 
@@ -430,7 +454,8 @@ body {
 }
 
 .sub-stella {
-  font-size: 1.1rem;
+  font-size: 2.1rem;
+  font-weight: 300;
   color: var(--colore-testo-grigio);
   margin-top: 5px;
 }
@@ -479,7 +504,7 @@ body {
 }
 
 .testo-interpretazione {
-  font-size: 2.4rem;
+  font-size: 2.8rem;
   font-weight: 300;
   line-height: 1.3;
   color: var(--colore-testo-chiaro);
@@ -490,16 +515,18 @@ body {
 .btn-scopri {
   display: inline-block;
   padding: 18px 48px;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
+  font-weight: 500;
   color: #26231d; 
   text-decoration: none;
   border-radius: 50px;
-  background: linear-gradient(90deg, #8ba3a1 0%, #dcb06d 50%, #c8d697 100%);
+  background: linear-gradient(90deg, #c76351 0%, #dcb06d 50%, #c8d697 100%);
   background-size: 200% auto;
   transition: all 0.4s ease;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   pointer-events: auto;
 }
+
 
 .btn-scopri:hover {
   transform: scale(1.05);
@@ -525,7 +552,8 @@ body {
 }
 
 #typewriter-wrapper { 
-  font-size: 2.5rem; 
+  font-size: 3.5rem; 
+  font-weight: 300;
   color: var(--colore-testo-chiaro); 
   text-align: center; 
   max-width: 80%; 
