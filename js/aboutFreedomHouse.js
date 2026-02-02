@@ -2,7 +2,7 @@
 let data;
 
 // variabili per font
-let fontRegular, fontMedium, fontBold, fontThin;
+let fontRegular, fontMedium, fontBold;
 
 // variabili per bottoni
 let iconaAboutUs, iconaAboutFh, iconaHome, iconaLente, iconaClose; // icone generali
@@ -121,7 +121,7 @@ function creaRiquadri() {
   
   // Contenuto del riquadro
   riquadro1.html(`
-    <p style="color: #eaead8; font-family: 'NeueHaasDisplayRegular', sans-serif; margin: 0; font-size: 16px; line-height: 1.6;">
+    <p style="color: #eaead8; font-family: 'NeueHaasDisplayRoman', sans-serif; margin: 0; font-size: 16px; line-height: 1.7;">
       Freedom House was founded in <strong>1941</strong> by <strong>Wendell Willkie</strong> to counter the advancement of Nazi Germany and raise awareness about the 
       threat it posed. Today, Freedom House is an <strong>international non-governmental organization</strong> based in <strong>Washington D.C.</strong>, led by 
       <strong>Gerardo Berthin</strong> and <strong>Annie Wilcox Boyajian</strong>. The organization is supported, as evidenced by its financial reports, by funding 
@@ -162,7 +162,7 @@ function creaRiquadri() {
   
   // Contenuto del riquadro
   riquadro2.html(`
-    <p style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; margin: 0; font-size: 19px; line-height: 1.8;">
+    <p style="color: #eaead8; font-family: 'NeueHaasDisplayRoman', sans-serif; margin: 0; font-size: 16px; line-height: 1.7;">
       "Freedom in the World" is produced annually by a team of <strong>approximately 60 specialists</strong>: internal and 
       external analysts, academic consultants, and human rights experts. The method is based on assessments that answer <strong>twenty-five 
       questions</strong> for each country. FH analyzes <strong>two macro-aspects</strong>: <strong>political rights</strong>, which concern citizens' participation in the 
@@ -207,7 +207,7 @@ function creaRiquadri() {
   
   // Contenuto del riquadro
   riquadro3.html(`
-    <p style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; margin: 0; font-size: 19px; line-height: 1.8;">
+    <p style="color: #eaead8; font-family: 'NeueHaasDisplayRoman', sans-serif; margin: 0; font-size: 16px; line-height: 1.7;">
       Freedom House does not specifically calculate <strong>how democratic a state is</strong>, but rather focuses on measuring the degree of freedom 
       in each country. Assessing the state of democracy in a country is complex, partly because citizens' opinions vary and even 
       experts' assessments can be <strong>subjective on certain aspects</strong>. Nevertheless, various analyses agree on the significant differences 
@@ -246,7 +246,7 @@ function creaRiquadri() {
   
   // Contenuto del riquadro
   riquadro4.html(`
-    <div style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; font-size: 18px; line-height: 1.8;">
+    <div style="color: #eaead8; font-family: 'NeueHaasDisplayRoman', sans-serif; font-size: 16px; line-height: 1.7;">
       <p style="margin: 0 0 10px 0;"><strong style="font-family: 'NeueHaasDisplayBold', sans-serif; font-size: 17px;">POLITICAL RIGHTS</strong></p>
       <p style="margin: 0 0 5px 0;">A. Electoral Process</p>
       <p style="margin: 0 0 5px 0;">B. Political Pluralism & Participation</p>
