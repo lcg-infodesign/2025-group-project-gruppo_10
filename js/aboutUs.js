@@ -232,12 +232,12 @@ function creaTestoIntroduttivo() {
 // --- TESTI SOTTO RETTANGOLI ---
 function creaTestiRettangoli() {
   const testiContent = [
-    '<span style="font-size: 19px;"><strong>Federica Besenzoni</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Pagina di dettaglio sulla variazione di libertà per i singoli Paesi</span>',
-    '<span style="font-size: 19px;"><strong>Vittoria Franchi</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Stesura testi e pagine extra</span>',
-    '<span style="font-size: 19px;"><strong>Asia Marozzi</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Visualizzazione generale e del dettaglio delle regioni</span>',
-    '<span style="font-size: 19px;"><strong>Aurora Preioni</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Pagina di dettaglio dei singoli Paesi</span>',
-    '<span style="font-size: 19px;"><strong>Jasmin Soraruf</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Illustrazioni e analisi del dataset</span>',
-    '<span style="font-size: 19px;"><strong>Sheetal Zanotto</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Pagina di introduzione al progetto</span>'
+    '<span style="font-size: 19px;"><strong>Federica Besenzoni</strong></span><br><span style="font-size: 15px;">Coding</span>',
+    '<span style="font-size: 19px;"><strong>Vittoria Franchi</strong></span><br><span style="font-size: 16px;">Coding and information researcher</span>',
+    '<span style="font-size: 19px;"><strong>Asia Marozzi</strong></span><br><span style="font-size: 16px;">Coding and debugging</span>',
+    '<span style="font-size: 19px;"><strong>Aurora Preioni</strong></span><br><span style="font-size: 16px;">Coding</span>',
+    '<span style="font-size: 19px;"><strong>Jasmin Soraruf</strong></span><br><span style="font-size: 16px;">Illustrator and content researcher</span>',
+    '<span style="font-size: 19px;"><strong>Sheetal Zanotto</strong></span><br><span style="font-size: 16px;">Coding</span>'
   ];
 
   for (let i = 0; i < testiContent.length; i++) {
