@@ -352,7 +352,7 @@ function wait(ms) {
 
 // --- P5.JS DRAW ---
 function draw() { 
-  background('#26231d'); 
+  background(palette.nero); 
   alone.disegna(width / 2, height / 2 + offsetSferaY); 
 }
 

@@ -29,7 +29,7 @@ let yearSelect; //oggetti select che appare
 // TOTAL SCORE
 let punteggioTotale = 0; 
 
-// TOTAL CATEGORIE [A,B,C,D,E,F,G]-->positivi
+// TOTAL CATEGORIE [A,B,C,D,E,F,G]--> positivi
 let totaliCategorie = [0,0,0,0,0,0,0,0];
 let maxCategorie = [12, 16, 12, 4, 16, 12, 16, 16];
 
@@ -56,7 +56,7 @@ let addAVal = 0;
 let palliniInfo = [];
 // per l'animazione di lampeggio
 let animT = 0;
-const diametroPallino = 44;
+const diametroPallino = 48;
 
 //VARIABILE HOVER PER CATEGORIA 
 let hoveredCatIndex = null; 
@@ -82,6 +82,12 @@ coloriLegenda= {
   personalAutonomy: "#C0655A"
 }
 
+const whiteHover = palette.bianco; //bianco solito
+
+//VARIABILI PER REGOLARE MEGLIO L'HOVER 
+let hoveredLegendCatIndex = null;
+let hoveredPalliniCatIndex = null;
+
 //VARIABILI TITOLO (7 parametri)
 let panelTitles = [
   "Electoral process",
@@ -104,27 +110,27 @@ let panelQuestions = [
   ],
   //Political pluralism and participation
   [
-    "Do the people have the right to organize in different political parties\nor other competitivepolitical groupings of their choice, and is the system free\nof undue obstacles to the rise and fall of these competing parties or groupings?",
+    "Do the people have the right to organize in different political parties or other\ncompetitivepolitical groupings of their choice, and is the system free of undue\nobstacles to the rise and fall of these competing parties or groupings?",
     "Is there a realistic opportunity for the opposition to increase\nits support or gain power through elections?",
-    "Are the people's political choices free from domination by forces that are external\nto the political sphere, or by political forces that employ extrapolitical means?",
-    "Do various segments of the population (including ethnic, racial, religious, gender,\nLGBT+, and other relevant groups) have full political rights and electoral opportunities?"
+    "Are the people's political choices free from domination\nby forces that are external to the political sphere,\nor by political forces that employ extrapolitical means?",
+    "Do various segments of the population (including ethnic, racial,\nreligious, gender, LGBT+, and other relevant groups)\nhave full political rights and electoral opportunities?"
   ],
   // Functioning of government
   [
-    "Do the freely elected head of government and national legislative\nrepresentatives determine the policies of the government?",
+    "Do the freely elected head of government\nand national legislative representatives determine\nthe policies of the government?",
     "Are safeguards against official corruption strong and effective?",
     "Does the government operate with openness and transparency?",
   ],
   // Add A
   [
-  "For traditional monarchies that have no parties or electoral process,\ndoes the system provide for genuine, meaningful consultation with the people\n encourage public discussion of policy choices, and allow the right to petition the ruler?"
+  "For traditional monarchies that have no parties or electoral process,\ndoes the system provide for genuine, meaningful consultation\nwith the people encourage public discussion of policy choices,\nand allow the right to petition the ruler?"
   ],
   // Freedom of expression and belief
   [
     "Are there free and independent media?",
     "Are individuals free to practice and express their religious faith\nor nonbelief in public and private?",
     "Is there academic freedom, and is the educational system free\nfrom extensive political indoctrination?",
-    "Are individuals free to express their personal views on political or other sensitive\ntopics without fear of surveillance or retribution?"
+    "Are individuals free to express their personal views on political\nor other sensitive topics without fear of surveillance or retribution?"
   ],
   // Associational and organizational rights
   [
@@ -141,9 +147,9 @@ let panelQuestions = [
   ],
   // Personal autonomy and individual rights
   [
-    "Do individuals enjoy freedom of movement, including the ability to change\ntheir place of residence, employment, or education?",
-    "Are individuals able to exercise the right to own property and establish\nprivate businesses without undue interference from state or nonstate actors?",
-    "Do individuals enjoy personal social freedoms, including choice of marriage\npartner and size of family, protection from domestic violence,\nand control over appearance?",
+    "Do individuals enjoy freedom of movement, including the ability\nto change their place of residence, employment, or education?",
+    "Are individuals able to exercise the right to own property and establish\nprivate businesses without undue interference\nfrom state or nonstate actors?",
+    "Do individuals enjoy personal social freedoms, including choice\nof marriage partner and size of family, protection from domestic violence,\nand control over appearance?",
     "Do individuals enjoy equality of opportunity and freedom\nfrom economic exploitation?"
   ],
   //Additional Discretionary Question B
@@ -162,6 +168,7 @@ function preload() {
   iconaAboutUs = loadImage("../img/icone/person.png");
   iconaAboutFh = loadImage("../img/icone/info.png");
   iconaArrLeft = loadImage("../img/icone/frecce/arrowleft.png");
+  iconaClose = loadImage("../img/icone/close.png");
 }
 
 function setup() {
@@ -272,22 +279,19 @@ function draw() {
     translate(translateX, translateY);
     scale(scaleFactor);  
 
-  animT += 0.01; 
+  animT += 0.04; 
 
   fill(palette.bianco);
   textFont(fontBold);
 
-  // Total Score
-  textSize(72);
-  textAlign(LEFT, TOP);
-  textFont(fontRegular);
-  text("Total: " + punteggioTotale, 560, 130);
+  
 
   drawPalliniGrigi();
   updateHoverCategory();
   checkLegendHover();
   drawAddQOverlay();
   drawSidePanel();
+  drawTotalScore();
   pop();
   disegnaEtichettaAnno();
 }
@@ -298,6 +302,11 @@ function normalizeCountryName(name) {
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]/g, ""); // tiene solo lettere e numeri
+}
+
+//FUNZIONE PER CAPIRE LA POSIZIONE DEL NOSTRO CURSORE 
+function pointInRect(px, py, rx, ry, rw, rh) {
+  return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
 }
 
 // DISEGNA I PALLINI 
@@ -313,8 +322,9 @@ function drawPalliniGrigi(){
     let grigliaLarghezza = colonne*diametro + (colonne-1)*spazio; //calcolo la larghezza che occuperanno i pallini 
     let grigliaAltezza = righeQuadrato*diametro + (righeQuadrato-1)*spazio; //calcolo l'altezza occupata 
 
-    let startX = 80;
-    let startY = 150; 
+    //se si deve cambiare la posizione del quadrato di pallini !!!
+    let startX = 60;
+    let startY = 140; 
 
     palliniInfo = [];
 
@@ -328,6 +338,7 @@ function drawPalliniGrigi(){
     color( "#A4B2B8"),// F
     color("#C0655A")   // G
   ];
+
     noStroke();
 
     let indicePallino = 0; //parto dal basso a sinistra 
@@ -379,17 +390,17 @@ function drawPalliniGrigi(){
 if(punteggioTotale<0) {
     
 //inserisco la LINEA BIANCA di separazione 
-let lineY = startY + grigliaAltezza -15;
+let lineY = startY + grigliaAltezza -20;
 stroke(palette.bianco);
 strokeWeight(2);
-line(60,lineY, 60+grigliaLarghezza,lineY);
+line(30,lineY, 60+grigliaLarghezza,lineY);
 
 //scritta 0
 noStroke();
 fill(palette.bianco);
 textAlign(LEFT,CENTER);
 textSize(18);
-text("0",40,lineY-3);
+text("0",15,lineY-3);
 
 //10 PALLINI NEGATIVI 
 let distanzaLineaPallini = 27;  // distanza verticale tra linea e riga extra
@@ -418,46 +429,47 @@ indicePallino++;
 }
 
 // FUNZIONE HOVER PER CATEGORIA
-function updateHoverCategory() {
+//funzione che aggiorna quale categoria è in hover 
   // Se c'è una categoria selezionata con il click,
   // l'hover non deve più cambiare nulla.
+  function updateHoverCategory() {
   if (selectedCatIndex !== null) {
-    hoveredCatIndex = null;
-    cursor(ARROW);
+    hoveredPalliniCatIndex = null; //--> in modalità selezione mi elimina l'hover
     return;
   }
-  hoveredCatIndex = null;
-  let cursorChanged = false;
+ //se non c'è nessuna seleione attiva, per dafaul metti nessuna categoria in hover 
+  hoveredPalliniCatIndex = null;
 
+  // hover sui pallini positivi
   for (let p of palliniInfo) {
     if (p.type === "pos" && p.catIndex !== null) {
       let d = dist(logicalMouseX, logicalMouseY, p.x, p.y);
       if (d < diametroPallino / 2) {
-        hoveredCatIndex = p.catIndex;
-        cursor(HAND);
-        cursorChanged = true;
+        hoveredPalliniCatIndex = p.catIndex;
         break;
       }
     }
   }
-  
-  // Controlla anche i pallini negativi
-  if (!cursorChanged) {
+
+  // se non ho hover sui positivi, controllo i negativi (AddQ = 8)
+  if (hoveredPalliniCatIndex === null) {
     for (let p of palliniInfo) {
       if (p.type === "neg") {
         let d = dist(logicalMouseX, logicalMouseY, p.x, p.y);
         if (d < diametroPallino / 2) {
-          cursor(HAND);
-          cursorChanged = true;
+          hoveredPalliniCatIndex = 8;
           break;
         }
       }
     }
   }
-  
-  if (!cursorChanged) {
-    cursor(ARROW);
-  }
+
+  // hover “globale” = legenda ha priorità sui pallini
+  hoveredCatIndex = (hoveredLegendCatIndex !== null) ? hoveredLegendCatIndex : hoveredPalliniCatIndex;
+
+  // cursore
+  if (hoveredCatIndex !== null) cursor(HAND); //cambia il cursore a manina
+  else cursor(ARROW);
 }
 
 // Controlla hover sulla legenda
@@ -478,488 +490,628 @@ function checkLegendHover() {
 //LEGENDA O DOMANDE --> mi gestisce quale delle due funzioni attivare  
 function drawSidePanel() {
   if (selectedCatIndex === null) {
-    // nessuna categoria cliccata: mostro la legenda normale
-   backDetailArea = null;
+
+    // stato normale → legenda
+    backDetailArea = null;
     drawLegenda();
+
   } else {
-    // c'è una categoria cliccata: mostro il pannello di dettaglio
+
+    // stato dettaglio → cursore normale OVUNQUE
+    cursor(ARROW);              // ← QUESTA È LA CHIAVE
     drawCategoryPanel(selectedCatIndex);
+
   }
 }
 
 //DISEGNO LA LEGENDA 
 function drawLegenda() {
-  let x0 = 575;   // posizione X della legenda
-  let y0 = 260;   // posizione Y della legenda
-  let passo = 20; // distanza verticale tra le righe
-  let dimCerchio = 16;
-  let numerino = 870;
-  let massimo = numerino+2;
-  let categoriaSpazio = 600;
 
-  let valA = int(totaliCategorie[0]);
-  let valB = int(totaliCategorie[1]);
-  let valC = int(totaliCategorie[2]);
-  let valD = int(totaliCategorie[4]);
-  let valE = int(totaliCategorie[5]);
-  let valF = int(totaliCategorie[6]);
-  let valG = int(totaliCategorie[7]);
+  //COSTANTE ANNI --> per addA che compare solo fino al 2017
+  const anno = int(annoSelezionato);
+  const showAddA = (anno >= 2013 && anno <= 2017);
 
-  let xx = 560;
-  let yy = 240;
-  let w  = 350;
-  let h  = 330;
+  //definisco delle costanti per la mia legenda 
+  const x = 540;
+  const y = 120;
+  const w = 570;
+  const h = 270;
 
-  legendHitAreas = [] //svuoto l'array 
-
-  //SE VOGLIO METTERE UN BORDO palette.bianco 
-  // sfondo del box
+  legendHitAreas = [];
+  hoveredLegendCatIndex = null;
+  
+  //definsico un bordo 
   noFill();
   stroke(palette.bianco);
   strokeWeight(1);
-  rect(xx, yy, w, h, 18); 
-
-
+  rect(x, y, w, h, 30); // 22 = raggio angoli
   noStroke();
-  fill(palette.bianco);
-  textFont(fontBold);
-  textSize(20);
-  text("Political Rights", x0, y0);
 
-  // 1) Electoral Process
+  //inserisco un padding per separare scritte e bordo bianco 
+  const padX = w * 0.04;  
+  const padY = h * 0.18;  
+
+  //definisco variabili per le colonne 
+  const colGap = w * 0.04;
+  const colW = (w - padX * 2 - colGap) / 2;
+
+  const leftX  = x + padX;
+  const rightX = x + padX + colW + colGap;
+  const topY   = y + padY;
+
+  //scrivo i titoli delle due categorie 
+  fill(palette.bianco);
   noStroke();
-  fill(coloriLegenda.electoralProcess);
-  circle(x0+8, y0 + 35, dimCerchio);
-  fill(palette.bianco);
-  textFont(fontRegular);
-  textSize(14);
-  text("Electoral Process", categoriaSpazio, y0 + passo + 10);
-  textFont(fontBold);
-  textSize(16);
-  textAlign(RIGHT, TOP);
-  text(valA, numerino, y0 + passo + 8);
-  textAlign(LEFT, TOP);
-  textFont(fontRegular);
-  textSize(10);
-  text("/"+ maxCategorie[0],massimo, y0 + passo + 13)
+  textFont(fontBold || fontRegular);
+  textSize(18);
+  textAlign(LEFT, BOTTOM);
+  text("Political Rights", leftX,  y + padY - 10);
+  text("Civil Liberties",  rightX, y + padY - 10);
 
-  legendHitAreas.push({
-    x: x0,          // da sinistra del box
-    y: y0 + 20,     // inizio riga A (aggiusta se serve)
-    w: 350,         // larghezza area cliccabile
-    h: 24,          // altezza riga
-    catIndex: 0     // categoria A
+//cambia gli a capo del mio testo quando cambi ail layout della legenda
+const labelFunctioning = showAddA
+  ? "Functioning of government"
+  : "Functioning\nof government";
+
+const labelPluralism = showAddA
+? "Political pluralism and participation"
+: "Political pluralism\nand participation";
+
+const labelAddQ = showAddA
+?"Additional Question: subtracts points"
+: "Additional Question:\nsubtracts points";
+
+  const leftItems = [
+  { label: "Electoral Process", color: coloriLegenda.electoralProcess, addQ: false, catIndex: 0},
+  { label: labelPluralism, color: coloriLegenda.politicalPluralism, addQ: false, catIndex: 1},
+  { label: labelFunctioning, color: coloriLegenda.functioningGovernment, addQ: false, catIndex: 2},
+  { label: labelAddQ, color: coloriLegenda.addQ, addQ: true, catIndex:8} // speciale: cerchio vuoto bordo rosso
+];
+
+//inserisco AddA solo per gli anni specifici 
+if (showAddA) {
+  leftItems.push({
+    label: "Additional Answer:adds points over 100",
+    color: coloriLegenda.addA,
+    addQ: false,
+    catIndex: 3
   });
-  
-
-  // 2) Political pluralism
-  fill(coloriLegenda.politicalPluralism);
-  circle(x0+8, y0 + 55, dimCerchio);
-  fill(palette.bianco);
-  textFont(fontRegular);
-  textSize(14);
-  text("Political pluralism and participation", categoriaSpazio, y0 + passo*2 + 10);
-  textFont(fontBold);
-  textSize(16);
-  textAlign(RIGHT, TOP);
-  text(valB, numerino, y0 + passo + 28);
-  textAlign(LEFT, TOP);
-  textFont(fontRegular);
-  textSize(10);
-  text("/"+ maxCategorie[1],massimo, y0 + passo + 33)
-
-legendHitAreas.push({
-    x: x0,
-    y: y0 + 40,   // riga più in basso
-    w: 350,
-    h: 24,
-    catIndex: 1   // categoria B
-  });
-
-  // 3) Functioning of government
-  fill(coloriLegenda.functioningGovernment);
-  circle(x0+8, y0 + 75, dimCerchio);
-  fill(palette.bianco);
-  textFont(fontRegular);
-  textSize(14);
-  text("Functioning of government", categoriaSpazio, y0 + passo*3 + 10);
-  textFont(fontBold);
-  textSize(16);
-  textAlign(RIGHT, TOP);
-  text(valC, numerino, y0 + passo + 48)
-  textAlign(LEFT, TOP);
-  textFont(fontRegular);
-  textSize(10);
-  text("/" + maxCategorie[2],massimo, y0 + passo + 53)
-
-  legendHitAreas.push({
-    x: x0,
-    y: y0 + 60,
-    w: 350,
-    h: 24,
-    catIndex: 2   // categoria C
-  });
-
-  // 4) Add Q
-
-  let valQ = int(addQVal);   
-  let maxQ = 4; // massimo teorico Add Q
-  // Add Q è concettualmente NEGATIVO → lo trasformo
-  let valQneg = -valQ;
-
-  stroke(coloriLegenda.addQ);
-  strokeWeight(2);
-  noFill();
-  circle(x0+8, y0 + 95, dimCerchio);
-
-  noStroke();
-  fill(palette.bianco);
-  textFont(fontBold);
-  textSize(16);
-  fill("#C51A1A")
-  textAlign(RIGHT, TOP);
-  text(valQneg, numerino, y0 + passo+68);
-  textAlign(LEFT, TOP);
-  textFont(fontRegular);
-  textSize(10);
-  text("/" + "-"+maxQ,massimo, y0 + passo + 73)
-
- noStroke();
-  fill("#C51A1A");
-  textFont(fontRegular);
-  textSize(14);
-  text("Additional Discretionary Question B:\nsubtracts points from other parameters", categoriaSpazio, y0 + passo*4 + 10);
-
-  legendHitAreas.push({
-    x: x0,
-    y: y0 + 80,   // aggiusta un po' se non combacia perfettamente
-    w: 350,
-    h: 48,
-    catIndex: 8   // corrisponde al pannello AddQ
-  });
-
-  //AddA
-let anno = int(annoSelezionato);
-if (anno >= 2013 && anno <= 2017) {
-
-  fill(coloriLegenda.addA);
-  noStroke();
-  circle(x0+8, y0+135, dimCerchio);
-
-  fill(palette.bianco);
-  textFont(fontRegular);
-  textSize(14);
-  fill(palette.bianco);
-  text("Additional Discretionary Question A:\nadds points over 100", categoriaSpazio, y0 + passo*6 + 10);
-  let maxA = 4;
-  let valAc = int(addAVal);
-  textFont(fontBold);
-  textSize(16);
-  fill(palette.bianco);
-  textAlign(RIGHT, TOP);
-  text(valAc, numerino, y0 + passo+108);
-  textAlign(LEFT, TOP);
-  textFont(fontRegular);
-  textSize(10);
-  text("/" + maxA,massimo, y0 + passo + 113)
-
-  legendHitAreas.push({
-      x: x0,
-      y: y0 + 120,   // altezza riga AddA
-      w: 350,
-      h: 48,
-      catIndex: 3    // categoria 3 = Additional Answer
-    });
-  }
-
-  //SPAZIO//
-  let yLib = y0 + passo*6 +55;
-
-  textFont(fontBold);
-  fill(palette.bianco);
-  textSize(20);
-  text("Civil Liberties", x0, yLib+10);
-
-  // 5) Freedom Expression
-  fill(coloriLegenda.freedomExpression);
-  circle(x0+8, yLib + 45, dimCerchio);
-  fill(palette.bianco);
-  textFont(fontRegular);
-  textSize(14);
-  text("Freedom of expression and belief", categoriaSpazio, yLib + passo + 20);
-
-  textSize(16);
-  fill(palette.bianco);
-  textFont(fontBold);
-  textAlign(RIGHT, TOP);
-  text(valD, numerino, yLib + passo+19);
-  textAlign(LEFT, TOP);
-  textFont(fontRegular);
-  textSize(10);
-  text("/" + maxCategorie[4],massimo, yLib + passo+24)
-
-  legendHitAreas.push({
-    x: x0,
-    y: yLib + 30,
-    w: 350,
-    h: 24,
-    catIndex: 4
-  });
-
-  // 6) Associational rights
-  fill(coloriLegenda.associationalRights);
-  circle(x0+8, yLib + 65, dimCerchio);
-  fill(palette.bianco);
-  textFont(fontRegular);
-  textSize(14);
-  text("Associational and organizational right", categoriaSpazio, yLib + passo*2 + 20);
-  textSize(16);
-  fill(palette.bianco);
-  textFont(fontBold);
-  textAlign(RIGHT, TOP);
-  text(valE, numerino, yLib + passo+39);
-  textAlign(LEFT, TOP);
-  textFont(fontRegular);
-  textSize(10);
-  text("/" + maxCategorie[5],massimo, yLib + passo+44)
-
-  legendHitAreas.push({
-    x: x0,
-    y: yLib + 50,
-    w: 350,
-    h: 24,
-    catIndex: 5
-  });
-
-  // 7) Rule of Law
-  fill(coloriLegenda.ruleOfLaw);
-  circle(x0+8, yLib + 85, dimCerchio);
-  fill(palette.bianco);
-  textFont(fontRegular);
-  textSize(14);
-  text("Rule of Law", categoriaSpazio, yLib + passo*3 + 20);
-  
-  textSize(16);
-  fill(palette.bianco);
-  textFont(fontBold);
-  textAlign(RIGHT, TOP);
-  text(valF, numerino, yLib + passo+59);
-  textAlign(LEFT, TOP);
-  textFont(fontRegular);
-  textSize(10);
-  text("/" + maxCategorie[6],massimo, yLib + passo+64)
-
-  legendHitAreas.push({
-    x: x0,
-    y: yLib + 70,
-    w: 350,
-    h: 24,
-    catIndex: 6
-  });
-
-  // 8) Personal Autonomy
-  fill(coloriLegenda.personalAutonomy);
-  circle(x0+8, yLib + 105, dimCerchio);
-  fill(palette.bianco);
-  textFont(fontRegular);
-  textSize(14);
-  text("Personal autonomy and individual rights", categoriaSpazio, yLib + passo*4 + 20);
-  textSize(16);
-  fill(palette.bianco);
-  textFont(fontBold);
-  textAlign(RIGHT, TOP);
-  text(valG, numerino, yLib + passo+79);
-  textAlign(LEFT, TOP);
-  textFont(fontRegular);
-  textSize(10);
-  text("/" + maxCategorie[7],massimo, yLib + passo+84)
-
-  legendHitAreas.push({
-    x: x0,
-    y: yLib + 90,
-    w: 350,
-    h: 24,
-    catIndex: 7
-  });
-
 }
+const pillTextSize = showAddA ? 12 : 14;
 
-// FUNZIONE DISEGNA PANNELLO DOMANDE 
-function drawCategoryPanel(catIndex) {
-  // Configurazione base fissa
-  let x0 = 560; // X di partenza
-  let y0 = 240; // Y di partenza (dove inizia il pannello)
-  
-  // Variabili di misurazione
-  let paddingLeft = 30;   // Padding a sinistra per titolo e pallini
-  let paddingRight = 30;  // Padding a destra per il testo più lungo (AUMENTATO per la X)
-  let palliniSpazioTotale = 16 * 4; 
-  let palliniOffset = 95;   
-  let maxTextWidth = 0; 
-  
-  // --- A. VARIABILI DI CALCOLO ALTEZZA & TEXTWIDTH ---
-  
-  let titoloAltezza = 20;  
-  let titoloMargine = 20;  
-  let dopoTitolo = 20;     
-  let lineHeight = 20;     
-  let gap = 20;            
-  let paddingBottom = 0;  // Aumentato per coerenza
-  
-  // Inizializzazione font per la misurazione
-  textFont(fontRegular);
-  textSize(14); 
+const labelFreedom = showAddA 
+? "Freedom of expression and belief"
+: "Freedom of expression\nand belief";
 
-  // Iniziamo il calcolo dell'altezza necessaria (h)
-  let h = 0;
-  
-  // 1. Larghezza del Titolo (inclusa la X)
-  textFont(fontBold);
-  textSize(20);
-  let titolo = panelTitles[catIndex] || "Category details";
-  
-  // Larghezza del titolo + spazio per la 'X' sul lato destro
-  // (La 'X' ha bisogno di circa 30px, la usiamo come offset dal bordo destro)
-  maxTextWidth = textWidth(titolo) + paddingLeft + 30; 
-  
-  // 2. Altezza iniziale (Titolo + Spazi)
-  h += titoloMargine + titoloAltezza + dopoTitolo;
-  
-  // 3. Calcolo Altezza e Larghezza Massima delle DOMANDE
-  textFont(fontRegular);
-  textSize(14);
-  let questions = panelQuestions[catIndex] || [];
-  
-  for (let qi = 0; qi < questions.length; qi++) {
-      let q = questions[qi];
-      let righe = q.split("\n");
-      
-      for (let r of righe) {
-          let currentLineWidth = textWidth(r);
-          let totalQuestionWidth = palliniOffset + currentLineWidth + paddingRight;
-          
-          if (totalQuestionWidth > maxTextWidth) {
-              maxTextWidth = totalQuestionWidth;
-          }
-      }
-      
-      h += (righe.length * lineHeight) + gap;
-  }
-  
-  // 4. Larghezza finale del pannello (w)
-  let w = maxTextWidth + paddingLeft; 
-  
-  // 5. Altezza finale
-  h += paddingBottom;
+const labelAss = showAddA 
+? "Associational and organizational rights"
+: "Associational and\norganizational rights";
 
-  // --- B. DEFINIZIONE E DISEGNO DEL PANNELLO DINAMICO ---
+const labelPersonal = showAddA
+? "Personal autonomy and individual rights"
+: "Personal autonomy\nand individual rights";
+
+
+const rightItems = [
+  { label: labelFreedom, color: coloriLegenda.freedomExpression, catIndex: 4},
+  { label: labelAss, color: coloriLegenda.associationalRights, catIndex: 5},
+  { label: "Rule of Law", color: coloriLegenda.ruleOfLaw, catIndex: 6 },
+  { label: labelPersonal, color: coloriLegenda.personalAutonomy, catIndex: 7}
+];
+
+//definisco un numero di righe comune 
+const rows = max(leftItems.length, rightItems.length);
+
+//VARIABILI DELLE MIE PILLOLE 
+  // quanto spazio verticale ho per le pillole (sotto i titoli)
+  const bottomPad = h * 0.06;
+  const availableH = (y + h) - bottomPad - topY;
+
+  // spazio tra pillole --> dipende da AddA
+  const pillGap = showAddA ? availableH * 0.03 : availableH * 0.05;
+
+  // altezza pillola calcolata per far stare "rows" righe
+  const pillH = (availableH - (rows - 1) * pillGap) / rows;
+  const dotR     = pillH * 0.26;   // raggio del cerchio
+  const innerPad = pillH * 0.50;   // distanza dal bordo sinistro
+
+//PRIMA COLONNA 
+//CICLO ripeti il mio codice per tutti gli elementi inseriti nella mia "cartella"
+for (let i = 0; i < rows; i++) {
+  const it = leftItems[i];
+  if (!it) continue;   // se non esiste, non disegno nulla
+
+  // posizione verticale della pillola i-esima
+  //La pillola parte da topY e scende di un tot ogni volta
+  let py = topY + i * (pillH + pillGap);
+  let pillX = leftX;
+  let pillY = py;
+
+  let hoverByMouse = pointInRect(logicalMouseX, logicalMouseY, pillX, pillY, colW, pillH);
+let hoverByPallini = (hoveredPalliniCatIndex !== null && hoveredPalliniCatIndex === it.catIndex);
+let isHover = (selectedCatIndex === null) && (hoverByMouse || hoverByPallini);
+
+legendHitAreas.push({ x: pillX, y: pillY, w: colW, h: pillH, catIndex: it.catIndex });
+if (isHover) hoveredLegendCatIndex = it.catIndex;
+
+  //SCALA IN HOVER ingrandendo un pochetto 
+  let scaleHover = isHover ? 1.08 : 1; // ← quanto cresce (1.05–1.1 va benissimo)
+  // centro della pillola
+  let cx = pillX + colW / 2;
+  let cy = pillY + pillH / 2;
+
+  //hover solo se non c'è selezione 
   
+push();
+translate(cx, cy);
+scale(scaleHover);
+translate(-cx, -cy);
+
+if (isHover) {
+  fill(whiteHover);
+  stroke(whiteHover);
+} else {
   noFill();
   stroke(palette.bianco);
-  strokeWeight(1.5);
-  rect(x0, y0, w, h, 18); // h e w ORA SONO DINAMICHE
+}
+strokeWeight(1);
+rect(pillX, pillY, colW, pillH, pillH * 0.45);
+noStroke();
+
+  // coordinate icona
+  let iconX = pillX + innerPad;
+  let iconY = pillY + pillH / 2;
+
+  // ICONE:
+  if (it.addQ) {
+    // AddQ: cerchio vuoto con SOLO bordo rosso
+    noFill();
+    stroke(it.color);
+    strokeWeight(4);
+    circle(iconX, iconY, dotR * 2);
+    noStroke();
+  } else {
+    // tutte le altre: cerchio pieno
+    fill(it.color);
+    noStroke();
+    circle(iconX, iconY, dotR * 2);
+  }
+
+  // TESTO
+  fill(isHover ? palette.nero : palette.bianco);
+  
+  textFont(fontRegular);
+  textSize(pillTextSize);
+  textAlign(LEFT, CENTER);
+
+  let textX = pillX + innerPad + dotR * 2.2;
+  text(it.label, textX, iconY);
+
+  pop();
+}
+//SECONDA COLONNA, STESSO CICLO FOR 
+for (let i = 0; i < rows; i++) {
+  const it = rightItems[i];
+  if (!it) continue;
+
+  let py = topY + i * (pillH + pillGap);
+  let pillX = rightX;
+  let pillY = py;
+
+  let hoverByMouse = pointInRect(logicalMouseX, logicalMouseY, pillX, pillY, colW, pillH);
+let hoverByPallini = (hoveredPalliniCatIndex !== null && hoveredPalliniCatIndex === it.catIndex);
+let isHover = (selectedCatIndex === null) && (hoverByMouse || hoverByPallini);
+  legendHitAreas.push({ x: pillX, y: pillY, w: colW, h: pillH, catIndex: it.catIndex });
+
+  if (isHover) hoveredLegendCatIndex = it.catIndex;
+let scaleHover = isHover ? 1.08 : 1;
+
+let cx = pillX + colW / 2;
+let cy = pillY + pillH / 2;
+
+push();
+translate(cx, cy);
+scale(scaleHover);
+translate(-cx, -cy);
+
+if (isHover) {
+  fill(whiteHover);
+  stroke(whiteHover);
+} else {
+  noFill();
+  stroke(palette.bianco);
+}
+strokeWeight(1);
+rect(pillX, pillY, colW, pillH, pillH * 0.45);
+noStroke();
+
+  let iconX = pillX + innerPad;
+  let iconY = pillY + pillH / 2;
+
+  fill(it.color);
+  noStroke();
+  circle(iconX, iconY, dotR * 2);
+
+  fill(isHover ? palette.nero : palette.bianco);
+  textFont(fontRegular);
+  textSize(pillTextSize);
+  textAlign(LEFT, CENTER);
+
+  let textX = pillX + innerPad + dotR * 2.2;
+  text(it.label, textX, iconY);
+
+  pop();
+}
+
+//BOX ACCANTO LAVORO DI FEDE 
+const boxW = 290;
+const boxH = 220;
+const boxX = 820;   // distanza dal numero
+const boxY = 400;
+
+noFill();
+stroke(255);
+strokeWeight(1);
+rect(boxX, boxY, boxW, boxH, 18);
+noStroke();
+
+  }
+
+//FUNZIONE PER DISEGNARE IL TOTAL SCORE 
+function drawTotalScore() {
+//TOTAL SCORE 
+const x = 540;
+  const y = 120;
+  const w = 570;
+  const h = 270;
+// inserimento degli elementi legati al total score sotto la legenda 
+const scoreRightX = x + w * 0.32;  // sposta tutto il blocco a dx/sx
+const scoreBaseY  = y + h + 170;   // distanza sotto la legenda
+
+//  testo e "numero cifre"
+const scoreVal = int(punteggioTotale);
+const scoreStr = str(scoreVal);
+
+// cifre = lunghezza del numero senza il segno "-"
+const digits = str(abs(scoreVal)).length;
+
+// 2) layout che cambia per 1/2/3 cifre
+let bigSize, slashDY, slashDX, labelDY1, labelDY2;
+
+if (digits === 1) {
+  bigSize  = 140;   // dimensione numero 
+  slashDX  = 10;    // /100 distanza
+  slashDY  = 0.52;  // quanto sale /100 
+  labelDY1 = 0.2;  // TOTAL SCORE (sotto)
+  labelDY2 = 0.30;  // IN 2024 (sotto)
+} else if (digits === 2) {
+  bigSize  = 140;
+  slashDX  = 10;
+  slashDY  = 0.52;
+  labelDY1 = 0.2;
+  labelDY2 = 0.30;
+} else { // 3 cifre (es. 100)
+  bigSize  = 110;   
+  slashDX  = 6;     
+  slashDY  = 0.49; 
+  labelDY1 = 0.255;  
+  labelDY2 = 0.382;
+}
+
+// 3) disegno
+push();
+fill(palette.bianco);
+noStroke();
+
+// NUMERO GRANDE (allineato a destra)
+textFont(fontMedium);
+textSize(bigSize);
+textAlign(RIGHT, BASELINE);
+text(scoreStr, scoreRightX, scoreBaseY);
+
+// /100 (in alto a destra del numero)
+textFont(fontRegular);
+textSize(26);
+textAlign(LEFT, BASELINE);
+
+const slashX = scoreRightX + slashDX;
+const slashY = scoreBaseY - bigSize * slashDY;
+text("/100", slashX, slashY);
+
+// LABELS sotto
+textAlign(RIGHT, BASELINE);
+
+textFont(fontBold);
+textSize(16);
+text("TOTAL SCORE", scoreRightX, scoreBaseY + bigSize * labelDY1);
+
+textFont(fontRegular);
+textSize(14);
+text("IN " + annoSelezionato, scoreRightX, scoreBaseY + bigSize * labelDY2);
+
+pop();
+}
+
+// FUNZIONE PUNTEGGIO CATEGORIA (stile TOTAL SCORE)
+function drawCategoryScore(catIndex) {
+
+  // POSIZIONE (stesso riferimento di drawTotalScore) 
+  const x = 540;
+  const y = 120;
+  const w = 570;
+  const hLegend = 270;
+
+  // stessa base del total score
+  const scoreBaseY = y + hLegend + 170;
+
+  // POSIZIONE ORIZZONTALE DEL BLOCCO CATEGORIA (MANOPOLA)
+  // spostalo a destra/sinistra se vuoi
+  const catRightX = x + w * 0.78;
+
+  // --- BLOCCO 2: PRENDO VALORE + MASSIMO ---
+  let val = 0;
+  let maxVal = 0;
+
+  // categorie 0..7
+  if (catIndex >= 0 && catIndex <= 7) {
+    val = int(totaliCategorie[catIndex] || 0);
+    maxVal = int(maxCategorie[catIndex] || 0);
+  }
+
+  // AddQ (indice 8) -> scala 0..4
+  if (catIndex === 8) {
+    val = int(constrain(addQVal, 0, 4));
+    maxVal = 4;
+  }
+
+  // --- BLOCCO 3: COLORE (numero grande in colore categoria) ---
+  let numCol;
+  if (catIndex === 8) {
+    numCol = color("#C51A1A");
+  } else {
+    numCol = color(coloriCategorie[catIndex]);
+  }
+
+  // --- BLOCCO 4: LAYOUT DINAMICO (come total score: 1/2 cifre vs 3 cifre) ---
+  const digits = str(abs(val)).length;
+
+  let bigSize, slashDY, slashDX, labelDY1, labelDY2;
+
+  if (digits === 1) {
+    bigSize  = 140;
+    slashDX  = 10;
+    slashDY  = 0.52;
+    labelDY1 = 0.20;
+    labelDY2 = 0.30;
+  } else if (digits === 2) {
+    bigSize  = 140;
+    slashDX  = 10;
+    slashDY  = 0.52;
+    labelDY1 = 0.20;
+    labelDY2 = 0.30;
+  } else {
+    bigSize  = 110;
+    slashDX  = 6;
+    slashDY  = 0.49;
+    labelDY1 = 0.255;
+    labelDY2 = 0.382;
+  }
+
+  // DISEGNO (stessa gerarchia del total score) 
+  push();
   noStroke();
 
-  // --- C. DISEGNO CONTENUTO INTERNO ---
-  
-  // 1. Titolo
-  textFont(fontBold);
-  textSize(20);
+  // NUMERO GRANDE (colorato)
+  fill(numCol);
+  textFont(fontMedium || fontBold);
+  textSize(bigSize);
+  textAlign(RIGHT, BASELINE);
+  text(str(val), catRightX, scoreBaseY);
+
+  // "/max" (bianco)
   fill(palette.bianco);
-  let currentY = y0 + titoloMargine; 
-  text(titolo, x0 + paddingLeft, currentY); 
+  textFont(fontRegular);
+  textSize(26);
+  textAlign(LEFT, BASELINE);
 
-  // --- D. BOTTONE 'X' (CLOSE) ---
-  
-  let xBtn = x0 + w - paddingRight; // X a destra, all'interno del padding
-  let yBtn = y0 + titoloMargine + titoloAltezza / 2; // Y allineata al centro del titolo
-  let btnSize = 16; // Dimensione della 'X'
+  const slashX = catRightX + slashDX;
+  const slashY = scoreBaseY - bigSize * slashDY;
+  text("/" + str(maxVal), slashX, slashY);
 
-  // Imposta l'area cliccabile per la 'X'
-  backDetailArea = { 
-    x: xBtn - btnSize / 2, // Centro X della 'X'
-    y: yBtn - btnSize / 2, // Centro Y della 'X'
-    w: btnSize * 1.5,      // Area più gepalette.nerosa per il click
-    h: btnSize * 1.5
+  // LABELS sotto (bianco, come total score)
+  textAlign(RIGHT, BASELINE);
+
+  textFont(fontBold);
+  textSize(16);
+  text("CATEGORY SCORE", catRightX, scoreBaseY + bigSize * labelDY1);
+
+  textFont(fontRegular);
+  textSize(14);
+  text("IN " + annoSelezionato, catRightX, scoreBaseY + bigSize * labelDY2);
+
+  pop();
+}
+
+// FUNZIONE DOMANDE: disegna il nuvo pannello che compare con un click 
+function drawCategoryPanel(catIndex) {
+
+// BLOCCO CONFIGURAZIONE BASE (stile legenda)
+// box IDENTICO alla legenda (stessa X/Y e stessa larghezza)
+  let x0 = 540; 
+  let y0 = 120; 
+  let w  = 570; 
+  let r  = 30;
+
+  // padding interni uguali
+  let paddingLeft   = 24;
+  let paddingRight  = 24;
+  let paddingBottom = 20;
+
+  // layout “header” identico alla legenda
+  const padY = 270 * 0.18;  // uso la stessa proporzione della legenda
+  const headerBaselineY = y0 + padY - 10; // stessa Y dei titoli legenda
+
+  // tipografia domande
+  let lineHeight = 18; 
+  let textSizeQ  = 14;
+
+  // distanza tra header e inizio contenuto
+  let gapAfterTitle = 22;
+  let gapBetweenQuestions = 14;  
+
+  // pallini
+  let palliniOffset  = 100;
+  let palliniRaggio  = 8;
+  let palliniSpazio  = 18;
+
+  // contenuti
+  let titolo = panelTitles[catIndex] || "Category details";
+  let questions = panelQuestions[catIndex] || [];
+
+ 
+  // BLOCCO CALCOLO ALTEZZA DINAMICA (h cambia con le domande)
+
+  // 1) calcolo quante righe totali di testo ho (considerando \n)
+  let totalLines = 0;
+  for (let q of questions) {
+    totalLines += q.split("\n").length;
+  }
+
+  // 2) altezza del blocco domande = righe * lineHeight
+  let questionsTextH = totalLines * lineHeight;
+  let gapsH = max(0, questions.length - 1) * gapBetweenQuestions;
+
+
+  // 3) calcolo top del contenuto 
+  let contentTop = headerBaselineY + gapAfterTitle;
+
+  // 4) altezza totale = distanza dall’inizio box a contentTop + testo + paddingBottom
+  let h = (contentTop - y0) + questionsTextH + gapsH + paddingBottom; 
+
+  // BLOCCO DISEGNO BOX + TITOLO
+
+  // BOX
+  noFill();
+  stroke(palette.bianco);
+  strokeWeight(1);
+  rect(x0, y0, w, h, r);
+  noStroke();
+
+  // TITOLO (stesso stile e posizione della legenda)
+  fill(palette.bianco);
+  noStroke();
+  textFont(fontBold);
+  textSize(18);
+  textAlign(LEFT, BOTTOM);
+  text(titolo, x0 + paddingLeft, headerBaselineY);
+
+ 
+    // BLOCCO BOTTONE CLOSE (immagine, allineata bene)
+
+  let btnSize = 46;      // <-- più grande (cambia qui la dimensione base)
+  let closePad = 18;     // <-- gap dal bordo interno del box (cambia qui il "bel gap")
+
+  // posizione: ancorata all'angolo alto-destro del BOX
+  let xBtn = x0 + w - closePad - btnSize+5;
+  let yBtn = y0 + closePad-10;
+
+  // area cliccabile (un po' più grande dell'icona)
+  backDetailArea = {
+    x: xBtn - 8,
+    y: yBtn - 8,
+    w: btnSize + 16,
+    h: btnSize + 16
   };
 
-  // Disegno della 'X'
-  push(); // Salviamo lo stato attuale per il simbolo 'X'
-  translate(xBtn, yBtn);
-  fill(palette.bianco);
-  stroke(palette.bianco);
-  strokeWeight(2);
-  
-  // Disegna le due linee della 'X'
-  line(-btnSize / 2, -btnSize / 2, btnSize / 2, btnSize / 2); // Diagonale \
-  line(btnSize / 2, -btnSize / 2, -btnSize / 2, btnSize / 2); // Diagonale /
-  
-  pop(); // Ripristina lo stato
-  
-  // --- E. DOMANDE E PALLINI ---
-  
-  currentY += titoloAltezza + dopoTitolo; 
-  
-  textFont(fontRegular);
-  textSize(14);
+  // hover
+  let hoverClose = pointInRect(
+    logicalMouseX, logicalMouseY,
+    backDetailArea.x, backDetailArea.y, backDetailArea.w, backDetailArea.h
+  );
 
-  let palliniRaggio = 6; 
-  let palliniSpazio = 16;
-  let palliniStartX = x0 + paddingLeft; 
-  let textX = x0 + palliniOffset; 
+  // cursore: torna normale di default, mano solo sulla X
+  if (hoverClose) cursor(HAND);
+
+  // scale hover
+  let hoverScale = hoverClose ? 1.12 : 1.0;
+  let drawSize = btnSize * hoverScale;
+
+  // centra il disegno quando cresce (così NON si sposta)
+  let dx = (drawSize - btnSize) / 2;
+  let dy = (drawSize - btnSize) / 2;
+
+  imageMode(CORNER);
+  image(iconaClose, xBtn - dx, yBtn - dy, drawSize, drawSize);
+
+
+  // BLOCCO DISEGNO DOMANDE + PALLINI (pallini sulla prima riga)
+
+  textFont(fontRegular);
+  textSize(textSizeQ);
+  fill(palette.bianco);
+  noStroke();
+
+ 
+  textAlign(LEFT, TOP);
+
+  let palliniStartX = x0 + paddingLeft;
+  let textX = x0 + palliniOffset;
+
+  let currentY = contentTop;
 
   for (let qi = 0; qi < questions.length; qi++) {
+
     let q = questions[qi];
+
+    // punteggio
     let score = 0;
-
-    // Calcolo del punteggio (omesso per brevità, ma identico al tuo originale)
     if (catIndex === 8) {
-        score = int(constrain(addQVal, 0, 4));
-    } else {
-        if (questionScores[catIndex] && questionScores[catIndex][qi] != null) {
-            score = questionScores[catIndex][qi];
-        }
-        score = int(constrain(score, 0, 4));
+      score = int(constrain(addQVal, 0, 4));
+    } else if (questionScores[catIndex]) {
+      score = int(constrain(questionScores[catIndex][qi] || 0, 0, 4));
     }
 
+    // righe della domanda
     let righe = q.split("\n");
-    noStroke();
-    let palliniY0 = currentY + 6; 
 
-    // Disegno dei 4 pallini 
+    // PALLINI ALLINEATI ALLA PRIMA RIGA:
+    // currentY è il TOP della prima riga => centro pallino = currentY + lineHeight/2
+    let palliniY0 = currentY + lineHeight / 2 ; //ATTENZIONE MENO TRE ME LO ALLINEA BENE 
+
+    // disegno pallini
     for (let i = 0; i < 4; i++) {
-        // ... Logica colori ...
-        if (i < score) {
-            if (catIndex === 8) {
-                fill("#C51A1A");
-            } else {
-                let baseCol = coloriCategorie[catIndex];
-                let c = color(baseCol); 
-                c.setAlpha(255); 
-                fill(c);
-            }
+
+      if (i < score) {
+        if (catIndex === 8) {
+          fill("#C51A1A");
         } else {
-            fill(palette.grigio);
+          let c = color(coloriCategorie[catIndex]);
+          c.setAlpha(255);
+          fill(c);
         }
+      } else {
+        fill(palette.grigio);
+      }
 
-        let palliniX0 = palliniStartX + i * palliniSpazio;
-        circle(palliniX0, palliniY0, palliniRaggio * 2);
+      let px = palliniStartX + i * palliniSpazio +6 ;
+      circle(px, palliniY0 -3, palliniRaggio * 2);
     }
 
-    // Disegno ogni riga di testo
+    // testo (tutte le righe)
     fill(palette.bianco);
-    noStroke();
-    for (let r of righe) {
-        text(r, textX, currentY);
-        currentY += lineHeight;
+    for (let riga of righe) {
+      text(riga, textX, currentY);
+      currentY += lineHeight;
     }
 
-    // Gap tra una domanda e la successiva
-    currentY += gap;
+    // gap fisso tra domande (se vuoi più aria, aumenta di poco)
+    currentY += gapBetweenQuestions; 
   }
-}
 
-//FUNZIONE ADDQ (domanda negativa)
+drawCategoryScore(catIndex);
+}
+  
+// FUNZIONE ADDQ (domanda negativa)
 function drawAddQOverlay() {
   let n = int(addQVal);   //valore addQ convertito con int in intero per sicurezza
   if (n <= 0) return;  // se è zero o negativo, non faccio nulla
@@ -1052,7 +1204,7 @@ function drawAddQOverlay() {
 noStroke();
   }
 
-//FUNZIONE PUNTEGGIO TOTALE + ARRAY CON I VALORI DELLE CATEGORIE 
+// FUNZIONE PUNTEGGIO TOTALE + ARRAY CON I VALORI DELLE CATEGORIE 
 function aggiornaPunteggioTotale(){ //e anche categorie 
   punteggioTotale = 0; //azzero la mia variabile per sicurezza 
 
@@ -1149,6 +1301,18 @@ function mousePressed() {
   let mx = logicalMouseX; 
   let my = logicalMouseY;;
 
+
+  // SE SONO NEL DETTAGLIO E CLICCO LA X → CHIUDO
+  if (selectedCatIndex !== null && backDetailArea) {
+  if (pointInRect(logicalMouseX, logicalMouseY,
+                  backDetailArea.x, backDetailArea.y,
+                  backDetailArea.w, backDetailArea.h)) {
+    selectedCatIndex = null;
+    backDetailArea = null;
+    return;
+  }
+}
+
   // controllo se ho cliccato su un pallino "positivo" con categoria
   for (let p of palliniInfo) {
     if (p.type === "pos" && p.catIndex !== null) {
@@ -1182,36 +1346,16 @@ for (let p of palliniInfo) { //PALLINI NEGATIVI
     }
   }
 
-  // 3) click sulla LEGENDA (solo se la legenda è visibile)
- if (selectedCatIndex === null) {
-    for (let area of legendHitAreas) {
-      if (
-        mx >= area.x && 
-        mx <= area.x + area.w &&
-        my >= area.y &&
-        my <= area.y + area.h
-      ) {
-        if (selectedCatIndex === area.catIndex) {
-          selectedCatIndex = null;
-        } else {
-          selectedCatIndex = area.catIndex;
-        }
-        return;
-      }
+//CLICCARE SULLA LEGENDA 
+ for (let area of legendHitAreas) {
+    if (pointInRect(mx, my, area.x, area.y, area.w, area.h)) {
+      if (selectedCatIndex === area.catIndex) selectedCatIndex = null;
+      else selectedCatIndex = area.catIndex;
+      return;
     }
   }
 
-  if (backDetailArea) {
-  if (
-    mx >= backDetailArea.x &&
-    mx <= backDetailArea.x + backDetailArea.w &&
-    my >= backDetailArea.y &&
-    my <= backDetailArea.y + backDetailArea.h
-  ) {
-    selectedCatIndex = null; // torna alla legenda
-    return;
-  }
-}
+  
 }
 
 function drawTitle(){
