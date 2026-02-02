@@ -1,4 +1,4 @@
-// --- VARIABILI GLOBALI ---
+// Variabili globali
 let font;
 let alone;
 let offsetSferaY = 0;
@@ -7,26 +7,42 @@ let canInteract = false;
 let interactionStarted = false;
 let typewriterCompleted = false;
 
-// --- SETUP ---
 function setup() {
-  // Canvas Setup
+  // Resetta prima le variabili di stato
+  offsetSferaY = 0;
+  canInteract = false;
+  interactionStarted = false;
+  typewriterCompleted = false;
+  
+  // Forza lo scroll in alto PRIMA di qualsiasi altra inizializzazione
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  
   let canvas = createCanvas(windowWidth, windowHeight);
   canvas.parent('canvasContainer');
   
+  // Ferma eventuali animazioni GSAP esistenti
+  gsap.killTweensOf("*");
+  
+  // Inizializza l'animazione "alone"
   alone = new AloneAnimato();
   alone.accendi(); 
   
+  // Registra il plugin ScrollTrigger di GSAP
   gsap.registerPlugin(ScrollTrigger);
   
-  // Scroll a top al caricamento
-  window.scrollTo(0, 0);
+  // Pulisce eventuali ScrollTrigger esistenti
+  ScrollTrigger.getAll().forEach(trigger => trigger.kill());
   
-  initLenis();
-  setupScrollAnimations();
-  setupUIHandlers();
+  // Inizializzazione con un piccolo ritardo per assicurarsi che la posizione dello scroll sia resettata
+  setTimeout(() => {
+    initLenis();
+    setupScrollAnimations();
+    setupUIHandlers();
+  }, 100);
 }
 
-// --- INIZIALIZZAZIONE LENIS ---
 function initLenis() { 
   lenis = new Lenis({
     duration: 1.2, 
@@ -43,15 +59,18 @@ function initLenis() {
   gsap.ticker.lagSmoothing(0); 
 }
 
-// --- SETUP SCROLL ANIMATIONS ---
+// Animazioni scroll
 function setupScrollAnimations() {
   const skipBtn = document.getElementById('skip-intro');
   const scrollInd = document.querySelector('.scroll-indicator');
   const uiOverlay = document.getElementById('ui-overlay');
 
-  // Reset UI overlay position
   gsap.set(uiOverlay, { opacity: 0, pointerEvents: 'none' });
+  uiOverlay.style.display = 'none';
   gsap.set('#final-cta-container', { opacity: 0, y: 10 });
+  
+  // Nascondi bottone skip inizialmente
+  gsap.set(skipBtn, { opacity: 0, pointerEvents: 'none' });
   
   // Apparizione iniziale indicatori
   gsap.to(scrollInd, { opacity: 1, duration: 1.5, delay: 2 });
@@ -73,7 +92,7 @@ function setupScrollAnimations() {
     }
   });
 
-  // --- 1. ANIMAZIONI SCROLL (P5.JS + GSAP) ---
+  // ANIMAZIONI SCROLL
 
   // Spegnimento alone (sezione titolo)
   ScrollTrigger.create({
@@ -100,6 +119,11 @@ function setupScrollAnimations() {
       if (self.direction === -1 && self.progress < 0.5) {
         gsap.to(uiOverlay, { opacity: 0, duration: 0.3 });
         uiOverlay.style.pointerEvents = 'none';
+        setTimeout(() => {
+          if (parseFloat(window.getComputedStyle(uiOverlay).opacity) < 0.1) {
+            uiOverlay.style.display = 'none';
+          }
+        }, 300);
       }
     }
   });
@@ -113,17 +137,27 @@ function setupScrollAnimations() {
       if (!interactionStarted && !typewriterCompleted) {
         lenis.stop(); 
         canInteract = true;
+        uiOverlay.style.display = 'flex';
         uiOverlay.style.pointerEvents = 'auto'; 
         gsap.to(uiOverlay, { opacity: 1, duration: 1 });
         gsap.to(scrollInd, { opacity: 0, duration: 0.5 });
+      } else if (typewriterCompleted) {
+        // If typewriter was already completed, show skip button immediately
+        gsap.to(skipBtn, { opacity: 1, pointerEvents: 'auto', duration: 0.5 });
       }
     },
     onLeaveBack: () => {
       gsap.to(uiOverlay, { opacity: 0, duration: 0.5 });
       setTimeout(() => {
         uiOverlay.style.pointerEvents = 'none';
+        if (parseFloat(window.getComputedStyle(uiOverlay).opacity) < 0.1) {
+          uiOverlay.style.display = 'none';
+        }
       }, 500);
       gsap.to(scrollInd, { opacity: 1, duration: 0.5 });
+      
+      // Nascondi il pulsante "skip" quando si torna indietro dalla sezione del typewriter
+      gsap.to(skipBtn, { opacity: 0, pointerEvents: 'none', duration: 0.5 });
       canInteract = false;
     }
   });
@@ -137,10 +171,20 @@ function setupScrollAnimations() {
     onEnter: () => {
       gsap.to(uiOverlay, { opacity: 0, duration: 0.3 });
       uiOverlay.style.pointerEvents = 'none';
+      setTimeout(() => {
+        if (uiOverlay.style.opacity === '0' || parseFloat(window.getComputedStyle(uiOverlay).opacity) < 0.1) {
+          uiOverlay.style.display = 'none';
+        }
+      }, 300);
     },
     onLeaveBack: () => {
       gsap.to(uiOverlay, { opacity: 0, duration: 0.3 });
       uiOverlay.style.pointerEvents = 'none';
+      setTimeout(() => {
+        if (uiOverlay.style.opacity === '0' || parseFloat(window.getComputedStyle(uiOverlay).opacity) < 0.1) {
+          uiOverlay.style.display = 'none';
+        }
+      }, 300);
     }
   });
 
@@ -153,13 +197,27 @@ function setupScrollAnimations() {
     invalidateOnRefresh: true,
     onUpdate: (self) => {
       if (typewriterCompleted || interactionStarted) {
-        gsap.to(uiOverlay, { opacity: 1 - self.progress, duration: 0.1 });
+        let newOpacity = 1 - self.progress;
+        gsap.to(uiOverlay, { opacity: newOpacity, duration: 0.1 });
+        
+        if (self.progress > 0.9) {
+          uiOverlay.style.display = 'none';
+        } else {
+          uiOverlay.style.display = 'flex';
+        }
+      }
+    },
+    onLeave: () => {
+      uiOverlay.style.display = 'none';
+    },
+    onEnterBack: () => {
+      if (typewriterCompleted || interactionStarted) {
+        uiOverlay.style.display = 'flex';
       }
     }
   });
 
-  // --- 2. ANIMAZIONE STATUA ---
-  
+  // Animazione statua
   let tlStatuaColore = gsap.timeline({
     scrollTrigger: {
       trigger: "#statua-master-container",
@@ -211,8 +269,7 @@ function setupScrollAnimations() {
     }
   );
 
-  // --- 3. SEZIONE REGIONI & FINALE ---
-
+  // Sezioni regioni e finale
   gsap.from(".fiamma", {
     height: 0,
     stagger: 0.15,
@@ -239,8 +296,7 @@ function setupScrollAnimations() {
     }
   });
 
-  // --- 4. GESTIONE SKIP INTRO ---
-
+  // Gestione skip intro
   skipBtn.addEventListener('click', () => {
     interactionStarted = true;
     typewriterCompleted = true;
@@ -251,6 +307,7 @@ function setupScrollAnimations() {
       duration: 0.5, 
       onComplete: () => {
         uiOverlay.style.pointerEvents = 'none';
+        uiOverlay.style.display = 'none';
       }
     });
 
@@ -270,7 +327,12 @@ function setupScrollAnimations() {
   });
 }
 
-// --- SETUP UI HANDLERS ---
+function draw() { 
+  background(palette.nero); 
+  alone.disegna(width / 2, height / 2 + offsetSferaY); 
+}
+
+// Setup UI Handlers
 function setupUIHandlers() {
   const clickPrompt = document.getElementById('click-prompt');
   
@@ -290,11 +352,12 @@ function setupUIHandlers() {
   });
 }
 
-// --- TYPEWRITER LOGIC ---
+// Logica typewriter
 async function startComplexTypewriter() {
   if (typewriterCompleted) return; 
   
   const textElement = document.getElementById('typewriter-text');
+  const skipBtn = document.getElementById('skip-intro');
   textElement.innerHTML = ''; 
   
   await typeText(textElement, "What is freedom to you?", 60);
@@ -304,6 +367,14 @@ async function startComplexTypewriter() {
   await typeText(textElement, "Freedom House?", 80);
   
   typewriterCompleted = true;
+  
+  // Mostra il bottone skip dopo che ha finito di scrivere
+  gsap.to(skipBtn, { 
+    opacity: 1, 
+    pointerEvents: 'auto', 
+    duration: 0.5, 
+    delay: 0.3 
+  });
   
   gsap.to('#final-cta-container', { 
     opacity: 1, 
@@ -317,7 +388,7 @@ async function startComplexTypewriter() {
   });
 }
 
-// --- HELPER FUNCTIONS ---
+// Funzioni di supporto
 function typeText(e, t, s) { 
   return new Promise(r => { 
     let i = 0; 
@@ -350,13 +421,15 @@ function wait(ms) {
   return new Promise(r => setTimeout(r, ms)); 
 }
 
-// --- P5.JS DRAW ---
-function draw() { 
-  background(palette.nero); 
-  alone.disegna(width / 2, height / 2 + offsetSferaY); 
+// Forza lo scroll in alto al caricamento o al refresh della pagina
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
 }
 
-// --- WINDOW RESIZE ---
+window.addEventListener('beforeunload', () => {
+  window.scrollTo(0, 0);
+});
+
 function windowResized() { 
   resizeCanvas(windowWidth, windowHeight); 
   ScrollTrigger.refresh(); 

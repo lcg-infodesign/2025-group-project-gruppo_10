@@ -19,6 +19,7 @@ class AloneAnimato {
     this.sferaSize = 70;
   }
   
+  // Accende l'alone e avvia la pulsazione
   accendi() {
     this.isPulsing = true;
     
@@ -37,6 +38,7 @@ class AloneAnimato {
     }, 0);
   }
   
+  // Avvia la pulsazione continua dell'alone
   avviaLampeggio() {
     // Timeline senza yoyo - ciclo completo manuale per smoothness perfetta
     let tl = gsap.timeline({ 
@@ -60,11 +62,13 @@ class AloneAnimato {
     }, 2.5); // Inizia esattamente quando finisce il precedente
   }
   
+  // Spegne l'alone in base al progresso dello scroll
   spegni(scrollProg) {
     this.scrollProgress = scrollProg;
     this.intensitaAlone = max(0, 1 - scrollProg);
   }
   
+  // Disegna l'alone e la sfera
   disegna(x, y) {
     push();
     translate(x, y);
@@ -155,6 +159,7 @@ class AloneAnimato {
     drawingContext.fill();
   }
   
+  // Disegna la sfera centrale
   disegnaSfera(x, y) {
     let radius = this.sferaSize / 2;
     
