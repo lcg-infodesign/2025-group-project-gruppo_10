@@ -71,7 +71,7 @@ body {
 }
 
 .titolo-principale {
-  font-size: 5.2rem; 
+  font-size: 4.5rem; 
   font-weight: 300;
   letter-spacing: 0.12em;
   text-align: center; 
@@ -380,7 +380,7 @@ body {
 }
 
 .badge {
-  padding: 5px 15px;
+  padding: 0px 15px;
   border-radius: 15px;
   font-size: 1.3rem;
   font-weight: 500;
@@ -423,7 +423,7 @@ body {
 .testo-regioni {
   flex: 1;
   color: var(--colore-testo-chiaro);
-  font-size: 2.3rem;
+  font-size: 1.9rem;
   font-weight: 300;
   line-height: 1.1;
 }
@@ -449,6 +449,31 @@ body {
   justify-content: center;
   padding: 8px;
   flex-shrink: 0;
+  color: var(--colore-testo-chiaro);
+}
+
+.icona-stella svg {
+  width: 100%;
+  height: 100%;
+}
+
+.icona-stella svg {
+  width: 100%;
+  height: 100%;
+}
+
+.testo-stella {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.testo-stella > p:not(.sub-stella) {
+  font-size: 1.9rem;
+  font-weight: 300;
+  line-height: 1.1;
+  color: var(--colore-testo-chiaro);
+  margin: 0;
 }
 
 .sub-stella {
@@ -456,6 +481,7 @@ body {
   font-weight: 300;
   color: var(--colore-testo-grigio);
   margin-top: 5px;
+  line-height: 1.3;
 }
 
 .visualizzazione-torcia {
@@ -492,6 +518,7 @@ body {
   background-color: var(--colore-sfondo);
   text-align: center;
   padding: 10vh 2rem;
+  pointer-events: auto; /* Ensure this section is interactive */
 }
 
 .container-scopri {
@@ -499,6 +526,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 3rem;
+  pointer-events: auto; /* Ensure container is interactive */
 }
 
 .testo-interpretazione {
@@ -523,6 +551,8 @@ body {
   transition: all 0.4s ease;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   pointer-events: auto;
+  cursor: pointer; /* Add explicit cursor */
+  will-change: transform, background-position; /* Optimize animations */
 }
 
 .btn-scopri:hover {

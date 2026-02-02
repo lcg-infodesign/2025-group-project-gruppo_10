@@ -7,23 +7,49 @@ let canInteract = false;
 let interactionStarted = false;
 let typewriterCompleted = false;
 
+// Force scroll to top on page load/refresh
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+
+window.addEventListener('beforeunload', () => {
+  window.scrollTo(0, 0);
+});
+
 // --- SETUP ---
 function setup() {
+  // CRITICAL: Reset state variables first
+  offsetSferaY = 0;
+  canInteract = false;
+  interactionStarted = false;
+  typewriterCompleted = false;
+  
+  // CRITICAL: Force scroll to top BEFORE any other initialization
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  
   // Canvas Setup
   let canvas = createCanvas(windowWidth, windowHeight);
   canvas.parent('canvasContainer');
+  
+  // Kill any existing GSAP animations
+  gsap.killTweensOf("*");
   
   alone = new AloneAnimato();
   alone.accendi(); 
   
   gsap.registerPlugin(ScrollTrigger);
   
-  // Scroll a top al caricamento
-  window.scrollTo(0, 0);
+  // Clear any existing ScrollTriggers
+  ScrollTrigger.getAll().forEach(trigger => trigger.kill());
   
-  initLenis();
-  setupScrollAnimations();
-  setupUIHandlers();
+  // Initialize with a small delay to ensure scroll position is reset
+  setTimeout(() => {
+    initLenis();
+    setupScrollAnimations();
+    setupUIHandlers();
+  }, 100);
 }
 
 // --- INIZIALIZZAZIONE LENIS ---
@@ -49,9 +75,13 @@ function setupScrollAnimations() {
   const scrollInd = document.querySelector('.scroll-indicator');
   const uiOverlay = document.getElementById('ui-overlay');
 
-  // Reset UI overlay position
+  // Reset UI overlay position and visibility
   gsap.set(uiOverlay, { opacity: 0, pointerEvents: 'none' });
+  uiOverlay.style.display = 'none'; // Start completely hidden
   gsap.set('#final-cta-container', { opacity: 0, y: 10 });
+  
+  // Hide skip button initially
+  gsap.set(skipBtn, { opacity: 0, pointerEvents: 'none' });
   
   // Apparizione iniziale indicatori
   gsap.to(scrollInd, { opacity: 1, duration: 1.5, delay: 2 });
@@ -100,6 +130,11 @@ function setupScrollAnimations() {
       if (self.direction === -1 && self.progress < 0.5) {
         gsap.to(uiOverlay, { opacity: 0, duration: 0.3 });
         uiOverlay.style.pointerEvents = 'none';
+        setTimeout(() => {
+          if (parseFloat(window.getComputedStyle(uiOverlay).opacity) < 0.1) {
+            uiOverlay.style.display = 'none';
+          }
+        }, 300);
       }
     }
   });
@@ -113,17 +148,27 @@ function setupScrollAnimations() {
       if (!interactionStarted && !typewriterCompleted) {
         lenis.stop(); 
         canInteract = true;
+        uiOverlay.style.display = 'flex'; // Show overlay first
         uiOverlay.style.pointerEvents = 'auto'; 
         gsap.to(uiOverlay, { opacity: 1, duration: 1 });
         gsap.to(scrollInd, { opacity: 0, duration: 0.5 });
+      } else if (typewriterCompleted) {
+        // If typewriter was already completed, show skip button immediately
+        gsap.to(skipBtn, { opacity: 1, pointerEvents: 'auto', duration: 0.5 });
       }
     },
     onLeaveBack: () => {
       gsap.to(uiOverlay, { opacity: 0, duration: 0.5 });
       setTimeout(() => {
         uiOverlay.style.pointerEvents = 'none';
+        if (parseFloat(window.getComputedStyle(uiOverlay).opacity) < 0.1) {
+          uiOverlay.style.display = 'none';
+        }
       }, 500);
       gsap.to(scrollInd, { opacity: 1, duration: 0.5 });
+      
+      // Hide skip button when leaving typewriter section backwards
+      gsap.to(skipBtn, { opacity: 0, pointerEvents: 'none', duration: 0.5 });
       canInteract = false;
     }
   });
@@ -137,10 +182,20 @@ function setupScrollAnimations() {
     onEnter: () => {
       gsap.to(uiOverlay, { opacity: 0, duration: 0.3 });
       uiOverlay.style.pointerEvents = 'none';
+      setTimeout(() => {
+        if (uiOverlay.style.opacity === '0' || parseFloat(window.getComputedStyle(uiOverlay).opacity) < 0.1) {
+          uiOverlay.style.display = 'none';
+        }
+      }, 300);
     },
     onLeaveBack: () => {
       gsap.to(uiOverlay, { opacity: 0, duration: 0.3 });
       uiOverlay.style.pointerEvents = 'none';
+      setTimeout(() => {
+        if (uiOverlay.style.opacity === '0' || parseFloat(window.getComputedStyle(uiOverlay).opacity) < 0.1) {
+          uiOverlay.style.display = 'none';
+        }
+      }, 300);
     }
   });
 
@@ -153,7 +208,23 @@ function setupScrollAnimations() {
     invalidateOnRefresh: true,
     onUpdate: (self) => {
       if (typewriterCompleted || interactionStarted) {
-        gsap.to(uiOverlay, { opacity: 1 - self.progress, duration: 0.1 });
+        let newOpacity = 1 - self.progress;
+        gsap.to(uiOverlay, { opacity: newOpacity, duration: 0.1 });
+        
+        // Completely remove overlay from interaction when fully faded
+        if (self.progress > 0.9) {
+          uiOverlay.style.display = 'none';
+        } else {
+          uiOverlay.style.display = 'flex';
+        }
+      }
+    },
+    onLeave: () => {
+      uiOverlay.style.display = 'none';
+    },
+    onEnterBack: () => {
+      if (typewriterCompleted || interactionStarted) {
+        uiOverlay.style.display = 'flex';
       }
     }
   });
@@ -251,6 +322,7 @@ function setupScrollAnimations() {
       duration: 0.5, 
       onComplete: () => {
         uiOverlay.style.pointerEvents = 'none';
+        uiOverlay.style.display = 'none'; // Hide completely
       }
     });
 
@@ -295,6 +367,7 @@ async function startComplexTypewriter() {
   if (typewriterCompleted) return; 
   
   const textElement = document.getElementById('typewriter-text');
+  const skipBtn = document.getElementById('skip-intro');
   textElement.innerHTML = ''; 
   
   await typeText(textElement, "What is freedom to you?", 60);
@@ -304,6 +377,14 @@ async function startComplexTypewriter() {
   await typeText(textElement, "Freedom House?", 80);
   
   typewriterCompleted = true;
+  
+  // Show skip button after typewriter completes
+  gsap.to(skipBtn, { 
+    opacity: 1, 
+    pointerEvents: 'auto', 
+    duration: 0.5, 
+    delay: 0.3 
+  });
   
   gsap.to('#final-cta-container', { 
     opacity: 1, 
