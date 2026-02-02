@@ -1,5 +1,3 @@
-// sketch pagina regione
-
 // variabili globali
 let data;
 let dataParagrafi;
@@ -96,7 +94,7 @@ function setup() {
   boxRightX = graficoWidth - boxX - boxW;
   boxRightH = (windowHeight * 0.5 - 2 * spacing) / 3;
   
-  let spacingToggleBox = 15; // Spazio ridotto tra toggle e box
+  let spacingToggleBox = 15;
   boxY1Effettivo = toggleY + toggleHeight + spacingToggleBox;
 
   altezzaMassimaBarra = windowHeight * 0.6; 
@@ -130,10 +128,10 @@ function setup() {
   // Filtra e calcola i dati iniziali
   filtraECalcolaDati(annoCorrente);
 
-  // bottoni
-  creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back()); // bottone per tornare all'introduzione
-  creaBottoneStandard(width - diametro - margine, margine, iconaAboutFh, '../html/aboutFreedomHouse.html'); // bottone Freedom House in alto a destra
-  creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaAboutUs, '../html/aboutUs.html'); // bottone About Us a sinistra del primo
+  // Bottoni
+  creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back());
+  creaBottoneStandard(width - diametro - margine, margine, iconaAboutFh, '../html/aboutFreedomHouse.html');
+  creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaAboutUs, '../html/aboutUs.html');
   
   calcolaNumMaxPaesiRegione();
   estraiPaesiRegioneCorrente();
@@ -160,7 +158,6 @@ function setup() {
   suggerimentiDiv = elementiRicerca.suggerimentiDiv;
   
   elementiRicerca.bottoneCancella.elt.addEventListener('click', (e) => {
-    // PRIMA esegui l'azione
     paeseCercato = null;
     elementiRicerca.inputRicerca.value('');
     let container = document.getElementById('containerPaeseCercato');
@@ -170,7 +167,6 @@ function setup() {
 
     aggiornaBoxInfoPaese(null);
     
-    // POI ferma la propagazione
     e.stopPropagation();
     e.preventDefault();
   }, true);
@@ -184,6 +180,8 @@ function draw() {
   drawTitle();
   drawToggle();
   drawBoxes();
+
+  areeTorce = [];
   
   if (datiFiltrati && datiFiltrati.length > 0) {
     disegnaGriglia();
@@ -191,31 +189,32 @@ function draw() {
     disegnaTorciaRegione();
     disegnaEtichetteHover();
 
+    let paeseDataCorrente = null;
+    
     if (paeseCercato !== null) {
-      // Se c'è un paese cercato, mostra sempre i suoi dati
       let rigaPaese = datiFiltrati.find(r => r.getString('Country/Territory') === paeseCercato);
-      
       if (rigaPaese) {
-        let paeseData = {
+        paeseDataCorrente = {
           nome: rigaPaese.getString('Country/Territory'),
           score: rigaPaese.getNum('TOTAL'),
           pr: rigaPaese.getNum('PR'),
           cl: rigaPaese.getNum('CL')
         };
-        aggiornaBoxInfoPaese(paeseData);
       }
     } else if (indiceHover !== -1) {
-      // Se non c'è paese cercato, usa l'hover
       let paeseHover = paesiConPosizioni.find(p => p.indice === indiceHover);
       if (paeseHover) {
-        aggiornaBoxInfoPaese(paeseHover);
+        paeseDataCorrente = paeseHover;
       }
-    } else {
-      // Nessun paese cercato e nessun hover
-      aggiornaBoxInfoPaese(null);
     }
     
-    // Aggiorna posizione container paese cercato
+    if (!window.ultimoPaeseData || 
+        (paeseDataCorrente && window.ultimoPaeseData.nome !== paeseDataCorrente.nome) ||
+        (!paeseDataCorrente && window.ultimoPaeseData !== null)) {
+      aggiornaBoxInfoPaese(paeseDataCorrente);
+      window.ultimoPaeseData = paeseDataCorrente;
+    }
+    
     aggiornaPosizioneContainerPaese();
   }
   
@@ -260,7 +259,8 @@ function creaBottone(testo, x, y, colori, tipo) {
   bottone.style('border-radius', '25px');
   bottone.style('z-index', '1002');
   
-  // Gradiente per il bordo
+  bottone.style('transition', 'transform 0.3s ease-in-out');
+  
   let gradienteBordo;
   if (colori.length === 2) {
     gradienteBordo = `linear-gradient(to right, ${colori[0]})`;
@@ -277,47 +277,16 @@ function creaBottone(testo, x, y, colori, tipo) {
   
   bottone.mousePressed(() => toggleFiltro(tipo));
   
+    // HOVER: Ingrandisce e MOUSE OUT: Torna normale
+  bottone.mouseOver(() => {
+    bottone.style('transform', 'scale(1.1)');
+  });
+
+  bottone.mouseOut(() => {
+    bottone.style('transform', 'scale(1.0)');
+  });
+  
   return bottone;
-}
-
-function creaBottoniFiltro() {
-  const distanzaDalFondo = 100; 
-  const margineInternoX = 0; 
-  const distanzaTraBottoni = 40; 
-  const altezzaBottone = 35; // Altezza stimata per il calcolo Y
-  
-  // 1. Calcolo la posizione X del BORDO DESTRO DEL CONTENITORE SUPERIORE
-  const xBordoDestroContenitore = boxX + boxW;
-  
-  // 2. Calcolo la posizione X del BORDO DESTRO DESIDERATO per i bottoni
-  // Sottraiamo il margine interno
-  const xBordoDestro = xBordoDestroContenitore - margineInternoX; 
-  
-  // --- Calcolo della Posizione Y (Dal Basso) ---
-  let yFondo = windowHeight - distanzaDalFondo;
-  let yBottoneNF = yFondo - altezzaBottone;
-  let yBottonePF = yBottoneNF - distanzaTraBottoni;
-  let yBottoneF = yBottonePF - distanzaTraBottoni;
-
-  // --- 3. Creazione dei Bottoni ---
-  bottoneF = creaBottone('FREE', 0, 0, palette.coloriStatus['F'], 'F'); 
-  bottonePF = creaBottone('PARTIALLY FREE', 0, 0, palette.coloriStatus['PF'], 'PF');
-  bottoneNF = creaBottone('NOT FREE', 0, 0, palette.coloriStatus['NF'], 'NF');
-   
-  // --- 4. Posizionamento Finale (Allineamento a Destra del Box Testo) ---
-  
-  // Calcolo per il bottone FREE:
-  // Posizione X = Bordo destro desiderato - Larghezza effettiva del bottone
-  let xBottoneF = xBordoDestro - bottoneF.size().width;
-  bottoneF.position(xBottoneF, yBottoneF);
-  
-  // Calcolo per il bottone PARTIALLY FREE:
-  let xBottonePF = xBordoDestro - bottonePF.size().width;
-  bottonePF.position(xBottonePF, yBottonePF);
-  
-  // Calcolo per il bottone NOT FREE:
-  let xBottoneNF = xBordoDestro - bottoneNF.size().width;
-  bottoneNF.position(xBottoneNF, yBottoneNF);
 }
 
 function aggiornaStileBottone(bottone, attivo, colori) {
@@ -339,6 +308,28 @@ function aggiornaStileBottone(bottone, attivo, colori) {
   }
 }
 
+function creaBottoniFiltro() {
+  const distanzaDalFondo = 100; 
+  const distanzaTraBottoni = 40; 
+  const altezzaBottone = 35; 
+  const xBordoDestro = boxX + boxW; 
+  
+  let yFondo = windowHeight - distanzaDalFondo;
+  let yBottoneNF = yFondo - altezzaBottone;
+  let yBottonePF = yBottoneNF - distanzaTraBottoni;
+  let yBottoneF = yBottonePF - distanzaTraBottoni;
+
+  bottoneF = creaBottone('FREE', 0, yBottoneF, palette.coloriStatus['F'], 'F'); 
+  bottonePF = creaBottone('PARTIALLY FREE', 0, yBottonePF, palette.coloriStatus['PF'], 'PF');
+  bottoneNF = creaBottone('NOT FREE', 0, yBottoneNF, palette.coloriStatus['NF'], 'NF');
+   
+  bottoneF.position(xBordoDestro - bottoneF.size().width, yBottoneF);
+  bottonePF.position(xBordoDestro - bottonePF.size().width, yBottonePF);
+  bottoneNF.position(xBordoDestro - bottoneNF.size().width, yBottoneNF);
+
+  bottoneNF.h = altezzaBottone; 
+}
+
 // BOTTONI COUNTIRES/TERRITORIES
 
 function creaBottoniCountriesTerritori() {
@@ -357,18 +348,16 @@ function creaBottoniCountriesTerritori() {
   // Posizionamento e stile
   bottoneCountries.position(boxRightX, yBox1);
   bottoneCountries.size(boxW, boxRightH);
-  
   bottoneTerritories.position(boxRightX, yBox2);
   bottoneTerritories.size(boxW, boxRightH);
   
-  // Stile base per entrambi i bottoni (palette.nero con bordo palette.bianco)
-[bottoneCountries, bottoneTerritories].forEach(bottone => {
+  // Stile base per entrambi i bottoni
+  [bottoneCountries, bottoneTerritories].forEach(bottone => {
     bottone.style('cursor', 'pointer');
     bottone.style('border-radius', '30px');
     bottone.style('display', 'flex');
     bottone.style('align-items', 'center');
     bottone.style('justify-content', 'center');
-    // Transizione per trasformazione, sfondo e colore testo
     bottone.style('transition', 'transform 0.2s ease, background 0.3s ease, color 0.3s ease, border 0.3s ease');
     bottone.style('z-index', '1001');
 
@@ -395,55 +384,51 @@ function toggleFiltro(tipo) {
     filtroNF = !filtroNF;
     aggiornaStileBottone(bottoneNF, filtroNF, palette.coloriStatus['NF']);
   } else if (tipo === 'C') {
-    // Se clicco Countries
     if (filtroCountries === 'c') {
       filtroCountries = null;
     } else {
       filtroCountries = 'c';
     }
-    // Aggiorna sia lo stile CSS che il contenuto HTML (colore del testo)
     aggiornaStileBottoneCountriesTerritori();
     aggiornaContenutoBottoniCountriesTerritori(); 
   } else if (tipo === 'T') {
-    // Se clicco Territories
     if (filtroCountries === 't') {
       filtroCountries = null;
     } else {
       filtroCountries = 't';
     }
-    // Aggiorna sia lo stile CSS che il contenuto HTML (colore del testo)
+
     aggiornaStileBottoneCountriesTerritori();
     aggiornaContenutoBottoniCountriesTerritori(); 
   }
 }
 
 function aggiornaStileBottoneCountriesTerritori() {
-  // CONFIGURAZIONE
-  const BG_ATTIVO = palette.nero;
-  const BG_INATTIVO = palette.bianco;
-  const BORDO = '1px solid ' + palette.bianco;
+  const bgAttivo = palette.nero;
+  const bgInattivo = palette.bianco;
+  const bordo = '1px solid ' + palette.bianco;
 
   // Bottone Countries
   if (filtroCountries === 'c') {
-    bottoneCountries.style('background', BG_ATTIVO);
-    bottoneCountries.style('border', BORDO);
+    bottoneCountries.style('background', bgAttivo);
+    bottoneCountries.style('border', bordo);
   } else {
-    bottoneCountries.style('background', BG_INATTIVO);
-    bottoneCountries.style('border', BORDO);
+    bottoneCountries.style('background', bgInattivo);
+    bottoneCountries.style('border', bordo);
   }
 
   // Bottone Territories
   if (filtroCountries === 't') {
-    bottoneTerritories.style('background', BG_ATTIVO);
-    bottoneTerritories.style('border', BORDO);
+    bottoneTerritories.style('background', bgAttivo);
+    bottoneTerritories.style('border', bordo);
   } else {
-    bottoneTerritories.style('background', BG_INATTIVO);
-    bottoneTerritories.style('border', BORDO);
+    bottoneTerritories.style('background', bgInattivo);
+    bottoneTerritories.style('border', bordo);
   }
 }
 
 function aggiornaContenutoBottoniCountriesTerritori() {
-  // 1. Conta i paesi (C) e i territori (T)
+  // Conta i paesi (C) e i territori (T)
   let numCountries = 0;
   let numTerritories = 0;
   
@@ -456,14 +441,13 @@ function aggiornaContenutoBottoniCountriesTerritori() {
     }
   }
 
-  // Larghezza fissa per i numeri (centrati tra loro)
   let maxNumWidth = '120px'; 
   
   // Colore del testo in base allo stato del filtro: se attivo è palette.bianco, se inattivo è palette.nero
   const colorC = filtroCountries === 'c' ? palette.bianco : palette.nero;
   const colorT = filtroCountries === 't' ? palette.bianco : palette.nero;
   
-  // 2. Genera il contenuto HTML per il bottone Countries
+  // Contenuto HTML per il bottone Countries
   let htmlCountries = `
     <div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
       <span style="
@@ -490,7 +474,7 @@ function aggiornaContenutoBottoniCountriesTerritori() {
     </div>
   `;
   
-  // 3. Genera il contenuto HTML per il bottone Territories
+  // Contenuto HTML per il bottone Territories
   let htmlTerritories = `
     <div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
       <span style="
@@ -518,25 +502,23 @@ function aggiornaContenutoBottoniCountriesTerritori() {
           font-weight: 400; 
           opacity: 0.6; 
           max-width: 200px;">
-          ⁠non-sovereign areas and partially recognized or unrecognized states)</span>
+          ⁠non-sovereign areas and partially recognized or unrecognized states</span>
       </div>
     </div>
   `;
 
-  // 4. Inietta il contenuto nei bottoni HTML
   bottoneCountries.html(htmlCountries);
   bottoneTerritories.html(htmlTerritories);
 }
 
 // GESTIONE DATI
+
 function cambiaAnno(nuovoIndice) {
   annoCorrente = anniUnici[nuovoIndice];
   filtraECalcolaDati(annoCorrente);
   
-  // Aggiorna anche i conteggi Countries/Territories
   aggiornaContenutoBottoniCountriesTerritori();
   
-  // Aggiorna l'URL se vuoi
   let urlParams = new URLSearchParams(window.location.search);
   urlParams.set('year', annoCorrente);
   window.history.replaceState({}, '', `${window.location.pathname}?${urlParams}`);
@@ -544,8 +526,6 @@ function cambiaAnno(nuovoIndice) {
 
 function filtraECalcolaDati(anno) { 
   if (data && data.getRowCount() > 0 && anno !== null) {
-    // filtra le righe dove la colonna 'Edition' corrisponde all'anno selezionato
-    // E filtra anche per la regione corrente
     datiFiltrati = data.getRows().filter(riga => {
       return riga.getNum('Edition') === anno && riga.getString('Region') === regioneCorrente; 
     });
@@ -555,46 +535,30 @@ function filtraECalcolaDati(anno) {
 }
 
 function estraiPaesiRegioneCorrente() {
-  // 1. Filtra l'intera tabella 'data' per la regione corrente
-  let righeRegione = data.getRows().filter(r => r.getString('Region') === regioneCorrente);
-  
-  // 2. Estrai i nomi di paesi/territori unici da queste righe
-  let paesi = righeRegione.map(r => r.getString('Country/Territory'));
-  
-  // 3. Rimuovi i duplicati e ordina
-  paesiRegioneCorrente = [...new Set(paesi)].sort();
+  let righeRegione = data.getRows().filter(r => r.getString('Region') === regioneCorrente); // Filtra l'intera tabella 'data' per la regione corrente
+  let paesi = righeRegione.map(r => r.getString('Country/Territory')); // Estrai i nomi di paesi/territori unici da queste righe
+  paesiRegioneCorrente = [...new Set(paesi)].sort(); // Rimuovi i duplicati e ordina
 }
 
 function calcolaNumMaxPaesiRegione() {
-  numMaxPaesiRegione = 0; // Importante resettare se fosse chiamata più volte
-  
-  // 1. Filtra l'intera tabella 'data' (tutti gli anni) solo per la regione corrente
+  numMaxPaesiRegione = 0; 
   let righeRegione = data.getRows().filter(r => r.getString('Region') === regioneCorrente);
   
   if (righeRegione.length === 0) {
     return;
   }
   
-  // 2. Trova tutti gli anni unici presenti in questa regione
   let anniRegione = [...new Set(righeRegione.map(r => r.getString('Edition')))];
-  
-  // 3. Calcola il conteggio massimo di paesi in un singolo anno per questa regione
   let maxConteggio = 0;
   
   for (let anno of anniRegione) {
-    // Conta quanti paesi ci sono in quell'anno specifico e regione
     let conteggioAnno = righeRegione.filter(r => r.getString('Edition') === anno).length;
-    
     if (conteggioAnno > maxConteggio) {
       maxConteggio = conteggioAnno;
     }
   }
-  
-  // 4. Imposta la variabile globale
+
   numMaxPaesiRegione = maxConteggio;
-  
-  // *** DEBUGGING AGGIUNTIVO ***
-  console.log(`Regione: ${regioneCorrente}, Max Paesi Trovati: ${numMaxPaesiRegione}`);
 }
 
 // FUNZIONI GRAFICHE
@@ -616,13 +580,13 @@ function creaGradiente(x, yInizio, yFine, larghezza, colori) {
 
 function disegnaGriglia() {
   const puntiDiRiferimento = [0, 25, 50, 75, 100]; 
-  let yPositions = []; // array per salvare le posizioni Y
+  let yPositions = [];
   
-  // 1. Ciclo per disegnare linee e numeri (0 e 100)
+  // Ciclo per disegnare linee e numeri (0 e 100)
   for (let valore of puntiDiRiferimento) {
     let altezzaRelativa = map(valore, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
     let yLinea = yBarra - altezzaRelativa - incremento;
-    yPositions.push(yLinea); // salva la posizione Y
+    yPositions.push(yLinea);
     
     // Disegna la linea
     stroke(palette.bianco + 80);
@@ -638,18 +602,12 @@ function disegnaGriglia() {
     text(valore, graficoWidth*0.37, yLinea);
   }
 
-  // 2. Disegna la scritta "Total Score" SOLO sopra la linea del 100
-  // Assumiamo che 100 sia il secondo elemento nell'array puntiDiRiferimento,
-  // quindi la sua posizione Y è yPositions[1].
-  
-  // Se l'array ha almeno due elementi e 100 è il secondo punto di riferimento
+  // Disegna la scritta "Total Score" SOLO sopra la linea del 100
   if (yPositions.length > 1 && puntiDiRiferimento[4] === 100) {
-    const yLinea100 = yPositions[4]; // Posizione Y della linea del 100
-    
+    const yLinea100 = yPositions[4]; 
     push();
     fill(palette.bianco + 80);
     textSize(16);
-    // Posiziona il testo poco sopra la linea del 100
     translate(graficoWidth*0.38, yLinea100 - 5); 
     textAlign(LEFT, BOTTOM);
     text("Total Score", 0, 0);
@@ -663,7 +621,6 @@ function disegnaBarraSingola(xBarra, riga, larghezzaBarra, opacita) {
   let altezzaBarra = map(total, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
   let yCimaBarra = yBarra - altezzaBarra - incremento;
 
-  // Applica il gradiente con opacità
   push();
   if (opacita < 1) {
     drawingContext.globalAlpha = opacita;
@@ -673,17 +630,13 @@ function disegnaBarraSingola(xBarra, riga, larghezzaBarra, opacita) {
   drawingContext.fillStyle = gradient;
   rect(xBarra, yBarra, larghezzaBarra, -altezzaBarra - incremento);
   arc(xBarra + larghezzaBarra / 2, yCimaBarra, larghezzaBarra, larghezzaBarra, PI, TWO_PI);
-  
-  // Disegna il cerchio in cima
   fill(palette.bianco);
-  ellipse(xBarra + larghezzaBarra/2, yCimaBarra, larghezzaBarra, larghezzaBarra);
+  ellipse(xBarra + larghezzaBarra/2, yCimaBarra, larghezzaBarra, larghezzaBarra); // Disegna il cerchio in cima
   pop();
 }
 
 function disegnaBarre() {
   noStroke();
-  
-  // RESETTA l'array delle posizioni
   paesiConPosizioni = [];
   
   // Calcola lo spazio disponibile tra i box
@@ -691,8 +644,6 @@ function disegnaBarre() {
   let spazioFineX = boxRightX;
   let spazioLarghezza = spazioFineX - spazioInizioX;
   let centroSpazioX = spazioInizioX + spazioLarghezza / 2;
-  
-  // Calcola il numero totale di paesi SENZA filtri per mantenere le posizioni
   let numPaesi = datiFiltrati.length;
   
   if (numPaesi === 0) return;
@@ -701,11 +652,7 @@ function disegnaBarre() {
   let margine = 60;
   let spazioDisponibile = spazioLarghezza - (margine * 2);
   let larghezzaBarra = max(8, min(20, spazioDisponibile / numPaesi));
-  
-  // Calcola la larghezza totale del gruppo di barre
   let larghezzaTotaleGruppo = numPaesi * larghezzaBarra;
-  
-  // Calcola la posizione iniziale per centrare le barre
   let xInizioGruppo = centroSpazioX - larghezzaTotaleGruppo / 2;
   
   // Separa i dati per status
@@ -717,9 +664,7 @@ function disegnaBarre() {
   let numPF = paesiPF.length;
   let numNF = paesiNF.length;
   
-  let indiceGlobale = 0; // Per tracciare l'indice globale
-  
-  // Array temporaneo per memorizzare le barre in ordine di disegno
+  let indiceGlobale = 0;
   let barreInOrdine = [];
   
   // LIVELLO 1: Disegna prima tutti i paesi LIBERI (F)
@@ -729,9 +674,13 @@ function disegnaBarre() {
     
     for (let i = 0; i < numF; i++) {
       let xBarra = xInizioGruppo + offsetCentraturaF + i * larghezzaBarra;
+      let tipo = 'c';
+      try {
+        tipo = paesiF[i].getString('C/T') || 'c';
+      } catch(e) {
+        console.warn('Campo C/T mancante per:', paesiF[i].getString('Country/Territory'));
+      }
       
-      // Determina l'opacità in base al filtro Countries/Territories E all'hover
-      let tipo = paesiF[i].getString('C/T');
       let nomePaese = paesiF[i].getString('Country/Territory');
       let opacita = 1;
       
@@ -759,7 +708,6 @@ function disegnaBarre() {
       let altezzaBarra = map(total, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
       let yCimaBarra = yBarra - altezzaBarra - incremento;
       
-      // Memorizza con coordinate complete della barra
       let barraDati = {
         x: xBarra,
         y: yCimaBarra,
@@ -788,9 +736,13 @@ function disegnaBarre() {
     
     for (let i = 0; i < numPF; i++) {
       let xBarra = xInizioGruppo + offsetCentraturaPF + i * larghezzaBarra;
+      let tipo = 'c';
+      try {
+        tipo = paesiPF[i].getString('C/T') || 'c';
+      } catch(e) {
+        console.warn('Campo C/T mancante per:', paesiPF[i].getString('Country/Territory'));
+      }
       
-      // Determina l'opacità in base al filtro Countries/Territories E all'hover
-      let tipo = paesiPF[i].getString('C/T');
       let nomePaese = paesiPF[i].getString('Country/Territory');
       let opacita = 1;
       
@@ -810,7 +762,6 @@ function disegnaBarre() {
       
       disegnaBarraSingola(xBarra, paesiPF[i], larghezzaBarra, opacita);
       
-      // Memorizza la posizione completa della barra
       let total = paesiPF[i].getNum('TOTAL');
       let altezzaBarra = map(total, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
       let yCimaBarra = yBarra - altezzaBarra - incremento;
@@ -843,10 +794,14 @@ function disegnaBarre() {
     
     for (let i = 0; i < numNF; i++) {
       let xBarra = xInizioGruppo + offsetCentraturaNF + i * larghezzaBarra;
+      let tipo = 'c';
+      try {
+        tipo = paesiNF[i].getString('C/T') || 'c';
+      } catch(e) {
+        console.warn('Campo C/T mancante per:', paesiNF[i].getString('Country/Territory'));
+      }
       
-      // Determina l'opacità in base al filtro Countries/Territories E all'hover
-      let tipo = paesiNF[i].getString('C/T');
-      let nomePaese = paesiPF[i].getString('Country/Territory');
+      let nomePaese = paesiNF[i].getString('Country/Territory');
       let opacita = 1;
       
       if (filtroCountries === 'c' && tipo === 'c') {
@@ -865,7 +820,6 @@ function disegnaBarre() {
       
       disegnaBarraSingola(xBarra, paesiNF[i], larghezzaBarra, opacita);
       
-      // Memorizza la posizione completa della barra
       let total = paesiNF[i].getNum('TOTAL');
       let altezzaBarra = map(total, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
       let yCimaBarra = yBarra - altezzaBarra - incremento;
@@ -891,8 +845,6 @@ function disegnaBarre() {
     }
   }
   
-  // Ora che abbiamo tutte le barre nell'ordine di disegno,
-  // le copiamo in paesiConPosizioni (saranno controllate in ordine inverso per l'hover)
   paesiConPosizioni = barreInOrdine;
 }
 
@@ -948,6 +900,14 @@ function disegnaTorciaRegione() {
   text(regioneCorrente, 0, 0);
   
   pop();
+
+  areeTorce.push({
+  x: centroSpazioX - larghezzaTorcia / 2,
+  y: yIniziaTorcia,
+  w: larghezzaTorcia,
+  h: altezzaTorcia,
+  regione: regioneCorrente
+});
 }
 
 // CONTENUTO 
@@ -958,14 +918,19 @@ function drawBoxes() {
   let raggio = 30;
   let testoLarghezza = boxW - (padding * 2);
 
-  let smallText = "Questo è un testo introduttivo?";
+  let titoloParagrafo;
+  if (visualizzaGrafico) {
+    titoloParagrafo = `Average Freedom Score in ${regioneCorrente}`;
+  } else {
+    titoloParagrafo = `Economical, political and social context`;
+  }
   let paragrafo = getParagrafoCorrente();
 
-  // --- 1. CALCOLO ALTEZZA DINAMICA BOX ---
+  // Calcola altezza del box
   push();
   textSize(18);
   textFont(fontMedium);
-  let smallTextH = calcolaAltezzaTesto(smallText, testoLarghezza, interlinea);
+  let titoloParagrafoH = calcolaAltezzaTesto(titoloParagrafo, testoLarghezza, interlinea);
   
   textSize(16);
   textFont(fontRegular);
@@ -974,16 +939,15 @@ function drawBoxes() {
 
   let gapTraTesti = 15;
   
-  // ✅ CALCOLA ALTEZZA ESATTA DEL CONTENUTO
+  // Calcola altezza del contenuto
   let boxTestoH;
   if (visualizzaGrafico) {
     boxTestoH = windowHeight * 0.45;
   } else {
-    // ✅ ALTEZZA ESATTA: padding + titolo + gap + paragrafo + padding
-    boxTestoH = padding + smallTextH + gapTraTesti + paragrafoH + padding;
+    boxTestoH = padding + titoloParagrafoH + gapTraTesti + paragrafoH + padding;
   }
 
-  // --- 2. DISEGNO BOX SINISTRA ---
+  // Disegna box
   strokeWeight(1);
   stroke(palette.bianco);
   fill(palette.nero);
@@ -997,12 +961,11 @@ function drawBoxes() {
   textSize(18);
   textFont(fontBold);
   textLeading(interlinea);
-  text(smallText, boxX + padding, boxY1Effettivo + padding, testoLarghezza);
+  text(titoloParagrafo, boxX + padding, boxY1Effettivo + padding, testoLarghezza);
   pop();
 
-  // CONTENUTO SWITCHABILE
   if (visualizzaGrafico) {
-    disegnaGraficoMedia(boxX, boxY1Effettivo, boxW, boxTestoH, padding, smallTextH, gapTraTesti);
+    disegnaGraficoMedia(boxX, boxY1Effettivo, boxW, boxTestoH, padding, titoloParagrafoH, gapTraTesti);
   } else {
     push();
     fill(palette.bianco);
@@ -1011,7 +974,7 @@ function drawBoxes() {
     textSize(16);
     textFont(fontRegular);
     textLeading(interlinea);
-    let paragrafoY = boxY1Effettivo + padding + smallTextH + gapTraTesti;
+    let paragrafoY = boxY1Effettivo + padding + titoloParagrafoH + gapTraTesti;
     text(paragrafo, boxX + padding, paragrafoY, testoLarghezza);
     pop();
   }
@@ -1035,7 +998,6 @@ function calcolaAltezzaTesto(testo, maxWidth, leading) {
 }
 
 function getParagrafoCorrente() {
-
   // Cerca la regione nel dataset
   let datiRegione = dataParagrafi[regioneCorrente];
 
@@ -1050,56 +1012,36 @@ function getParagrafoCorrente() {
 }
 
 function creaBoxInfoPaese() {
-  // ✅ CALCOLA LA DISTANZA TRA BARRA DI RICERCA E COUNTRIES
-  let distanzaBarraCountries = 142 - 30 - 40*2; // boxY1(142) - yPosBarra(~30) - altezzaBarra(~40)
-  // La barra di ricerca è a yPos=40, altezza ~40px → finisce a ~80px
-  // Countries inizia a 142px → distanza = 142 - 80 = 62px circa
-  
-  // ✅ USA LA STESSA DISTANZA TRA TERRITORIES E INFO PAESE
-  let distanzaTerritoriesInfo = distanzaBarraCountries;
-  
-  // Calcola posizioni
-  let boxY1Local = 142; // Posizione Y di Countries
-  let spacingLocal = 20; // Spacing tra Countries e Territories
+  let boxY1Local = 142; 
+  let spacingLocal = 20;
   let boxRightHLocal = (windowHeight * 0.5 - 2 * spacingLocal) / 3;
-  
-  // Posizione Y di Territories
   let yTerritories = boxY1Local + boxRightHLocal + spacingLocal;
   
-  // ✅ POSIZIONE Y INFO PAESE: dopo Territories + distanza corretta
-  let yInizioInfoPaese = yTerritories + boxRightHLocal + distanzaTerritoriesInfo;
-  
-  // ✅ CALCOLA ALTEZZA DISPONIBILE FINO AL FONDO DELLA PAGINA
-  let paddingDalFondo = 100; // Distanza dal fondo (dove iniziano i bottoni filtro)
-  let altezzaInfoPaese = windowHeight - yInizioInfoPaese - paddingDalFondo;
-  
-  // Crea il div
+  let distanzaTraBox = 30; 
+  let yInizioInfoPaese = yTerritories + boxRightHLocal + distanzaTraBox;
+  let yFineFiltri = (bottoneNF && bottoneNF.elt) ? (bottoneNF.y + 35) : (windowHeight - 50);
+  let altezzaFissa = yFineFiltri - yInizioInfoPaese + 10;
+
   boxInfoPaese = createDiv('');
-  
-  // ✅ APPLICA POSIZIONE E DIMENSIONE CORRETTE
   boxInfoPaese.position(boxRightX, yInizioInfoPaese); 
-  boxInfoPaese.size(boxW, altezzaInfoPaese);
+  boxInfoPaese.size(boxW, altezzaFissa);
   
-  // Stile del box
   boxInfoPaese.style('border-radius', '30px');
   boxInfoPaese.style('background', palette.nero);
   boxInfoPaese.style('border', '1px solid ' + palette.bianco);
   boxInfoPaese.style('display', 'flex');
   boxInfoPaese.style('flex-direction', 'column');
+  boxInfoPaese.style('justify-content', 'center'); 
   boxInfoPaese.style('align-items', 'center');
-  boxInfoPaese.style('justify-content', 'center');
-  boxInfoPaese.style('padding', '10px');
+  boxInfoPaese.style('padding', '25px');
   boxInfoPaese.style('box-sizing', 'border-box');
   boxInfoPaese.style('z-index', '1001');
-  boxInfoPaese.style('transition', 'all 0.3s ease');
+  boxInfoPaese.style('overflow', 'hidden');
   
-  // Contenuto iniziale
   aggiornaBoxInfoPaese(null);
 }
 
 function aggiornaBoxInfoPaese(paeseData) {
-
-  // Colori
   let colorPR = '#E0B8B8';
   let colorCL = '#B691C3';
   let colorEmpty = palette.grigio;
@@ -1110,8 +1052,6 @@ function aggiornaBoxInfoPaese(paeseData) {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 100%;
-        height: 100%;
         color: ${palette.bianco};
         font-family: 'NeueHaasDisplay', sans-serif;
         font-size: 18px;
@@ -1124,7 +1064,7 @@ function aggiornaBoxInfoPaese(paeseData) {
   }
 
   let nomePaese = paeseData.nome;
-  let prScore = Math.round(paeseData.pr); // 0–100
+  let prScore = Math.round(paeseData.pr);
   let clScore = Math.round(paeseData.cl);
   let totalScore = paeseData.score;
 
@@ -1132,24 +1072,19 @@ function aggiornaBoxInfoPaese(paeseData) {
     clScore = 100 - prScore;
   }
 
-  // Colore pallino
   function colorePallino(indice) {
     if (indice < prScore) return colorPR;
     if (indice < prScore + clScore) return colorCL;
     return colorEmpty;
   }
 
-  // Griglia 10x10
   let htmlPallini = '';
   let diametroPallino = 17;
   let spazioPallini = 0.25;
 
   for (let r = 0; r < 10; r++) {
     for (let c = 0; c < 10; c++) {
-
-      // dal basso verso l’alto
       let indice = (9 - r) * 10 + c;
-
       htmlPallini += `
         <div style="
           width: ${diametroPallino}px;
@@ -1162,17 +1097,13 @@ function aggiornaBoxInfoPaese(paeseData) {
     }
   }
 
-  // HTML
+  // Contenuto
   boxInfoPaese.html(`
     <div style="
       display: flex;
       flex-direction: column;
       width: 100%;
-      height: 100%;
-      padding: 25px 25px;
-      box-sizing: border-box;
     ">
-
       <div style="
         color: ${palette.bianco};
         font-family: 'NeueHaasDisplay', sans-serif;
@@ -1188,107 +1119,93 @@ function aggiornaBoxInfoPaese(paeseData) {
         display: flex;
         align-items: flex-start;
         gap: 15px;
-        flex: 1;
       ">
-
-      <!-- Pallini -->
-      <div style="
+        <div style="
           display: flex;
           flex-wrap: wrap;
           width: ${(diametroPallino + spazioPallini * 2) * 10}px;
           height: ${(diametroPallino + spazioPallini * 2) * 10}px;
         ">
           ${htmlPallini}
-      </div>
-
-      <!-- Legenda + Score -->
-      <div style="
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        height: ${(diametroPallino + spazioPallini * 2) * 10}px;
-      ">
-
-        <!-- Badge in alto uno sotto l'altro con pallino -->
-        <div style="display: flex; flex-direction: column; gap: 5px;">
-
-          <!-- POLITICAL RIGHTS -->
-          <div style="
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            border: 0.8px solid ${palette.bianco};
-            font-family: 'NeueHaasDisplay', sans-serif;
-            border-radius: 15px;
-            padding: 8px 10px;
-            font-size: 14px;
-            font-weight: 400;
-            color: ${palette.bianco};
-          ">
-            <span style="
-              width: 14px;
-              height: 14px;
-              border-radius: 50%;
-              background: ${colorPR};  /* colore indicatore */
-              display: inline-block;
-            "></span>
-            Political Rights
-          </div>
-
-          <!-- CIVIL LIBERTIES -->
-          <div style="
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            border: 0.8px solid ${palette.bianco};
-            font-family: 'NeueHaasDisplay', sans-serif;
-            border-radius: 15px;
-            padding: 8px 10px;
-            font-size: 14px;
-            font-weight: 400;
-            color: ${palette.bianco};
-          ">
-            <span style="
-              width: 14px;
-              height: 14px;
-              border-radius: 50%;
-              background: ${colorCL};
-              display: inline-block;
-            "></span>
-            Civil Liberties
-          </div>
         </div>
 
-        <!-- Spazio tra badge e numero -->
-        <div style="flex-grow: 1;"></div>
-
-        <!-- Total score -->
         <div style="
-          position: relative;  
-          font-family: 'NeueHaasDisplay', sans-serif;
-          font-size: 80px;
-          line-height: 0.8;
-          font-weight: 500; 
-          color: ${palette.bianco};
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          height: ${(diametroPallino + spazioPallini * 2) * 10}px;
         ">
-          ${totalScore}
-          <span style="
-            position: absolute;
-            font-size: 18px;
-            font-weight: 400;
-            align-self: flex-start;
-          ">/100</span>
-        </div>
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <div style="
+              display: flex;
+              align-items: center;
+              gap: 5px;
+              border: 0.8px solid ${palette.bianco};
+              font-family: 'NeueHaasDisplay', sans-serif;
+              border-radius: 15px;
+              padding: 8px 10px;
+              font-size: 14px;
+              font-weight: 400;
+              color: ${palette.bianco};
+            ">
+              <span style="
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                background: ${colorPR};
+                display: inline-block;
+              "></span>
+              Political Rights
+            </div>
 
-        <div style="
-          color: ${palette.bianco};
-          font-family: 'NeueHaasDisplay', sans-serif;
-          font-size: 14px;
-          font-weight: 500;
-        ">TOTAL SCORE</div>
+            <div style="
+              display: flex;
+              align-items: center;
+              gap: 5px;
+              border: 0.8px solid ${palette.bianco};
+              font-family: 'NeueHaasDisplay', sans-serif;
+              border-radius: 15px;
+              padding: 8px 10px;
+              font-size: 14px;
+              font-weight: 400;
+              color: ${palette.bianco};
+            ">
+              <span style="
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                background: ${colorCL};
+                display: inline-block;
+              "></span>
+              Civil Liberties
+            </div>
+          </div>
 
-      </div>
+          <div style="flex-grow: 1;"></div>
 
+          <div style="
+            position: relative;  
+            font-family: 'NeueHaasDisplay', sans-serif;
+            font-size: 80px;
+            line-height: 0.8;
+            font-weight: 500; 
+            color: ${palette.bianco};
+          ">
+            ${totalScore}
+            <span style="
+              position: absolute;
+              font-size: 18px;
+              font-weight: 400;
+              align-self: flex-start;
+            ">/100</span>
+          </div>
+
+          <div style="
+            color: ${palette.bianco};
+            font-family: 'NeueHaasDisplay', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+          ">TOTAL SCORE</div>
         </div>
       </div>
     </div>
@@ -1305,7 +1222,6 @@ function creaBottoneSwitch() {
 }
 
 function drawToggle() {
-  // Posizione del toggle
   let toggleW = 70;
   let toggleH = 36;
   
@@ -1314,19 +1230,17 @@ function drawToggle() {
   let toggleY_center = toggleY + 20; 
   
   // Labels dinamiche
-
   let labelLeft = `About ${regioneCorrente}\nin ${annoCorrente}`; 
   let labelRight = "Average Score\n2013-2015";
-  
   push();
   
-  // --- SFONDO TOGGLE (BORDO) ---
+  // Sfondo toggle
   noFill();
   stroke(palette.bianco);
   strokeWeight(1);
   rect(toggleX, toggleY_center - toggleH/2, toggleW, toggleH, 30);
   
-  // --- LABEL SINISTRA (Dinamica) ---
+  // Label sinistra
   noStroke();
   textFont(fontRegular);
   textSize(14);
@@ -1340,7 +1254,7 @@ function drawToggle() {
   }
   text(labelLeft, toggleX - 15, toggleY_center);
   
-  // --- LABEL DESTRA ---
+  // Label destra
   textAlign(LEFT, CENTER);
   
   if (visualizzaGrafico) {
@@ -1350,15 +1264,15 @@ function drawToggle() {
   }
   text(labelRight, toggleX + toggleW + 15, toggleY_center);
   
-  // --- KNOB (PALLINO) ---
+  // Knob
   fill(palette.bianco);
   noStroke();
-  let knobX = (!visualizzaGrafico) ? toggleX + 18 : toggleX + toggleW - 18; // Leggermente aggiustato per estetica
+  let knobX = (!visualizzaGrafico) ? toggleX + 18 : toggleX + toggleW - 18;
   circle(knobX, toggleY_center, toggleH - 8);
   
   pop();
   
-  let hitboxPadding = 120; // Aumentato leggermente perché la label ora potrebbe essere più lunga
+  let hitboxPadding = 120;
   bottoneSwitch = {
     x: toggleX - hitboxPadding,
     y: toggleY_center - toggleH/2,
@@ -1370,31 +1284,22 @@ function drawToggle() {
 function aggiornaToggle(slider, labelText, labelChart, sliderWidth) {
   if (visualizzaGrafico) {
     // Modalità Chart - slider a destra
-    let nuovaLeft = sliderWidth + 6; // 6px = margine dal bordo
+    let nuovaLeft = sliderWidth + 6;
     slider.style('left', nuovaLeft + 'px');
-    labelText.style('color', palette.bianco); // Text diventa bianco
-    labelChart.style('color', palette.nero); // Chart diventa nero (sopra lo slider)
+    labelText.style('color', palette.bianco);
+    labelChart.style('color', palette.nero);
   } else {
     // Modalità Text - slider a sinistra
     slider.style('left', '4px');
-    labelText.style('color', palette.nero); // Text diventa nero (sopra lo slider)
-    labelChart.style('color', palette.bianco); // Chart diventa bianco
-  }
-}
-
-function aggiornaTestoBottone() {
-  if (visualizzaGrafico) {
-    bottoneSwitch.html('📊 Show Text');
-  } else {
-    bottoneSwitch.html('📈 Show Chart');
+    labelText.style('color', palette.nero);
+    labelChart.style('color', palette.bianco);
   }
 }
 
 function calcolaMediaPerAnni() {
   datiMediaAnni = [];
   
-  // Filtra tutte le righe per la regione corrente
-  let righeRegione = data.getRows().filter(r => r.getString('Region') === regioneCorrente);
+  let righeRegione = data.getRows().filter(r => r.getString('Region') === regioneCorrente); // Filtra tutte le righe per la regione corrente
   
   // Trova tutti gli anni unici
   let anniSet = new Set();
@@ -1424,18 +1329,18 @@ function calcolaMediaPerAnni() {
   });
 }
 
-function disegnaGraficoMedia(boxX, boxY1, boxW, boxH, padding, smallTextH, gap) {
+function disegnaGraficoMedia(boxX, boxY1, boxW, boxH, padding, titoloParagrafoH, gap) {
   if (datiMediaAnni.length === 0) return;
   
   let graficoX = boxX + padding;
-  let graficoY = boxY1 + padding + smallTextH + gap;
+  let graficoY = boxY1 + padding + titoloParagrafoH + gap;
   let graficoW = boxW - (padding * 2);
-  let graficoH = boxH - padding * 2 - smallTextH - gap - 30; // Spazio ridotto per le etichette
+  let graficoH = boxH - padding * 2 - titoloParagrafoH - gap - 30;
   
   let numBarre = datiMediaAnni.length;
   let spazioBarra = graficoW / numBarre;
-  let larghezzaBarra = spazioBarra * 0.4; // 40% dello spazio disponibile (più strette)
-  let margineBarr = (spazioBarra - larghezzaBarra) / 2; // Centra la barra
+  let larghezzaBarra = spazioBarra * 0.4;
+  let margineBarr = (spazioBarra - larghezzaBarra) / 2;
   
   // Disegna le barre
   noStroke();
@@ -1462,7 +1367,6 @@ function disegnaGraficoMedia(boxX, boxY1, boxW, boxH, padding, smallTextH, gap) 
       colori = palette.coloriStatus['NF'];
     }
     
-    // Determina l'opacità in base all'anno corrente
     let opacita = (anno === annoCorrente) ? 1 : 0.3;
     
     // Disegna la barra con gradiente
@@ -1474,18 +1378,13 @@ function disegnaGraficoMedia(boxX, boxY1, boxW, boxH, padding, smallTextH, gap) 
     let gradient = creaGradiente(xBarra, yCimaBarra, yBaseBarra, larghezzaBarra, colori);
     drawingContext.fillStyle = gradient;
     
-    // Rettangolo della barra
     rect(xBarra, yBaseBarra, larghezzaBarra, -altezzaBarra);
-    
-    // Semicerchio in cima
     arc(xBarra + larghezzaBarra / 2, yCimaBarra, larghezzaBarra, larghezzaBarra, PI, TWO_PI);
-    
-    // Pallino bianco in cima (stesso diametro della larghezza della barra)
     fill(palette.bianco);
     ellipse(xBarra + larghezzaBarra/2, yCimaBarra, larghezzaBarra, larghezzaBarra);
     pop();
     
-    // Etichetta anno VERTICALE sotto la barra (INVERTITA)
+    // Etichetta anno verticale sotto la barra
     push();
     fill(palette.bianco);
     if (anno !== annoCorrente) {
@@ -1496,10 +1395,10 @@ function disegnaGraficoMedia(boxX, boxY1, boxW, boxH, padding, smallTextH, gap) 
     textSize(11);
     textFont(fontRegular);
     
-    // Trasla e ruota per testo verticale INVERTITO
+    // Trasla e ruota il testo
     let annoStr = anno.toString();
     translate(xBarra + larghezzaBarra/2, yBaseBarra + 5);
-    rotate(-HALF_PI); // Ruota di -90 gradi (al contrario)
+    rotate(-HALF_PI);
     textAlign(RIGHT, CENTER);
     text(annoStr, 0, 0);
     
@@ -1566,7 +1465,7 @@ function vaiAPaginaPaese(paese, inputRicerca, suggerimentiDiv) {
     }
   }
   
-  // ✅ AGGIUNGI: Trova il paese nei dati e aggiorna il box info
+  // AGGIUNGI: Trova il paese nei dati e aggiorna il box info
   let rigaPaese = datiFiltrati.find(r => r.getString('Country/Territory') === paese);
   
   if (rigaPaese) {
@@ -1586,12 +1485,6 @@ function vaiAPaginaPaese(paese, inputRicerca, suggerimentiDiv) {
 // EVENTI MOUSE
 
 function mouseMoved() {
-  // Debug: stampa le aree degli anni
-  if (frameCount % 60 === 0) {
-    console.log("areeAnni:", areeAnni);
-    console.log("xPosAnni:", xPosAnni, "yPosAnni:", yPosAnni);
-  }
-
   // Hover sul toggle
   if (bottoneSwitch && 
       mouseX >= bottoneSwitch.x && 
@@ -1602,7 +1495,7 @@ function mouseMoved() {
     return;
   }
   
-  // ✅ BLOCCA L'HOVER SE C'È UN FILTRO COUNTRIES/TERRITORIES ATTIVO
+  // Blocca l'hover se c'è un filtro attivo
   if (filtroCountries !== null) {
     let hoverConsentito = false;
     
@@ -1624,7 +1517,7 @@ function mouseMoved() {
         corrispondeFiltro = true; // Filtro Territories attivo, quindi mostra solo Countries
       }
       
-      if (!corrispondeFiltro) continue; // Salta questo paese
+      if (!corrispondeFiltro) continue;
       
       // Controlla hover sulla barra
       if (mouseX >= barra.x && 
@@ -1649,7 +1542,7 @@ function mouseMoved() {
     
     // Se non c'è hover consentito, controlla solo gli anni
     if (!hoverConsentito) {
-      indiceHover = -1; // Reset hover
+      indiceHover = -1; 
       let sopraAnno = isMouseSopraAnno(areeAnni, xPosAnni, yPosAnni, mouseX, mouseY);
       if (sopraAnno) {
         cursor(HAND);
@@ -1657,10 +1550,10 @@ function mouseMoved() {
         cursor(ARROW);
       }
     }
-    return; // ← IMPORTANTE: esci dalla funzione
+    return;
   }
   
-  // ✅ BLOCCA L'HOVER SE C'È UN PAESE CERCATO
+  // Blocca l'hover se è stato cercato un paese
   if (paeseCercato !== null) {
     // Controlla solo se il mouse è sopra il paese cercato
     let paese = paesiConPosizioni.find(p => p.nome === paeseCercato);
@@ -1683,25 +1576,21 @@ function mouseMoved() {
       }
     }
     
-    // Controlla solo gli anni
     let sopraAnno = isMouseSopraAnno(areeAnni, xPosAnni, yPosAnni, mouseX, mouseY);
     if (sopraAnno) {
       cursor(HAND);
       return;
     }
-    
-    // Altrimenti cursore normale
+
     cursor(ARROW);
     return;
   }
   
-  // ✅ COMPORTAMENTO NORMALE (solo se NON c'è filtro e NON c'è paese cercato)
-  // Reset
+  // Comportamento normale
   let trovato = false;
   indiceHover = -1;
   let nuovaRegioneHover = null;
   
-  // 1. PRIORITÀ: Controlla le barre
   for (let i = paesiConPosizioni.length - 1; i >= 0; i--) {
     let barra = paesiConPosizioni[i];
     
@@ -1722,7 +1611,6 @@ function mouseMoved() {
     }
   }
   
-  // 2. Controlla le torce
   for (let area of areeTorce) {
     if (mouseX >= area.x && mouseX <= area.x + area.w &&
         mouseY >= area.y && mouseY <= area.y + area.h) {
@@ -1732,15 +1620,12 @@ function mouseMoved() {
     }
   }
   
-  // 3. Controlla gli anni
   let sopraAnno = isMouseSopraAnno(areeAnni, xPosAnni, yPosAnni, mouseX, mouseY);
   
   if (sopraAnno) {
     cursor(HAND);
     return;
   }
-  
-  // 4. Nessun hover
   cursor(ARROW);
 }
 
@@ -1790,7 +1675,6 @@ function mouseClicked() {
     }
   }
   
-  // ✅ SE C'È UN FILTRO COUNTRIES/TERRITORIES, gestisci SOLO i paesi corrispondenti
   if (filtroCountries !== null) {
     for (let i = paesiConPosizioni.length - 1; i >= 0; i--) {
       let barra = paesiConPosizioni[i];
@@ -1864,11 +1748,10 @@ function mouseClicked() {
       }
     }
     
-    // Se clicchi altrove (non sul paese cercato), non fare nulla
     return;
   }
   
-  // COMPORTAMENTO NORMALE
+  // Comportamento normale
   for (let i = paesiConPosizioni.length - 1; i >= 0; i--) {
     let barra = paesiConPosizioni[i];
     
@@ -1896,6 +1779,19 @@ function mouseClicked() {
 function keyPressed() {
   let indiceCorrente = anniUnici.indexOf(annoCorrente);
   
+  if (keyCode === ESCAPE) {
+    if (paeseCercato !== null) {
+      paeseCercato = null;
+      inputRicerca.value('');
+      let container = document.getElementById('containerPaeseCercato');
+      if (container) {
+        container.style.display = 'none';
+      }
+      aggiornaBoxInfoPaese(null);
+      return false;
+    }
+  }
+
   if (keyCode === DOWN_ARROW) {
     if (indiceCorrente < anniUnici.length - 1) {
       let nuovoIndice = indiceCorrente + 1;

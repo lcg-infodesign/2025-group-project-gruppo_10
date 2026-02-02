@@ -1,21 +1,19 @@
-// --- VARIABILI GLOBALI ---
+// variabili globali
 let data;
-
-// variabili per font
-let fontRegular, fontMedium, fontBold, fontThin;
-
-// variabili per bottoni
-let iconaAboutUs, iconaAboutFh, iconaHome, iconaLente, iconaClose; // icone generali
-let iconaArrLeft; // icone frecce
-
 let titolo; 
+let footer;
 
+// Font
+let fontRegular, fontMedium, fontBold;
+
+// Icone
+let iconaAboutUs, iconaAboutFh, iconaHome;
+let iconaArrLeft;
+
+// Box
 let riquadro1, riquadro2, riquadro3, riquadro4;
 let titoloRiquadro1, titoloRiquadro2, titoloRiquadro3, titoloRiquadro4;
 
-let footer;
-
-// --- PRELOAD ---
 function preload() {
   data = loadTable("../assets/FH_dataset.csv", "csv", "header"); 
   torcia = loadImage("../img/torcia.png");
@@ -40,16 +38,13 @@ function preload() {
   document.body.style.overflow = 'auto';
 }
 
-// --- SETUP ---
 function setup() {
   createCanvas(windowWidth, windowHeight); 
 
   // bottoni
-  const margine = 30;
-  const diametro = 60;
-  creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back()); // back
-  creaBottoneStandard(width - diametro - margine, margine, iconaHome, '../index.html'); // home
-  creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaAboutUs, '../html/aboutUs.html'); // about us
+  creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back());
+  creaBottoneStandard(width - diametro - margine, margine, iconaHome, '../index.html');
+  creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaAboutUs, '../html/aboutUs.html');
 
   creaTitolo();
   creaRiquadri();
@@ -64,9 +59,9 @@ function draw() {
   background(palette.nero);
 }
 
-// il titolo
+// Titolo
 function creaTitolo() {
-  titolo = createElement('h1', 'Freedom House');
+  titolo = createElement('h1', 'About Freedom House');
   titolo.position(110, 35);
   
   // Stile del titolo
@@ -79,22 +74,19 @@ function creaTitolo() {
   titolo.style('z-index', '1000');
 }
 
-// funzione per creare i riquadri informativi
-
+// Funzione per creare i riquadri informativi
 function creaRiquadri() {
-  const margine = 25;
+  const margine = 110;
   const yInizio = 30 + 60 + 60;
-  const spaziaturaRiquadri = 50;
+  const spaziaturaRiquadri = 80;
   const altezzaTitoloRiquadro = 65; 
   const spaziaturaTitoloRiquadro = 8;
   const offsetTitolo = 30;
 
-  // Calcola la larghezza totale disponibile
-  const larghezzaTotale = width - (margine * 2);
-  // Calcola la larghezza di ogni riquadro
-  const larghezzaRiquadro = (larghezzaTotale - spaziaturaRiquadri) / 2;
+  const larghezzaTotale = width - (margine * 2); // Calcola la larghezza totale disponibile
+  const larghezzaRiquadro = (larghezzaTotale - spaziaturaRiquadri) / 2; // Calcola la larghezza di ogni riquadro
 
-  // --- Titolo Riquadro 1 ---
+  // Titolo Riquadro 1
   titoloRiquadro1 = createDiv('About');
   titoloRiquadro1.position(margine + offsetTitolo, yInizio);
   titoloRiquadro1.style('color', '#c76351');
@@ -104,7 +96,7 @@ function creaRiquadri() {
   titoloRiquadro1.style('padding', '0');
   titoloRiquadro1.style('z-index', '1000');
 
-  // --- Riquadro 1 ---
+  // Riquadro 1
   riquadro1 = createDiv();
   riquadro1.position(margine, yInizio + altezzaTitoloRiquadro + spaziaturaTitoloRiquadro);
   
@@ -112,29 +104,29 @@ function creaRiquadri() {
   riquadro1.style('width', larghezzaRiquadro + 'px');
   riquadro1.style('height', 'auto');
   riquadro1.style('min-height', '60px');
-  riquadro1.style('background-color', '#26231d');
-  riquadro1.style('border', '1px solid #eaead8');
+  riquadro1.style('background-color', palette.nero);
+  riquadro1.style('border', '1px solid' + palette.bianco);
   riquadro1.style('border-radius', '30px');
-  riquadro1.style('padding', '20px');
+  riquadro1.style('padding', '30px');
   riquadro1.style('box-sizing', 'border-box');
   riquadro1.style('z-index', '1000');
   
   // Contenuto del riquadro
   riquadro1.html(`
-    <p style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; margin: 0; font-size: 19px; line-height: 1.8;">
+    <p style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; margin: 0; font-size: 16px; line-height: 1.7;">
       Freedom House was founded in <strong>1941</strong> by <strong>Wendell Willkie</strong> to counter the advancement of Nazi Germany and raise awareness about the 
       threat it posed. Today, Freedom House is an <strong>international non-governmental organization</strong> based in <strong>Washington D.C.</strong>, led by 
-      <strong>Gerardo Berthin</strong> and <strong>Annie Wilcox Boyajian</strong>. The organization is supported, as evidenced by its financial reports, by funding 
+      <strong>Gerardo Berthin</strong> and <strong>Annie Wilcox Boyajian</strong>. The organization is supported, from its financial reports, by funding 
       that comes <strong>90%</strong> from the <strong>federal government of the United States of America</strong>. Despite this, Freedom House's vision remains 
       independent and its commitment to <strong>objectivity</strong> stays constant. To date, FH is the leading American organization dedicated to 
-      supporting and defending democracy worldwide. Through accurate data and analysis, it systematically monitors the most urgent 
+      supporting and defending democracy worldwide. Through accurate data and analysis, it monitors the most urgent 
       threats and promotes policies that strengthen democracy and protect human rights. It also <strong>actively collaborates with activists</strong> 
       who strengthen the credibility of its work and bring issues to prominent institutional spaces, such as the United Nations and 
       the United States Congress. When necessary, Freedom House works to <strong>protect these individuals</strong> if they are persecuted for their ideas.
     </p>
   `);
 
-  // --- Titolo Riquadro 2 ---
+  // Titolo Riquadro 2
   const xRiquadro2 = margine + larghezzaRiquadro + spaziaturaRiquadri;
   titoloRiquadro2 = createDiv('Method');
   titoloRiquadro2.position(xRiquadro2 + offsetTitolo, yInizio); 
@@ -145,7 +137,7 @@ function creaRiquadri() {
   titoloRiquadro2.style('padding', '0');
   titoloRiquadro2.style('z-index', '1000');
   
-  // --- Riquadro 2 ---
+  // Riquadro 2
   riquadro2 = createDiv();
   riquadro2.position(xRiquadro2, yInizio + altezzaTitoloRiquadro + spaziaturaTitoloRiquadro);
   
@@ -153,16 +145,16 @@ function creaRiquadri() {
   riquadro2.style('width', larghezzaRiquadro + 'px');
   riquadro2.style('height', 'auto');
   riquadro2.style('min-height', '50px');
-  riquadro2.style('background-color', '#26231d');
-  riquadro2.style('border', '1px solid #eaead8');
+  riquadro2.style('background-color', palette.nero);
+  riquadro2.style('border', '1px solid' + palette.bianco);
   riquadro2.style('border-radius', '30px');
-  riquadro2.style('padding', '20px');
+  riquadro2.style('padding', '30px');
   riquadro2.style('box-sizing', 'border-box');
   riquadro2.style('z-index', '1000');
   
   // Contenuto del riquadro
   riquadro2.html(`
-    <p style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; margin: 0; font-size: 19px; line-height: 1.8;">
+    <p style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; margin: 0; font-size: 16px; line-height: 1.7;">
       "Freedom in the World" is produced annually by a team of <strong>approximately 60 specialists</strong>: internal and 
       external analysts, academic consultants, and human rights experts. The method is based on assessments that answer <strong>twenty-five 
       questions</strong> for each country. FH analyzes <strong>two macro-aspects</strong>: <strong>political rights</strong>, which concern citizens' participation in the 
@@ -176,12 +168,12 @@ function creaRiquadri() {
     </p>
   `);
   
-  // --- Riquadro 3 (seconda riga) ---
+  // Riquadro 3 (seconda riga)
   const spaziaturaVerticale = 40;
   const altezzaRiquadro1 = riquadro1.elt.offsetHeight;
   const yRiquadro3Base = yInizio + altezzaTitoloRiquadro + spaziaturaTitoloRiquadro + altezzaRiquadro1 + spaziaturaVerticale;
   
-  // --- Titolo Riquadro 3 ---
+  // Titolo Riquadro 3
   titoloRiquadro3 = createDiv('Classification');
   titoloRiquadro3.position(margine + offsetTitolo, yRiquadro3Base);
   titoloRiquadro3.style('color', '#e5c38f');
@@ -198,16 +190,16 @@ function creaRiquadri() {
   riquadro3.style('width', larghezzaRiquadro + 'px');
   riquadro3.style('height', 'auto');
   riquadro3.style('min-height', '50px');
-  riquadro3.style('background-color', '#26231d');
-  riquadro3.style('border', '1px solid #eaead8');
+  riquadro3.style('background-color', palette.nero);
+  riquadro3.style('border', '1px solid' + palette.bianco);
   riquadro3.style('border-radius', '30px');
-  riquadro3.style('padding', '20px');
+  riquadro3.style('padding', '30px');
   riquadro3.style('box-sizing', 'border-box');
   riquadro3.style('z-index', '1000');
   
   // Contenuto del riquadro
   riquadro3.html(`
-    <p style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; margin: 0; font-size: 19px; line-height: 1.8;">
+    <p style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; margin: 0; font-size: 16px; line-height: 1.7;">
       Freedom House does not specifically calculate <strong>how democratic a state is</strong>, but rather focuses on measuring the degree of freedom 
       in each country. Assessing the state of democracy in a country is complex, partly because citizens' opinions vary and even 
       experts' assessments can be <strong>subjective on certain aspects</strong>. Nevertheless, various analyses agree on the significant differences 
@@ -215,11 +207,11 @@ function creaRiquadri() {
       Countries are further classified as <strong>Free, Partly Free, and Not Free</strong>. In the first category, citizens enjoy <strong>full political rights and 
      civil liberties</strong>, elections are free, the press is independent, and the rule of law is upheld. In the second, freedoms are <strong>guaranteed 
      but with significant limitations</strong>: corruption, pressure on the media, and elections not fully transparent. In the most 
-     restrictive category, political rights and civil liberties are <strong>severely repressed</strong>, regimes are authoritarian.
+     restrictive category, political rights and civil liberties are <strong>severely repressed</strong>, regimes are authoritarian with an absence of free elections and censorship.
     </p>
   `);
 
-  // --- Titolo Riquadro 4 ---
+  // Titolo Riquadro 4
   titoloRiquadro4 = createDiv('Questions');
   titoloRiquadro4.position(xRiquadro2 + offsetTitolo, yRiquadro3Base);
   titoloRiquadro4.style('color', '#d58d3e');
@@ -229,7 +221,7 @@ function creaRiquadri() {
   titoloRiquadro4.style('padding', '0');
   titoloRiquadro4.style('z-index', '1000');
   
-  // --- Riquadro 4 ---
+  // Riquadro 4
   riquadro4 = createDiv();
   riquadro4.position(xRiquadro2, yRiquadro3Base + altezzaTitoloRiquadro + spaziaturaTitoloRiquadro);
   
@@ -237,17 +229,17 @@ function creaRiquadri() {
   riquadro4.style('width', larghezzaRiquadro + 'px');
   riquadro4.style('height', 'auto');
   riquadro4.style('min-height', '50px');
-  riquadro4.style('background-color', '#26231d');
-  riquadro4.style('border', '1px solid #eaead8');
+  riquadro4.style('background-color', palette.nero);
+  riquadro4.style('border', '1px solid' + palette.bianco);
   riquadro4.style('border-radius', '30px');
-  riquadro4.style('padding', '20px');
+  riquadro4.style('padding', '30px');
   riquadro4.style('box-sizing', 'border-box');
   riquadro4.style('z-index', '1000');
   
   // Contenuto del riquadro
   riquadro4.html(`
-    <div style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; font-size: 18px; line-height: 1.8;">
-      <p style="margin: 0 0 10px 0;"><strong style="font-family: 'NeueHaasDisplayBold', sans-serif; font-size: 17px;">POLITICAL RIGHTS</strong></p>
+    <div style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; font-size: 16px; line-height: 1.7;">
+      <p style="margin: 0 0 5px 0;"><strong style="font-family: 'NeueHaasDisplayBold', sans-serif; font-size: 17px;">POLITICAL RIGHTS</strong></p>
       <p style="margin: 0 0 5px 0;">A. Electoral Process</p>
       <p style="margin: 0 0 5px 0;">B. Political Pluralism & Participation</p>
       <p style="margin: 0 0 5px 0;">C. Functioning of Government</p>
@@ -255,7 +247,7 @@ function creaRiquadri() {
       <ul style="margin: 0 0 5px 0; padding-left: 20px;">
         <li>Is the government or occupying power deliberately changing the ethnic composition of a country or territory so as to destroy a culture or tip the political balance in favor of another group?</li>
       </ul>
-      <p style="margin: 0 0 5px 0;"><strong style="font-family: 'NeueHaasDisplayRoman', sans-serif; font-size: 17px;">CIVIL LIBERTIES</strong></p>
+      <p style="margin: 0 0 5px 0;"><strong style="font-family: 'NeueHaasDisplayRoman', sans-serif; font-size: 16px;">CIVIL LIBERTIES</strong></p>
       <p style="margin: 0 0 5px 0;">D. Freedom of Expression & Belief</p>
       <p style="margin: 0 0 5px 0;">E. Associational & Organizational Rights</p>
       <p style="margin: 0 0 5px 0;">F. Rule of Law</p>
@@ -264,6 +256,7 @@ function creaRiquadri() {
   `);
 }
 
+// Footer
 function creaFooter() {
   footer = createDiv();
   
@@ -291,13 +284,12 @@ function creaFooter() {
   footer.style('padding', '50px 110px');
   footer.style('box-sizing', 'border-box');
   footer.style('background-color', '#1b1914ff');
-  footer.style('color', '#eaead8');
+  footer.style('color', palette.bianco);
   footer.style('font-family', 'NeueHaasDisplayRoman, sans-serif');
   footer.style('font-size', '14px');
   footer.style('line-height', '22px');
   footer.style('z-index', '1000');
   footer.style('position', 'absolute');
-  footer.style('border-top', '0px solid #eaead8');
   
   footer.html(`
     <div style="display: flex; justify-content: space-between; gap: 80px; max-width: 1400px;">

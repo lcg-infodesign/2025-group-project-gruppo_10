@@ -1,14 +1,14 @@
-/* --- VARIABILI CSS --- */
+/*  VARIABILI CSS  */
 :root {
   --colore-sfondo: #26231d;
   --colore-testo-chiaro: #f4ebe1;
   --colore-testo-grigio: #a8a6a1;
 }
 
-/* --- RESET GLOBALE --- */
+/*  RESET GLOBALE  */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* --- FONT --- */
+/*  FONT  */
 
 @font-face {
   font-family: 'NeueHaasDisplay';
@@ -31,7 +31,7 @@
   font-style: normal;
 }
 
-/* --- BODY --- */
+/*  BODY  */
 body {
   font-family: 'NeueHaasDisplay';
   background-color: var(--colore-sfondo);
@@ -39,7 +39,7 @@ body {
   overflow-x: hidden;
 }
 
-/* --- BASE --- */
+/*  BASE  */
 #canvasContainer { 
   position: fixed; 
   top: 0; 
@@ -65,7 +65,7 @@ body {
   pointer-events: auto;
 }
 
-/* --- SEZIONE TITOLO --- */
+/*  SEZIONE TITOLO  */
 #sezione-titolo { 
   min-height: 150vh; 
 }
@@ -89,7 +89,7 @@ body {
   height: 100vh; 
 }
 
-/* --- SEZIONE SPIEGAZIONE --- */
+/*  SEZIONE SPIEGAZIONE  */
 #sezione-spiegazione {
   background-color: var(--colore-sfondo);
   padding-top: 15vh; 
@@ -155,7 +155,7 @@ body {
   margin-top: 1rem; 
 }
 
-/* --- SEZIONE CALCOLO --- */
+/*  SEZIONE CALCOLO  */
 #sezione-calcolo {
   background-color: var(--colore-sfondo);
   padding-top: 0; 
@@ -262,7 +262,7 @@ body {
   letter-spacing: 1px;
 }
 
-/* --- SEZIONE STATUA --- */
+/*  SEZIONE STATUA  */
 #statua-master-container {
   position: relative;
   display: flex;
@@ -400,7 +400,7 @@ body {
   box-shadow: 0 2px 10px rgba(47, 62, 70, 0.3); 
 }
 
-/* --- SEZIONE REGIONI --- */
+/*  SEZIONE REGIONI  */
 #sezione-regioni {
   background-color: var(--colore-sfondo);
   min-height: 100vh;
@@ -513,7 +513,7 @@ body {
   mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
 }
 
-/* --- SEZIONE FINALE --- */
+/*  SEZIONE FINALE  */
 #sezione-scopri {
   background-color: var(--colore-sfondo);
   text-align: center;
@@ -561,7 +561,7 @@ body {
   box-shadow: 0 15px 40px rgba(0,0,0,0.3);
 }
 
-/* --- UI OVERLAY --- */
+/*  UI OVERLAY  */
 #ui-overlay { 
   position: fixed; 
   top: 0; 
@@ -685,7 +685,7 @@ body {
   50% { transform: translateY(10px); opacity: 1; } 
 }
 
-/* --- SKIP INTRO BUTTON --- */
+/*  SKIP INTRO BUTTON  */
 .skip-btn {
   position: fixed;
   bottom: 30px;
@@ -716,7 +716,7 @@ body {
   pointer-events: none;
 }
 
-/* --- RESPONSIVE --- */
+/*  RESPONSIVE  */
 @media (max-width: 768px) {
   .titolo-principale { font-size: 1.8rem; }
   .grid-domande { flex-direction: column; gap: 2rem; }
@@ -732,7 +732,7 @@ body {
   .btn-scopri { font-size: 1.1rem; padding: 14px 32px; }
 }
 
-/* --- ANIMAZIONI PALLINI --- */
+/*  ANIMAZIONI PALLINI  */
 
 /* Effetto galleggiamento per i cerchi superiori */
 @keyframes float {

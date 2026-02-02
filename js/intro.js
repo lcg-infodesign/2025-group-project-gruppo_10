@@ -1,4 +1,4 @@
-// --- VARIABILI GLOBALI ---
+// Variabili globali
 let font;
 let alone;
 let offsetSferaY = 0;
@@ -7,44 +7,35 @@ let canInteract = false;
 let interactionStarted = false;
 let typewriterCompleted = false;
 
-// Force scroll to top on page load/refresh
-if ('scrollRestoration' in history) {
-  history.scrollRestoration = 'manual';
-}
-
-window.addEventListener('beforeunload', () => {
-  window.scrollTo(0, 0);
-});
-
-// --- SETUP ---
 function setup() {
-  // CRITICAL: Reset state variables first
+  // Resetta prima le variabili di stato
   offsetSferaY = 0;
   canInteract = false;
   interactionStarted = false;
   typewriterCompleted = false;
   
-  // CRITICAL: Force scroll to top BEFORE any other initialization
+  // Forza lo scroll in alto PRIMA di qualsiasi altra inizializzazione
   window.scrollTo(0, 0);
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
   
-  // Canvas Setup
   let canvas = createCanvas(windowWidth, windowHeight);
   canvas.parent('canvasContainer');
   
-  // Kill any existing GSAP animations
+  // Ferma eventuali animazioni GSAP esistenti
   gsap.killTweensOf("*");
   
+  // Inizializza l'animazione "alone"
   alone = new AloneAnimato();
   alone.accendi(); 
   
+  // Registra il plugin ScrollTrigger di GSAP
   gsap.registerPlugin(ScrollTrigger);
   
-  // Clear any existing ScrollTriggers
+  // Pulisce eventuali ScrollTrigger esistenti
   ScrollTrigger.getAll().forEach(trigger => trigger.kill());
   
-  // Initialize with a small delay to ensure scroll position is reset
+  // Inizializzazione con un piccolo ritardo per assicurarsi che la posizione dello scroll sia resettata
   setTimeout(() => {
     initLenis();
     setupScrollAnimations();
@@ -52,7 +43,6 @@ function setup() {
   }, 100);
 }
 
-// --- INIZIALIZZAZIONE LENIS ---
 function initLenis() { 
   lenis = new Lenis({
     duration: 1.2, 
@@ -69,18 +59,17 @@ function initLenis() {
   gsap.ticker.lagSmoothing(0); 
 }
 
-// --- SETUP SCROLL ANIMATIONS ---
+// Animazioni scroll
 function setupScrollAnimations() {
   const skipBtn = document.getElementById('skip-intro');
   const scrollInd = document.querySelector('.scroll-indicator');
   const uiOverlay = document.getElementById('ui-overlay');
 
-  // Reset UI overlay position and visibility
   gsap.set(uiOverlay, { opacity: 0, pointerEvents: 'none' });
-  uiOverlay.style.display = 'none'; // Start completely hidden
+  uiOverlay.style.display = 'none';
   gsap.set('#final-cta-container', { opacity: 0, y: 10 });
   
-  // Hide skip button initially
+  // Nascondi bottone skip inizialmente
   gsap.set(skipBtn, { opacity: 0, pointerEvents: 'none' });
   
   // Apparizione iniziale indicatori
@@ -103,7 +92,7 @@ function setupScrollAnimations() {
     }
   });
 
-  // --- 1. ANIMAZIONI SCROLL (P5.JS + GSAP) ---
+  // ANIMAZIONI SCROLL
 
   // Spegnimento alone (sezione titolo)
   ScrollTrigger.create({
@@ -148,7 +137,7 @@ function setupScrollAnimations() {
       if (!interactionStarted && !typewriterCompleted) {
         lenis.stop(); 
         canInteract = true;
-        uiOverlay.style.display = 'flex'; // Show overlay first
+        uiOverlay.style.display = 'flex';
         uiOverlay.style.pointerEvents = 'auto'; 
         gsap.to(uiOverlay, { opacity: 1, duration: 1 });
         gsap.to(scrollInd, { opacity: 0, duration: 0.5 });
@@ -167,7 +156,7 @@ function setupScrollAnimations() {
       }, 500);
       gsap.to(scrollInd, { opacity: 1, duration: 0.5 });
       
-      // Hide skip button when leaving typewriter section backwards
+      // Nascondi il pulsante "skip" quando si torna indietro dalla sezione del typewriter
       gsap.to(skipBtn, { opacity: 0, pointerEvents: 'none', duration: 0.5 });
       canInteract = false;
     }
@@ -211,7 +200,6 @@ function setupScrollAnimations() {
         let newOpacity = 1 - self.progress;
         gsap.to(uiOverlay, { opacity: newOpacity, duration: 0.1 });
         
-        // Completely remove overlay from interaction when fully faded
         if (self.progress > 0.9) {
           uiOverlay.style.display = 'none';
         } else {
@@ -229,8 +217,7 @@ function setupScrollAnimations() {
     }
   });
 
-  // --- 2. ANIMAZIONE STATUA ---
-  
+  // Animazione statua
   let tlStatuaColore = gsap.timeline({
     scrollTrigger: {
       trigger: "#statua-master-container",
@@ -282,8 +269,7 @@ function setupScrollAnimations() {
     }
   );
 
-  // --- 3. SEZIONE REGIONI & FINALE ---
-
+  // Sezioni regioni e finale
   gsap.from(".fiamma", {
     height: 0,
     stagger: 0.15,
@@ -310,8 +296,7 @@ function setupScrollAnimations() {
     }
   });
 
-  // --- 4. GESTIONE SKIP INTRO ---
-
+  // Gestione skip intro
   skipBtn.addEventListener('click', () => {
     interactionStarted = true;
     typewriterCompleted = true;
@@ -322,7 +307,7 @@ function setupScrollAnimations() {
       duration: 0.5, 
       onComplete: () => {
         uiOverlay.style.pointerEvents = 'none';
-        uiOverlay.style.display = 'none'; // Hide completely
+        uiOverlay.style.display = 'none';
       }
     });
 
@@ -342,7 +327,12 @@ function setupScrollAnimations() {
   });
 }
 
-// --- SETUP UI HANDLERS ---
+function draw() { 
+  background(palette.nero); 
+  alone.disegna(width / 2, height / 2 + offsetSferaY); 
+}
+
+// Setup UI Handlers
 function setupUIHandlers() {
   const clickPrompt = document.getElementById('click-prompt');
   
@@ -362,7 +352,7 @@ function setupUIHandlers() {
   });
 }
 
-// --- TYPEWRITER LOGIC ---
+// Logica typewriter
 async function startComplexTypewriter() {
   if (typewriterCompleted) return; 
   
@@ -378,7 +368,7 @@ async function startComplexTypewriter() {
   
   typewriterCompleted = true;
   
-  // Show skip button after typewriter completes
+  // Mostra il bottone skip dopo che ha finito di scrivere
   gsap.to(skipBtn, { 
     opacity: 1, 
     pointerEvents: 'auto', 
@@ -398,7 +388,7 @@ async function startComplexTypewriter() {
   });
 }
 
-// --- HELPER FUNCTIONS ---
+// Funzioni di supporto
 function typeText(e, t, s) { 
   return new Promise(r => { 
     let i = 0; 
@@ -431,13 +421,15 @@ function wait(ms) {
   return new Promise(r => setTimeout(r, ms)); 
 }
 
-// --- P5.JS DRAW ---
-function draw() { 
-  background(palette.nero); 
-  alone.disegna(width / 2, height / 2 + offsetSferaY); 
+// Forza lo scroll in alto al caricamento o al refresh della pagina
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
 }
 
-// --- WINDOW RESIZE ---
+window.addEventListener('beforeunload', () => {
+  window.scrollTo(0, 0);
+});
+
 function windowResized() { 
   resizeCanvas(windowWidth, windowHeight); 
   ScrollTrigger.refresh(); 

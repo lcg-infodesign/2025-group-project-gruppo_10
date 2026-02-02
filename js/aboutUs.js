@@ -1,14 +1,15 @@
 // variabili globali
 let data;
+let titolo; 
+let footer;
 
-// variabili per font
+// Font
 let fontRegular, fontMedium, fontBold;
 
-// variabili per bottoni
-let iconaAboutUs, iconaAboutFh, iconaHome, iconaLente, iconaClose; // icone generali
-let iconaArrLeft; // icone frecce
+// Icone
+let iconaAboutUs, iconaAboutFh, iconaHome;
+let iconaArrLeft;
 
-let titolo;
 let testoIntro;
 let testiRettangoli = [];
 let ritratti = [];
@@ -19,26 +20,23 @@ let offsetXimg = [];
 let hoverIndex = -1;
 let scaleAmount = [];
 
-let footer;
-
 function preload() {
   data = loadTable("../assets/FH_dataset.csv", "csv", "header"); // caricamento del dataset (con header)
-  // font
+  // Font
   fontRegular = loadFont("../font/NeueHaasDisplayRoman.ttf");
   fontMedium = loadFont("../font/NeueHaasDisplayMedium.ttf");
   fontBold = loadFont("../font/NeueHaasDisplayBold.ttf");
-  // icone
+  // Icone
   iconaHome = loadImage("../img/icone/home.png");
   iconaAboutFh = loadImage("../img/icone/info.png");
   iconaArrLeft = loadImage("../img/icone/frecce/arrowleft.png");
-  // ritratti
+  // Ritratti
   ritratti.push(loadImage("../img/ritratti/Besenzoni.png")); // Besenzoni
   ritratti.push(loadImage("../img/ritratti/Franchi.png")); // Franchi
   ritratti.push(loadImage("../img/ritratti/Marozzi.png")); // Marozzi
   ritratti.push(loadImage("../img/ritratti/Preioni.png")); // Preioni
   ritratti.push(loadImage("../img/ritratti/Soraruf.png")); // Soraruf
   ritratti.push(loadImage("../img/ritratti/Zanotto.png")); // Zanotto
-
   // Offset verticale (Y)
   offsetY.push(-20);
   offsetY.push(-40);
@@ -78,20 +76,51 @@ function setup() {
   creaTestiRettangoli();
   creaFooter();
 
-  // bottoni
-  creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back()); // bottone per tornare indietro
-  creaBottoneStandard(width - diametro - margine, margine, iconaAboutFh, '../html/aboutFreedomHouse.html'); // bottone Freedom House in alto a destra
-  creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaHome, '../index.html'); // bottone About Us a sinistra del primo
+  // Bottoni
+  creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back());
+  creaBottoneStandard(width - diametro - margine, margine, iconaAboutFh, '../html/aboutFreedomHouse.html'); 
+  creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaHome, '../index.html'); 
 }
 }
 
 function draw() {
   background(palette.nero);
-disegnaRettangoli();
-  cursor(ARROW); // Reset cursore
+  disegnaRettangoli();
+  cursor(ARROW);
 }
 
-// --- DISEGNA RETTANGOLI ---
+// Titolo
+function creaTitolo() {
+  titolo = createElement('h1', 'About us');
+  titolo.position(110, 35);
+  titolo.style('color', palette.bianco);
+  titolo.style('font-family', 'NeueHaasDisplay, sans-serif');
+  titolo.style('font-weight', "500");
+  titolo.style('font-size', '70px');
+  titolo.style('margin', '0');
+  titolo.style('padding', '0');
+  titolo.style('line-height', '60px');
+  titolo.style('z-index', '1000');
+  titolo.style('position', 'absolute');
+}
+
+// Testo Introduttivo
+function creaTestoIntroduttivo() {
+  testoIntro = createP('We are a group of students at the Design department of Politecnico di Milano. We have chosen to address the theme of freedom and democracy in the world, concerned about the increasing cases of violations. Through this analysis, we want to inform and raise awareness so that we can contribute to change.');
+  testoIntro.position(110, 120);
+  testoIntro.style('color', palette.bianco);
+  testoIntro.style('font-family', 'NeueHaasDisplay, sans-serif');
+  testoIntro.style('font-weight', "400");
+  testoIntro.style('font-size', '17px');
+  testoIntro.style('margin', '0');
+  testoIntro.style('padding', '0');
+  testoIntro.style('line-height', '24px');
+  testoIntro.style('max-width', '1000px');
+  testoIntro.style('z-index', '1000');
+  testoIntro.style('position', 'absolute');
+}
+
+// Disegna rettangoli
 function disegnaRettangoli() {
   const numColonne = 3;
   const numRighe = 2;
@@ -184,60 +213,15 @@ function disegnaRettangoli() {
   }
 }
 
-// --- RIDIMENSIONAMENTO ---
-function windowResized() {
-  const margineTop = 320;
-  const margineBottom = 400;
-  const spaziaturaV = 170;
-  const altezzaRett = 280;
-  const numRighe = 2;
-
-  const altezzaTotale = margineTop + (altezzaRett * numRighe) + (spaziaturaV * (numRighe - 1)) + margineBottom + 100;
-
-  resizeCanvas(windowWidth, max(windowHeight, altezzaTotale));
-  riposizionaElementiDOM();
-}
-
-// --- TITOLO ---
-function creaTitolo() {
-  titolo = createElement('h1', 'About us');
-  titolo.position(110, 35);
-  titolo.style('color', '#eaead8');
-  titolo.style('font-family', 'NeueHaasDisplay, sans-serif');
-  titolo.style('font-weight', "500");
-  titolo.style('font-size', '70px');
-  titolo.style('margin', '0');
-  titolo.style('padding', '0');
-  titolo.style('line-height', '60px');
-  titolo.style('z-index', '1000');
-  titolo.style('position', 'absolute');
-}
-
-// --- TESTO INTRODUTTIVO ---
-function creaTestoIntroduttivo() {
-  testoIntro = createP('We are a group of students at the Design department of Politecnico di Milano. We have chosen to address the theme of freedom and democracy in the world, concerned about the increasing cases of violations. Through this analysis, we want to inform and raise awareness so that we can contribute to change.');
-  testoIntro.position(110, 120);
-  testoIntro.style('color', '#eaead8');
-  testoIntro.style('font-family', 'NeueHaasDisplay, sans-serif');
-  testoIntro.style('font-weight', "400");
-  testoIntro.style('font-size', '17px');
-  testoIntro.style('margin', '0');
-  testoIntro.style('padding', '0');
-  testoIntro.style('line-height', '24px');
-  testoIntro.style('max-width', '1000px');
-  testoIntro.style('z-index', '1000');
-  testoIntro.style('position', 'absolute');
-}
-
-// --- TESTI SOTTO RETTANGOLI ---
+// Testi sotto rettangoli
 function creaTestiRettangoli() {
   const testiContent = [
-    '<span style="font-size: 19px;"><strong>Federica Besenzoni</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Pagina di dettaglio sulla variazione di libertà per i singoli Paesi</span>',
-    '<span style="font-size: 19px;"><strong>Vittoria Franchi</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Stesura testi e pagine extra</span>',
-    '<span style="font-size: 19px;"><strong>Asia Marozzi</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Visualizzazione generale e del dettaglio delle regioni</span>',
-    '<span style="font-size: 19px;"><strong>Aurora Preioni</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Pagina di dettaglio dei singoli Paesi</span>',
-    '<span style="font-size: 19px;"><strong>Jasmin Soraruf</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Illustrazioni e analisi del dataset</span>',
-    '<span style="font-size: 19px;"><strong>Sheetal Zanotto</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Pagina di introduzione al progetto</span>'
+    '<span style="font-size: 19px;"><strong>Federica Besenzoni</strong></span><br><span style="font-size: 15px;">Coding</span>',
+    '<span style="font-size: 19px;"><strong>Vittoria Franchi</strong></span><br><span style="font-size: 16px;">Coding and information researcher</span>',
+    '<span style="font-size: 19px;"><strong>Asia Marozzi</strong></span><br><span style="font-size: 16px;">Coding and debugging</span>',
+    '<span style="font-size: 19px;"><strong>Aurora Preioni</strong></span><br><span style="font-size: 16px;">Coding</span>',
+    '<span style="font-size: 19px;"><strong>Jasmin Soraruf</strong></span><br><span style="font-size: 16px;">Illustrator and content researcher</span>',
+    '<span style="font-size: 19px;"><strong>Sheetal Zanotto</strong></span><br><span style="font-size: 16px;">Coding</span>'
   ];
 
   for (let i = 0; i < testiContent.length; i++) {
@@ -255,8 +239,7 @@ function creaTestiRettangoli() {
   }
 }
 
-// --- FOOTER ---
-
+// Footer
 function creaFooter() {
   footer = createDiv();
   
@@ -364,12 +347,15 @@ function riposizionaElementiDOM() {
   }
 }
 
-function riposizionaElementiDOM() {
-  titolo.position(110, 35);
-  testoIntro.position(110, 100);
-  
-  if (footer) {
-    const footerY = height - 350;
-    footer.position(0, footerY);
-  }
+function windowResized() {
+  const margineTop = 320;
+  const margineBottom = 400;
+  const spaziaturaV = 170;
+  const altezzaRett = 280;
+  const numRighe = 2;
+
+  const altezzaTotale = margineTop + (altezzaRett * numRighe) + (spaziaturaV * (numRighe - 1)) + margineBottom + 100;
+
+  resizeCanvas(windowWidth, max(windowHeight, altezzaTotale));
+  riposizionaElementiDOM();
 }
