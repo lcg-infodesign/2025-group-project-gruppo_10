@@ -118,13 +118,10 @@ body {
   justify-content: center; 
   gap: 4rem; 
   width: 100%; 
-  flex-wrap: wrap; 
-  font-size: 4rem;
-  font-weight: 300;
+  flex-wrap: wrap;
 }
 
 .colonna-domanda { 
-  font-size: 3.5rem;
   display: flex; 
   flex-direction: column; 
   align-items: center; 
@@ -145,7 +142,8 @@ body {
 .cerchio-colorato.rosso { background-color: #c76351; }
 
 .colonna-domanda p { 
-  font-size: 1.1rem; 
+  font-size: 1.5rem; 
+  font-weight: 300;
   color: var(--colore-testo-grigio); 
   line-height: 1.25; 
 }
@@ -370,13 +368,12 @@ body {
   display: flex;
   flex-direction: column;
   font-size: 2.2rem;
-  line-height: 1.4;
+  line-height: 2.5rem;
 }
 
 .legenda-item {
   display: flex;
   align-items: center;
-  gap: 10px;
   flex-wrap: wrap;
   color: #f4ebe1;
   font-weight: 300;
@@ -390,6 +387,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 1px;
   color: #000000;
+  margin: 0 12px;
 }
 
 .badge.free { 
@@ -454,7 +452,7 @@ body {
 }
 
 .sub-stella {
-  font-size: 2.1rem;
+  font-size: 1.5rem;
   font-weight: 300;
   color: var(--colore-testo-grigio);
   margin-top: 5px;
@@ -526,7 +524,6 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   pointer-events: auto;
 }
-
 
 .btn-scopri:hover {
   transform: scale(1.05);
