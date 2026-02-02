@@ -166,7 +166,7 @@ let panelQuestions = [
 
 //VARIABILI OVERVIEWCHART
 let overviewExpanded = false; // mini / fullscreen
-let overviewBox = null; // area cliccabile
+let overviewBox = null;
 // dati per grafico overview (tutti gli anni del paese)
 let countryData = [];
 // paddind di Overview
