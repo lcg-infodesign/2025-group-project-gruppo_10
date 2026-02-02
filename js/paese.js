@@ -1961,7 +1961,7 @@ function drawOverviewMini() {
   stroke(palette.bianco);
   fill(palette.nero);
   
-  rect(x, y, w, h, 20);
+  rect(x, y-10, w, h+35, 20);
   fill(palette.bianco);
 
   // icona fullscreen in alto a destra del mini box
@@ -1971,7 +1971,7 @@ imageMode(CORNER);
 image(
   iconaFull,
   x + w - fullPad - fullSize,
-  y + fullPad,
+  y + fullPad-10,
   fullSize,
   fullSize
 );
@@ -1980,7 +1980,8 @@ image(
   //per scalare correttamente 
   const sx = w / width;
   const sy = h / height;
-  const innerYOffset = -20;//margine grafico -rettangol o
+  const innerYOffset = -10;//margine grafico -rettangol o
+  
 
   push();
   translate(
@@ -1995,6 +1996,9 @@ image(
   } else {
     drawOverviewChartMini(chartData);
   }
+
+
+
   
   pop();
 
@@ -2014,26 +2018,24 @@ image(
 
 
 
-push();
-fill(palette.bianco);
-noStroke();
-textFont(fontMedium);
-textSize(14);
-textAlign(LEFT, CENTER);
+if (hasContextInsight()) {
+  push();
+  fill(palette.bianco);
+  noStroke();
+  textFont(fontRegular);
+  textSize(14);
+  textAlign(LEFT, CENTER);
 
-const labelX = overviewBox.expandIcon.x + 14;
-const labelY = overviewBox.expandIcon.y;
+  const labelX = overviewBox.expandIcon.x + 14;
+  const labelY = overviewBox.expandIcon.y;
 
-const starSize = 14;
-imageMode(CENTER);
-image(iconaStar, labelX + starSize/2, labelY, starSize, starSize);
+  const starSize = 26;
+  imageMode(CENTER);
+  image(iconaStar, labelX + starSize/2 - 30, labelY + 30, starSize, starSize);
 
-text("context insight", labelX + starSize + 8, labelY);
-
-pop();
-
-
-
+  text("Context Insight", labelX + starSize/2 - 12, labelY + 29);
+  pop();
+}
 }
 
 function drawOverviewChartMini(data) {
@@ -2101,10 +2103,10 @@ function drawOverviewChartMini(data) {
 
     // etichetta anno ruotata
     push();
-    translate(xStart + barW/2, yBase + 40);
+    translate(xStart + barW/2, yBase + 90);
     rotate(-HALF_PI);
     textAlign(CENTER, CENTER);
-    textSize(35*scale);
+    textSize(50*scale);
     textFont(fontRegular);
     fill(200);
     text(d.year, 0, 0);
@@ -2374,7 +2376,7 @@ function drawOverviewText() {
   const gap = 10;
 
   // y ancorato dal basso (titolo + gap + testo)
-  const y = tagsTopY - textH - titleH - gap - 40;
+  const y = tagsTopY - textH - titleH - gap - 10;
 
   // TITOLO
   push();
@@ -2384,9 +2386,21 @@ function drawOverviewText() {
   noStroke();
   textAlign(LEFT, TOP);
   text("CONTEXT INSIGHT", x, y);
+
+  const starSize = 30;
+const titleW = textWidth("CONTEXT INSIGHT");
+
+imageMode(CORNER);
+image(
+  iconaStar,
+  x -40, // distanza a destra del titolo
+  y -7,           // piccolo allineamento verticale
+  starSize,
+  starSize
+);
   pop();
 
-  // ===== PARAGRAFO =====
+  // PARAGRAFO
   drawCountryText(
     countryName,
     x,
@@ -2941,4 +2955,11 @@ function drawParamsLegendSmall() {
 
     y += rowH;
   }
+}
+
+//MOSTARE CONTEXT INS SOLO QUANDO LO STATO HA UN CONTEXT INS
+function hasContextInsight() {
+  let key = normalizeCountryName(countryName);
+  let testo = countryTexts[key] || "";
+  return testo.trim().length > 0;
 }
