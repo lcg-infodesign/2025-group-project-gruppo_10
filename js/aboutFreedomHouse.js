@@ -66,7 +66,7 @@ function draw() {
 
 // il titolo
 function creaTitolo() {
-  titolo = createElement('h1', 'Freedom House');
+  titolo = createElement('h1', 'About Freedom House');
   titolo.position(110, 35);
   
   // Stile del titolo
