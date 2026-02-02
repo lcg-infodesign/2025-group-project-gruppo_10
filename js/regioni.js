@@ -914,7 +914,7 @@ function disegnaTorciaRegione() {
 
 function drawBoxes() {
   let padding = 30;
-  let interlinea = 22; 
+  let interlinea = 20; 
   let raggio = 30;
   let testoLarghezza = boxW - (padding * 2);
 

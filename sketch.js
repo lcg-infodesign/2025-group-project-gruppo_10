@@ -260,6 +260,7 @@ function aggiornaStileBottoneFiltro(bottone, attivo, colori) {
     btnElt.style.borderColor = '';
     btnElt.style.opacity = '1';
     btnElt.style.color = palette.nero;
+    btnElt.style.border = 'none';
     
   } else {
     // STATO INATTIVO: Nero con bordo bianco
