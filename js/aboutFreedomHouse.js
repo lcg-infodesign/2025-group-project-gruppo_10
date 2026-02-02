@@ -82,9 +82,9 @@ function creaTitolo() {
 // funzione per creare i riquadri informativi
 
 function creaRiquadri() {
-  const margine = 25;
+  const margine = 110;
   const yInizio = 30 + 60 + 60;
-  const spaziaturaRiquadri = 50;
+  const spaziaturaRiquadri = 80;
   const altezzaTitoloRiquadro = 65; 
   const spaziaturaTitoloRiquadro = 8;
   const offsetTitolo = 30;
@@ -115,19 +115,19 @@ function creaRiquadri() {
   riquadro1.style('background-color', '#26231d');
   riquadro1.style('border', '1px solid #eaead8');
   riquadro1.style('border-radius', '30px');
-  riquadro1.style('padding', '20px');
+  riquadro1.style('padding', '30px');
   riquadro1.style('box-sizing', 'border-box');
   riquadro1.style('z-index', '1000');
   
   // Contenuto del riquadro
   riquadro1.html(`
-    <p style="color: #eaead8; font-family: 'NeueHaasDisplayRoman', sans-serif; margin: 0; font-size: 16px; line-height: 1.7;">
+    <p style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; margin: 0; font-size: 16px; line-height: 1.7;">
       Freedom House was founded in <strong>1941</strong> by <strong>Wendell Willkie</strong> to counter the advancement of Nazi Germany and raise awareness about the 
       threat it posed. Today, Freedom House is an <strong>international non-governmental organization</strong> based in <strong>Washington D.C.</strong>, led by 
-      <strong>Gerardo Berthin</strong> and <strong>Annie Wilcox Boyajian</strong>. The organization is supported, as evidenced by its financial reports, by funding 
+      <strong>Gerardo Berthin</strong> and <strong>Annie Wilcox Boyajian</strong>. The organization is supported, from its financial reports, by funding 
       that comes <strong>90%</strong> from the <strong>federal government of the United States of America</strong>. Despite this, Freedom House's vision remains 
       independent and its commitment to <strong>objectivity</strong> stays constant. To date, FH is the leading American organization dedicated to 
-      supporting and defending democracy worldwide. Through accurate data and analysis, it systematically monitors the most urgent 
+      supporting and defending democracy worldwide. Through accurate data and analysis, it monitors the most urgent 
       threats and promotes policies that strengthen democracy and protect human rights. It also <strong>actively collaborates with activists</strong> 
       who strengthen the credibility of its work and bring issues to prominent institutional spaces, such as the United Nations and 
       the United States Congress. When necessary, Freedom House works to <strong>protect these individuals</strong> if they are persecuted for their ideas.
@@ -156,13 +156,13 @@ function creaRiquadri() {
   riquadro2.style('background-color', '#26231d');
   riquadro2.style('border', '1px solid #eaead8');
   riquadro2.style('border-radius', '30px');
-  riquadro2.style('padding', '20px');
+  riquadro2.style('padding', '30px');
   riquadro2.style('box-sizing', 'border-box');
   riquadro2.style('z-index', '1000');
   
   // Contenuto del riquadro
   riquadro2.html(`
-    <p style="color: #eaead8; font-family: 'NeueHaasDisplayRoman', sans-serif; margin: 0; font-size: 16px; line-height: 1.7;">
+    <p style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; margin: 0; font-size: 16px; line-height: 1.7;">
       "Freedom in the World" is produced annually by a team of <strong>approximately 60 specialists</strong>: internal and 
       external analysts, academic consultants, and human rights experts. The method is based on assessments that answer <strong>twenty-five 
       questions</strong> for each country. FH analyzes <strong>two macro-aspects</strong>: <strong>political rights</strong>, which concern citizens' participation in the 
@@ -201,13 +201,13 @@ function creaRiquadri() {
   riquadro3.style('background-color', '#26231d');
   riquadro3.style('border', '1px solid #eaead8');
   riquadro3.style('border-radius', '30px');
-  riquadro3.style('padding', '20px');
+  riquadro3.style('padding', '30px');
   riquadro3.style('box-sizing', 'border-box');
   riquadro3.style('z-index', '1000');
   
   // Contenuto del riquadro
   riquadro3.html(`
-    <p style="color: #eaead8; font-family: 'NeueHaasDisplayRoman', sans-serif; margin: 0; font-size: 16px; line-height: 1.7;">
+    <p style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; margin: 0; font-size: 16px; line-height: 1.7;">
       Freedom House does not specifically calculate <strong>how democratic a state is</strong>, but rather focuses on measuring the degree of freedom 
       in each country. Assessing the state of democracy in a country is complex, partly because citizens' opinions vary and even 
       experts' assessments can be <strong>subjective on certain aspects</strong>. Nevertheless, various analyses agree on the significant differences 
@@ -215,7 +215,7 @@ function creaRiquadri() {
       Countries are further classified as <strong>Free, Partly Free, and Not Free</strong>. In the first category, citizens enjoy <strong>full political rights and 
      civil liberties</strong>, elections are free, the press is independent, and the rule of law is upheld. In the second, freedoms are <strong>guaranteed 
      but with significant limitations</strong>: corruption, pressure on the media, and elections not fully transparent. In the most 
-     restrictive category, political rights and civil liberties are <strong>severely repressed</strong>, regimes are authoritarian.
+     restrictive category, political rights and civil liberties are <strong>severely repressed</strong>, regimes are authoritarian with an absence of free elections and censorship.
     </p>
   `);
 
@@ -240,14 +240,14 @@ function creaRiquadri() {
   riquadro4.style('background-color', '#26231d');
   riquadro4.style('border', '1px solid #eaead8');
   riquadro4.style('border-radius', '30px');
-  riquadro4.style('padding', '20px');
+  riquadro4.style('padding', '30px');
   riquadro4.style('box-sizing', 'border-box');
   riquadro4.style('z-index', '1000');
   
   // Contenuto del riquadro
   riquadro4.html(`
-    <div style="color: #eaead8; font-family: 'NeueHaasDisplayRoman', sans-serif; font-size: 16px; line-height: 1.7;">
-      <p style="margin: 0 0 10px 0;"><strong style="font-family: 'NeueHaasDisplayBold', sans-serif; font-size: 17px;">POLITICAL RIGHTS</strong></p>
+    <div style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; font-size: 16px; line-height: 1.7;">
+      <p style="margin: 0 0 5px 0;"><strong style="font-family: 'NeueHaasDisplayBold', sans-serif; font-size: 17px;">POLITICAL RIGHTS</strong></p>
       <p style="margin: 0 0 5px 0;">A. Electoral Process</p>
       <p style="margin: 0 0 5px 0;">B. Political Pluralism & Participation</p>
       <p style="margin: 0 0 5px 0;">C. Functioning of Government</p>
@@ -255,7 +255,7 @@ function creaRiquadri() {
       <ul style="margin: 0 0 5px 0; padding-left: 20px;">
         <li>Is the government or occupying power deliberately changing the ethnic composition of a country or territory so as to destroy a culture or tip the political balance in favor of another group?</li>
       </ul>
-      <p style="margin: 0 0 5px 0;"><strong style="font-family: 'NeueHaasDisplayRoman', sans-serif; font-size: 17px;">CIVIL LIBERTIES</strong></p>
+      <p style="margin: 0 0 5px 0;"><strong style="font-family: 'NeueHaasDisplayRoman', sans-serif; font-size: 16px;">CIVIL LIBERTIES</strong></p>
       <p style="margin: 0 0 5px 0;">D. Freedom of Expression & Belief</p>
       <p style="margin: 0 0 5px 0;">E. Associational & Organizational Rights</p>
       <p style="margin: 0 0 5px 0;">F. Rule of Law</p>
