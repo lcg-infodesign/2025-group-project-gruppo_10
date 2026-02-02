@@ -7,6 +7,7 @@ let fontRegular, fontMedium, fontBold;
 // variabili per bottoni
 let iconaAboutUs, iconaAboutFh, iconaHome, iconaLente, iconaClose; // icone generali
 let iconaArrLeft; // icone frecce
+let btnBack, btnAboutFH, btnAboutUs; // Variabili globali
 
 // variabili per responsiveness
 let graficoWidth;
@@ -158,6 +159,112 @@ let panelQuestions = [
   ]
 ];
 
+//VARIABILI OVERVIEWCHART
+let overviewExpanded = false;   // mini / fullscreen
+let overviewBox = null;         // area cliccabile
+// dati per grafico overview (tutti gli anni del paese)
+let countryData = [];
+// paddind di Overview
+let padding = 100;
+let bottomPadding = 60;
+let topPadding = 60;
+let textPadding = 70;
+
+
+
+//colori status di Overview
+let coloriStatus = {
+  'F':  ["#c76351", "#d58d3e", "#26231d"],   // Free
+  'PF': ["#e5c38f", "#cad181", "#26231d"],   // Partly Free
+  'NF': ["#75a099", "#91a2a6", "#26231d"],   // Not Free
+};
+
+//status per targhetta
+const statusLabels = {
+  F:  "FREE",
+  PF: "PARTIALLY FREE",
+  NF: "NOT FREE"
+};
+
+//colore linea 0 per overviewnegativo
+let lineColor = "#eaead8";
+//toggle default
+let viewMode = "overview"; // oppure "parameters"
+// X per chiudere grafico extended
+let overviewCloseBox = null;
+//varuiabili per toggle grafico expanded
+let toggleBox = null;
+//parametri per il DotChart
+let params = [
+  "Total A",
+  "Total B",
+  "Total C",
+  "Total D",
+  "Total E",
+  "Total F",
+  "Total G",
+  "Add A"
+];
+//paragrafi
+// testi dei paesi
+const countryTexts = {
+    //africa
+    benin: "Benin’s status declined from Free to Partly Free because a new electoral code and a series of decisions by the courts, electoral authorities, and the government resulted in the exclusion of all opposition parties from the April 2019 parliamentary elections.",
+    burkinafaso: "Burkina Faso’s status declined from Partly Free to Not Free due to the effects of two successive military coups, including the suspension of the constitution and dissolution of the legislature, and an expanding conflict with Islamist militant groups.",
+    burundi: "After a brief decline in violence following the 2010 and 2011 peak, 2014 saw renewed intimidation and attacks against the opposition and civil society by the ruling party’s youth wing. Freedom of expression and the press were further restricted, including through a new repressive media law. The secret arrest of a journalist highlighted the dramatic shrinking of democratic space.",
+    centralafricanrepublic: "The Central African Republic's political rights rating declined from 5 to 7, its civil liberties rating declined from 5 to 7, and its status declined from Partly Free to Not Free due to the Séléka rebel group's ouster of the incumbent president and legislature, the suspension of the constitution, and a general proliferation of violence by criminal bands and militias, spurring clashes between Muslim and Christian communities.",
+    egypt:"Since taking power in a 2013 coup, President Abdel Fattah al-Sisi has tightened his authoritarian grip on Egypt. Political opposition has been effectively eliminated, with dissent leading to prosecution and imprisonment. Civil liberties, especially press freedom and freedom of assembly, are severely restricted. Security forces commit human rights abuses with impunity, while discrimination and gender-based violence remain widespread.",
+    guinea: "Guinea’s status declined from Partly Free to Not Free because military commanders seized power in a coup, removing President Alpha Condé and dissolving the legislature.",
+    guineabissau: "Guinea-Bissau’s political rights rating improved and its status shifted from Not Free to Partly Free because the 2014 elections, the first since the 2012 coup, were considered free and fair by both international and national observers, allowing the opposition to compete and increase its participation in government. However, the police continue to disrupt some demonstrations, and corruption remains a major problem, aggravated by the influence of organized criminal networks, including drug trafficking.",
+    lesotho: "Lesotho’s political rights rating declined from 2 to 3, and its status shifted from Free to Partly Free due to ongoing instability following the failed 2014 coup attempt. It later improved from Partly Free to Free thanks to the formation of a new government after competitive parliamentary elections, though the country continues to face serious security and governance challenges.",
+    libya:"Libya’s political rights and civil liberties ratings declined, and its status shifted from Partly Free to Not Free due to the country’s descent into civil war. The conflict triggered a humanitarian crisis as citizens fled embattled cities, and it increased pressure on civil society and media outlets amid growing political polarization.",
+    mali:"After a period of democratization that began in the early 1990s, Mali showed growing signs of institutional fragility. The crisis erupted in 2012 with a military coup and an armed rebellion in the north. Despite a return to constitutional order in 2015, insecurity and political tensions persisted, culminating in two additional military coups in 2020 and 2021. These events pushed the country toward a much less free and stable status.",
+    mauritania: "Mauritania’s status improved from Not Free to Partly Free due to a relatively credible presidential election that resulted in the country’s first peaceful transfer of power after the incumbent completed his term, signaling a departure from a history of military coups.",
+    niger: "Niger’s status declined from Partly Free to Not Free because the junta restricted media freedom, weakened due process, and dissolved local councils, which had been among the country’s few remaining elected institutions.",
+    senegal: "Senegal moved from Free to Partly Free in 2020 because the 2019 presidential election excluded two major opposition leaders through politically charged convictions. In 2025, the country returned to Free after democratic institutions blocked an attempt to delay the election, and an opposition coalition won both the presidency and a parliamentary majority in free and fair elections.",
+    seychelles: "Seychelles’s status improved from Partly Free to Free because a strengthened electoral framework contributed to a more open and competitive presidential election, resulting in the country’s first transfer of power to an opposition party.",
+    sierraleone: "Sierra Leone's political rights rating declined and its status declined from Free to Partly Free due to high-profile corruption allegations against bankers, police officers, and government officials as well as long-standing accounting irregularities that led to the country's suspension from the Extractive Industries Transparency Initiative.",
+    tanzania: "Tanzania’s status declined from Partly Free to Not Free because the authorities altered the voter registrations of ethnic Maasai citizens as part of a repressive campaign to expel their communities from a planned game reserve.",
+    thegambia: "The Gambia’s status improved from Not Free to Partly Free, due to the installation of newly elected president Adama Barrow into office in January and the holding of competitive legislative elections in April. Among other openings associated with the departure of former president Yahya Jammeh, exiled journalists and activists returned, political prisoners were released, ministers declared their assets to an ombudsman, and the press union began work on media-sector reform.",
+    tunisia: "After the 2011 revolution, Tunisia made significant democratic gains, adopting a new constitution in 2014 and holding free multiparty elections. However, corruption, economic instability, security issues, and unresolved justice reforms hindered democratic consolidation. Tunisia’s status fell from Free to Partly Free in 2022 when President Kaïs Saïed dismissed the elected government, suspended parliament indefinitely, and imposed severe restrictions on civil liberties to suppress opposition.",
+    uganda: "In 2015, Uganda’s status dropped from Partly Free to Not Free due to growing violations of civil liberties and political rights, especially targeting opposition supporters, civil society, women, and LGBT communities. In 2019, the country remained classified as Not Free, as the government under long-time leader Yoweri Museveni further restricted free expression and increased surveillance of communications.",
+    zimbawe: "In 2016, Zimbabwe’s status improved from Not Free to Partly Free, thanks to marginal gains in civil liberties and court rulings that hinted at greater judicial independence. However, by 2018, the country’s status declined from Partly Free to Not Free due to the manner in which longtime president Robert Mugabe was forced out under military pressure, continuing repression of opposition and media, and lack of genuine democratic reform.",
+
+    //asia
+    bhutan: "Bhutan’s status improved from Partly Free to Free because free and fair legislative elections and the formation of a new government further consolidated a long democratic reform process in the kingdom, and because physical security and the environment for civil liberties have steadily improved in recent years.",
+    india: "India’s status declined from Free to Partly Free due to a multiyear pattern in which the Hindu nationalist government and its allies have presided over rising violence and discriminatory policies affecting the Muslim population and pursued a crackdown on expressions of dissent by the media, academics, civil society groups, and protesters.",
+    indiankashmir: "Indian Kashmir’s status declined from Partly Free to Not Free due to the Indian government’s abrupt revocation of the region’s autonomy, the postponement or elimination of legislative elections, and a security crackdown that sharply curtailed civil liberties and included mass arrests of local politicians and activists.",
+    indonesia: "Indonesia's civil liberties rating declined and its status declined from Free to Partly Free due to the adoption of a law that restricts the activities of nongovernmental organizations, increases bureaucratic oversight of such groups, and requires them to support the national ideology of Pancasila, including its explicitly monotheist component.",
+    myanmar: "Myanmar’s status improved from Not Free to Partly Free in 2017, after lawmakers held the country’s first relatively free presidential election through an indirect vote in parliament, and as the newly elected government began implementing policy reforms to expand civil liberties. However, in 2020, Myanmar’s status declined back to Not Free due to worsening conflicts between the military and ethnic minority rebel groups, which severely restricted freedom of movement and contributed to a broader deterioration of rights and security across the country.",
+    solomonislands: "The Solomon Islands’ status improved from Partly Free to Free, due to a recent record of free competition among opposing political groupings and a pattern of increased judicial independence.",
+    thailand: "Thailand has experienced repeated shifts between Partly Free and Not Free due to persistent military influence, judicial interventions against opposition parties, and recurrent restrictions on civil liberties. The country first declined to Not Free in 2015 following the 2014 military coup. A temporary improvement to Partly Free in 2020 followed parliamentary elections, but renewed repression of student protests and the dissolution of a key opposition party pushed Thailand back to Not Free in 2021. In 2024, competitive elections led to a brief return to Partly Free, but in 2025, the Constitutional Court dissolved another major opposition party, and unelected institutions continued to undermine democratic governance, resulting once again in a Not Free rating.",
+    timorleste: "Timor-Leste’s status improved from Partly Free to Free in 2018 because fair elections that led to a smooth transfer of power enabled new parties and candidates to enter the political system.",
+    
+    //america
+    colombia: "Colombia’s status improved from Partly Free to Free due to more open and competitive national elections, a decline in restrictions on assembly and movement, and the decriminalization of abortion. However, illegal armed groups remained active, and the country was still one of the deadliest in the world for human rights defenders.",
+    dominicanrepublic: "In 2016, the Dominican Republic fell from Free to Partly Free as corruption, police abuses, and weak rule of law undermined democratic institutions. Persistent discrimination against people of Haitian descent and widespread vote-buying further reduced political and civil freedoms.",
+    ecuador: "Ecuador’s status moved from Partly Free to Free because that year’s presidential and legislative elections did not feature the kinds of abuses seen in previous cycles — such as the misuse of public resources — and resulted in a peaceful transfer of power between rival parties. However, in subsequent reports, the country returned to Partly Free due to rising organized violence, increasing corruption, and a decline in civil liberties.",
+    elsalvador: "El Salvador’s status declined from Free to Partly Free because criminal groups continue to commit acts of violence and intimidation against politicians, ordinary citizens, and religious congregants, and because the justice system has been hampered by obstruction and politicization.",
+    haiti: "Haiti’s status declined from Partly Free to Not Free due to the assassination of President Jovenel Moïse, an ongoing breakdown in the electoral system and other state institutions, and the corrosive effects of organized crime and violence on civic life.",
+    nicaragua: "Nicaragua’s status declined from Partly Free to Not Free due to authorities’ brutal repression of an antigovernment protest movement, which has included the arrest and imprisonment of opposition figures, intimidation and attacks against religious leaders, and violence by state forces and allied armed groups that resulted in hundreds of deaths.",
+    peru: "Peru shifted from Free to Partly Free in 2021 due to years of institutional conflict between the presidency and Congress, which destabilized governance and led to rapid presidential turnover.It briefly returned to Free in 2022 after new elections eased the crisi. In 2023, the country fell back to Partly Free when the president attempted to dissolve Congress and was removed, sparking deadly protests.",
+    venezuela: "Venezuela’s status declined from Partly Free to Not Free, due to efforts by the executive branch and the politicized judiciary to curtail the power of the opposition-controlled legislature, including a series of court rulings that invalidated new laws, usurped legislative authority to review the national budget, and blocked legislative efforts to address the country’s economic and humanitarian crisis.",
+
+    //europa
+    hungary: "Hungary’s status declined from Free to Partly Free due to sustained attacks on the country’s democratic institutions by Prime Minister Viktor Orbán’s Fidesz party, which has used its parliamentary supermajority to impose restrictions on or assert control over the opposition, the media, religious groups, academia, NGOs, the courts, asylum seekers, and the private sector since 2010.",
+    montenegro: "Montenegro’s status declined from Free to Partly Free in 2016 due to increasing political tensions, police violence against anti-government protests, and restrictions on public assemblies. Freedom House also noted intimidation of journalists and disruptions of LGBTQ+ events as further signs of democratic backsliding.",
+    serbia: "Serbia’s status declined from Free to Partly Free due to deterioration in the conduct of elections, continued attempts by the government and allied media outlets to undermine independent journalists through legal harassment and smear campaigns, and President Aleksandar Vučić’s de facto accumulation of executive powers that conflict with his constitutional role.",
+    turkey: "Turkey’s status declined from Partly Free to Not Free, due to a deeply flawed constitutional referendum that centralized power in the presidency, the mass replacement of elected mayors with government appointees, arbitrary prosecutions of rights activists and other perceived enemies of the state, and continued purges of state employees.",
+
+    //medio oriente
+    jordan: "From 2016 to 2025, Jordan alternates between brief periods of political opening and phases of democratic regression. The shift to Partly Free in 2017 reflects the impact of an electoral reform that made parliamentary elections fairer. The subsequent return to Not Free is linked to restrictions on freedom of expression, repression of dissent, and limits on political participation. In 2025, the status moves back to Partly Free, due to electoral law changes that led to somewhat fairer parliamentary elections.",
+    kuwait: "Kuwait is a constitutional emirate in which the al-Sabah family holds executive power, while the elected parliament has historically played a critical and independent role. The authorities impose limits on civil liberties, and the country’s large population of non-citizen workers faces significant disadvantages. In 2025, the emir dissolved the parliament and suspended elections, triggering one of the steepest score declines globally in Freedom House’s ratings.",
+
+    //eurasia
+    kyrgyzstan: "Kyrgyzstan’s status declined from Partly Free to Not Free because the aftermath of deeply flawed parliamentary elections featured significant political violence and intimidation that culminated in the irregular seizure of power by a nationalist leader and convicted felon who had been freed from prison by supporters.",
+    nagornokarabakh: "Nagorno-Karabakh’s status declined from Partly Free to Not Free due to an Azerbaijani blockade and military offensive that culminated in the dissolution of local political, legal, and civic institutions and the departure of nearly all of the civilian population.",
+  };
+
 function preload() {
   data = loadTable("../assets/FH_dataset.csv", "csv", "header"); // caricamento del dataset (con header)
   // font
@@ -169,6 +276,8 @@ function preload() {
   iconaAboutFh = loadImage("../img/icone/info.png");
   iconaArrLeft = loadImage("../img/icone/frecce/arrowleft.png");
   iconaClose = loadImage("../img/icone/close.png");
+  iconaStar = loadImage("../img/icone/star.png");
+  iconaFull = loadImage("../img/icone/fullscreen.png");
 }
 
 function setup() {
@@ -179,7 +288,8 @@ function setup() {
   annoWidth = width - graficoWidth;
 
 
-  let margine = 30;
+  margine = 30;
+  diametro = 60;
 
   let urlParams = getURLParams();
   
@@ -211,6 +321,38 @@ function setup() {
       if (!anniDisponibili.includes(edition)) {
         anniDisponibili.push(edition); 
       }
+    }
+  }
+
+  // COSTRUISCO countryData PER OVERVIEW =====
+  countryData = [];
+
+  for (let i = 0; i < data.getRowCount(); i++) {
+  let countryCSV = data.getString(i, "Country/Territory").trim();
+  let csvSlug = normalizeCountryName(countryCSV);
+
+    if (csvSlug === countrySlug) {
+    countryData.push({//modificato per permettergli di disegnare il DotChart
+    year: data.getString(i, "Edition").trim(),
+
+    // overview
+    Total: parseFloat(data.getString(i, "TOTAL")) || 0,
+    Status: data.getString(i, "Status").trim(),
+
+    // parametri per dot chart
+    "Total A": data.getNum(i, "Total A") || 0,
+    "Total B": data.getNum(i, "Total B") || 0,
+    "Total C": data.getNum(i, "Total C") || 0,
+    "Total D": data.getNum(i, "Total D") || 0,
+    "Total E": data.getNum(i, "Total E") || 0,
+    "Total F": data.getNum(i, "Total F") || 0,
+    "Total G": data.getNum(i, "Total G") || 0,
+
+    // Add A e Add Q
+    AddQ: parseFloat(data.getString(i, "Add Q")) || 0,
+    AddA: parseFloat(data.getString(i, "Add A")) || 0,
+    });
+
     }
   }
   
@@ -255,36 +397,34 @@ function setup() {
   }
   
   // bottoni
-  creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back()); // bottone per tornare indietro
-  creaBottoneStandard(width - diametro - margine, margine, iconaAboutFh, '../html/aboutFreedomHouse.html'); // bottone Freedom House in alto a destra
-  creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaAboutUs, '../html/AboutUs.html'); // bottone About Us a sinistra del primo
+  btnBack = creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back());//bottone torna indietro
+  btnAboutFH = creaBottoneStandard(width - diametro - margine, margine, iconaAboutFh, '../html/aboutFreedomHouse.html');// bottone fh
+  btnAboutUs = creaBottoneStandard(width - (diametro * 2) - margine * 1.5, margine, iconaAboutUs, '../html/AboutUs.html'); // bottone About Us a sinistra del primo
 }
 
 function draw() {
   background(palette.nero);
 
-    drawTitle();
+  // titolo sempre visibile 
+  drawTitle();
 
-    scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
-    let translateX = (width - BASE_W * scaleFactor) / 2;
-    let translateY = (height - BASE_H * scaleFactor) / 2;
-    
-    // Ricalcola logicalMouseX e logicalMouseY tenendo conto della traslazione
-    logicalMouseX = (mouseX - translateX) / scaleFactor;
-    logicalMouseY = (mouseY - translateY) / scaleFactor;
+  // calcolo scala + mouse logico 
+  scaleFactor = min(windowWidth / BASE_W, windowHeight / BASE_H);
+  let translateX = (width - BASE_W * scaleFactor) / 2;
+  let translateY = (height - BASE_H * scaleFactor) / 2;
 
-    push();
+  logicalMouseX = (mouseX - translateX) / scaleFactor;
+  logicalMouseY = (mouseY - translateY) / scaleFactor;
 
-    // La traslazione che devi compensare nel mouse
-    translate(translateX, translateY);
-    scale(scaleFactor);  
+  //DISEGNO CONTENUTO PRINCIPALE (in coordinate logiche) 
+  push();
+  translate(translateX, translateY);
+  scale(scaleFactor);
 
-  animT += 0.04; 
+  animT += 0.04;
 
   fill(palette.bianco);
   textFont(fontBold);
-
-  
 
   drawPalliniGrigi();
   updateHoverCategory();
@@ -292,8 +432,56 @@ function draw() {
   drawAddQOverlay();
   drawSidePanel();
   drawTotalScore();
+
   pop();
+
+  // MINI OVERVIEW 
+  // sparisce quando selezioni una pillola (selectedCatIndex != null)
+  if (!overviewExpanded && selectedCatIndex === null) {
+    drawOverviewMini();
+  }
+
+  // OVERVIEW EXPANDED (in coordinate schermo) 
+  if (overviewExpanded) {
+    // overlay su tutto lo schermo
+    fill(0, 180);
+    noStroke();
+    rect(0, 0, width, height);
+
+    // box centrato e responsive
+    const marginX = 80;
+    const marginY = 80;
+    overviewBox = {
+      x: marginX-40,
+      y: marginY+40,
+      w: width - marginX * 2+90,
+      h: height - marginY * 2
+    };
+
+    // sfondo box
+    fill(palette.nero);
+    stroke(palette.nero);
+    rect(overviewBox.x, overviewBox.y, overviewBox.w, overviewBox.h, 30);
+
+    // grafico + testo
+    drawOverviewExpanded();
+
+    // UI del box
+    drawToggle();
+    if (viewMode === "parameters") drawParamsLegendSmall();
+    drawTitle();
+    aggiornaVisibilitaPulsanti();
+    drawOverviewCloseButton();
+
+    // NON nascondo più i bottoni in alto
+    // aggiornaVisibilitaPulsanti();  // <--- rimosso
+  }
+
+  
+  if (!overviewExpanded) {
   disegnaEtichettaAnno();
+  aggiornaVisibilitaPulsanti();
+}
 }
 
 // FUNZIONE PER NORMALIZZARE I NOMI 
@@ -752,17 +940,7 @@ noStroke();
 }
 
 
-//BOX ACCANTO LAVORO DI FEDE 
-const boxW = 290;
-const boxH = 220;
-const boxX = 820;   // distanza dal numero
-const boxY = 400;
 
-noFill();
-stroke(255);
-strokeWeight(1);
-rect(boxX, boxY, boxW, boxH, 18);
-noStroke();
 
   }
 
@@ -1309,20 +1487,60 @@ return null;
 
 // SE CLICCO IL MOUSE
 function mousePressed() {
-  let mx = logicalMouseX; 
-  let my = logicalMouseY;;
+  // mouse in schermo (per overview mini/expanded)
+  let sx = mouseX;
+  let sy = mouseY;
+
+  // mouse logico (per pallini/legenda)
+  let mx = logicalMouseX;
+  let my = logicalMouseY;
+
+  //SE OVERVIEW È APERTO: gestisci X e toggle con mouse SCHERMO 
+  if (overviewExpanded) {
+
+    // X per chiudere
+    if (overviewCloseBox &&
+        sx >= overviewCloseBox.x &&
+        sx <= overviewCloseBox.x + overviewCloseBox.w &&
+        sy >= overviewCloseBox.y &&
+        sy <= overviewCloseBox.y + overviewCloseBox.h) {
+      overviewExpanded = false;
+      return;
+    }
+
+    // toggle (priorità)
+    if (toggleBox &&
+        sx >= toggleBox.x &&
+        sx <= toggleBox.x + toggleBox.w &&
+        sy >= toggleBox.y &&
+        sy <= toggleBox.y + toggleBox.h) {
+      viewMode = (viewMode === "parameters") ? "overview" : "parameters";
+      return;
+    }
+
+    // blocca click sul resto mentre è aperto
+    return;
+  }
+
+  //APERTURA OVERVIEW (mini)
+  if (overviewBox &&
+      sx >= overviewBox.x &&
+      sx <= overviewBox.x + overviewBox.w &&
+      sy >= overviewBox.y &&
+      sy <= overviewBox.y + overviewBox.h) {
+    overviewExpanded = true;
+    return;
+  }
 
 
   // SE SONO NEL DETTAGLIO E CLICCO LA X → CHIUDO
   if (selectedCatIndex !== null && backDetailArea) {
-  if (pointInRect(logicalMouseX, logicalMouseY,
-                  backDetailArea.x, backDetailArea.y,
-                  backDetailArea.w, backDetailArea.h)) {
-    selectedCatIndex = null;
-    backDetailArea = null;
-    return;
+    if (pointInRect(mx, my, backDetailArea.x, backDetailArea.y, backDetailArea.w, backDetailArea.h)) {
+      selectedCatIndex = null;
+      backDetailArea = null;
+      return;
+    }
   }
-}
 
   // controllo se ho cliccato su un pallino "positivo" con categoria
   for (let p of palliniInfo) {
@@ -1382,6 +1600,9 @@ function drawTitle(){
 
 function mouseWheel(event) {
   if (!anniDisponibili.length) return false;
+
+  
+
 
   // Accumula lo scroll
   scrollAccumulato += event.delta;
@@ -1475,3 +1696,1234 @@ function disegnaEtichettaAnno() {
   pop();
 }
 
+// NUOVE FUNZIONI PER OVERVIEWCHART
+//gradiente
+function creaGradiente(x, yInizio, yFine, larghezza, colori) {
+  let gradient = drawingContext.createLinearGradient(x, yInizio, x, yFine);
+  
+  if (colori.length === 2) {
+    gradient.addColorStop(0, colori[0]);
+    gradient.addColorStop(1, colori[1]);
+  } else if (colori.length === 3) {
+    gradient.addColorStop(0, colori[0]);
+    gradient.addColorStop(0.4, colori[1]);
+    gradient.addColorStop(1, colori[2]); 
+  }
+  
+  return gradient;
+}
+
+//controlla se esiste almeno un anno con un punteggio negativo 
+
+function totaleNegativo() {
+  for (let d of countryData) {
+    if (d.Total < 0) return true;
+  }
+  return false;
+}
+
+
+//grafico overview
+function drawOverviewChart(area, data) {
+
+  // ===== PADDING INTERNI AL RIQUADRO =====
+  const padL = 60;
+  const padR = 40;
+  const padT = 40;
+  const padB = 80;
+
+  const chartW = area.w - padL - padR;
+  const chartH = area.h - padT - padB;
+
+  // baseline (zero)
+  const yBase = padT + chartH;
+
+  //layout base
+  const baseBarW = 14;
+  const baseSpacing = 74;
+  const baseRows = 50;
+  const baseTotalHeight = baseRows * 12;
+
+  const nYears = max(data.length, 1);
+
+  const scaleX = chartW / (baseSpacing * nYears);
+  const scaleY = chartH / baseTotalHeight;
+  const scale = min(scaleX, scaleY);
+
+  const barW = baseBarW * scale;
+  const spacing = baseSpacing * scale;
+  const totalHeight = baseTotalHeight * scale;
+  const dotSize = 12 * scale;
+
+  let xStart = padL;
+
+  // asse y
+  textFont(fontRegular);
+  textSize(10);
+  fill(palette.bianco);
+  noStroke();
+
+  for (let t = 0; t <= 100; t += 10) {
+    const ty = map(t, 0, 100, 0, totalHeight);
+    textAlign(RIGHT, CENTER);
+    text(t, padL - 25, yBase - ty);
+  }
+
+  // barre
+  for (let d of data) {
+
+    const h = map(d.Total, 0, 100, 0, totalHeight);
+    const colori = coloriStatus[d.Status] || ["#888", "#888", "#888"];
+
+    drawingContext.fillStyle = creaGradiente(
+      xStart,
+      yBase - h,
+      yBase,
+      barW,
+      colori
+    );
+
+    noStroke();
+    rect(xStart, yBase - h, barW, h);
+
+    // pallino
+    fill(240);
+    circle(xStart + barW / 2, yBase - h, dotSize * 1.6);
+
+    // anno
+    push();
+    translate(xStart + barW / 2, yBase + 35);
+    rotate(-HALF_PI);
+    textAlign(CENTER, CENTER);
+    textSize(30 * scale);
+    fill(palette.bianco);
+    text(d.year, 0, 0);
+    pop();
+
+    xStart += spacing;
+  }
+}
+
+
+//grafico  overviewper negativi 
+function drawOverviewChartNegative(area, data) {
+
+  // ===== PADDING INTERNI AL RIQUADRO =====
+  const padL = 60;
+  const padR = 40;
+  const padT = 50;
+  const padB = 80;
+
+  const chartW = area.w - padL - padR;
+  const chartH = area.h - padT - padB;
+
+  // ===== layout base =====
+  const baseBarW = 14;
+  const baseSpacing = 74;
+  const baseRows = 50;
+  const baseTotalHeight = baseRows * 12;
+
+  const nYears = max(data.length, 1);
+
+  const scaleX = chartW / (baseSpacing * nYears);
+  const scaleY = chartH / baseTotalHeight;
+  const scale  = min(scaleX, scaleY);
+
+  const barW = baseBarW * scale;
+  const spacing = baseSpacing * scale;
+  const totalHeight = baseTotalHeight * scale;
+  const dotSize = 12 * scale;
+
+  let xStart = padL;
+
+  // asse y 0
+  const yZero = padT + chartH - 60;
+
+  // asse y
+  textFont(fontRegular);
+textSize(10);
+fill(palette.bianco);
+  noStroke();
+  textAlign(RIGHT, CENTER);
+
+  // valori positivi sopra lo zero (0–80)
+  for (let t = 0; t <= 80; t += 10) {
+    const ty = map(t, 0, 100, 0, totalHeight);
+    text(t, padL - 25, yZero - ty);
+  }
+
+  // valore negativo sotto lo zero
+  text("-10", padL - 25, yZero + totalHeight * 0.12);
+
+  // linea 0 
+  const xLineStart = padL;
+  const xLineEnd   = padL + spacing * (nYears - 1) + barW;
+
+  stroke(lineColor);
+  strokeWeight(2);
+  line(
+    xLineStart,
+    yZero,
+    xLineEnd,
+    yZero
+    );
+
+  
+
+  // ===== BARRE =====
+  for (let d of data) {
+
+    const value = d.Total;
+    const absH  = map(abs(value), 0, 100, 0, totalHeight);
+    const colori = coloriStatus[d.Status] || ["#888", "#888", "#888"];
+
+    if (value >= 0) {
+      // positivo
+      drawingContext.fillStyle = creaGradiente(
+        xStart,
+        yZero - absH,
+        yZero,
+        barW,
+        colori
+      );
+
+      noStroke();
+      rect(xStart, yZero - absH, barW, absH);
+
+      fill(240);
+      circle(xStart + barW / 2, yZero - absH, dotSize * 1.6);
+
+    } else {
+      // ----- NEGATIVO (sotto lo zero)
+      drawingContext.fillStyle = creaGradiente(
+        xStart,
+        yZero,
+        yZero + absH,
+        barW,
+        colori
+      );
+
+      noStroke();
+      rect(xStart, yZero, barW, absH);
+
+      fill(240);
+      circle(xStart + barW / 2, yZero + absH, dotSize * 1.6);
+    }
+
+    // ===== ANNO =====
+    push();
+    translate(xStart + barW / 2, padT + chartH + 35);
+    rotate(-HALF_PI);
+    textAlign(CENTER, CENTER);
+    textSize(30 * scale);
+    fill(palette.bianco);
+    text(d.year, 0, 0);
+    pop();
+
+    xStart += spacing;
+  }
+}
+
+
+
+//finestra grafico mini 
+function drawOverviewMini() {
+
+
+  let chartData = countryData.slice().sort((a,b) => int(a.year) - int(b.year));
+
+  // se è expanded, la mini non esiste
+  if (overviewExpanded) return;
+
+  let isNegative = overviewNegative();
+
+  const baseW = 290;
+  const baseH = 160;
+  const zoom = 1;
+
+  const w = baseW * zoom;
+  const h = baseH * zoom;
+
+  const margin = 52;
+
+  const x = 820;
+  const y = 420;
+
+  const bottomOffset = 120; // quanto lo vuoi sollevare
+  
+  
+
+
+  overviewBox = { x, y, w, h };
+
+  
+  strokeWeight(1.5);
+  stroke(palette.bianco);
+  fill(palette.nero);
+  
+  rect(x, y, w, h, 20);
+  fill(palette.bianco);
+  
+  
+  //per scalare correttamente 
+  const sx = w / width;
+  const sy = h / height;
+  const innerYOffset = -20;//margine grafico -rettangol o
+
+  push();
+  translate(
+  x + (w - width * sx) / 2,
+  y + (h - height * sy) / 2 + innerYOffset
+  );
+  scale(sx, sy);
+
+
+  if (isNegative) {
+    drawOverviewChartMiniNegative(chartData);
+  } else {
+    drawOverviewChartMini(chartData);
+  }
+  
+  pop();
+
+  const iconOffsetX = 15;   // quanto esce a sinistra
+  const iconOffsetY = 14;    // quanto scende sotto
+
+  
+
+  overviewBox.expandIcon = {
+  x: overviewBox.x + iconOffsetX,
+  y: overviewBox.y + overviewBox.h + iconOffsetY,
+  size: 18
+  };
+
+  const iconX = overviewBox.x + iconOffsetX;
+  const iconY = overviewBox.y + overviewBox.h + iconOffsetY +5;
+
+ drawExpandIcon(
+  overviewBox.expandIcon.x,
+  overviewBox.expandIcon.y
+);
+
+// testo
+push();
+fill(palette.bianco);
+noStroke();
+textFont(fontMedium);
+textSize(14);
+textAlign(LEFT, CENTER);
+text("context insight",
+     overviewBox.expandIcon.x + 14,
+     overviewBox.expandIcon.y);
+pop();
+
+
+
+}
+
+function drawOverviewChartMini(data) {
+  // layout base 
+  let baseBarW = 20;
+  let baseDotSize = 12;
+  let baseRows = 50;
+  let baseTotalHeight = (baseDotSize) * baseRows;
+  let baseSpacing = 104;
+
+  let yBase = height - bottomPadding;
+
+  let availableHeight = height - bottomPadding - topPadding;
+  let availableWidth  = width - 2 * padding;
+
+  let nYears = max(data.length, 1);
+  let scaleY = availableHeight / baseTotalHeight;
+  let scaleX = availableWidth / (baseSpacing * nYears);
+
+  let scale = min(scaleX, scaleY);
+
+  totalHeight = baseTotalHeight * scale;
+  let barW = baseBarW * scale;
+  let spacing = baseSpacing * scale;
+  dotSize = baseDotSize * scale;
+  
+
+  let xStart = padding;
+
+  // tacche asse y -> solo 3
+  let xScala = xStart - 35;
+  for (let t = 0; t <= 100; t += 50) {
+    let ty = yBase - map(t, 0, 100, 0, totalHeight);
+    
+    stroke(palette.bianco);
+    strokeWeight(2);
+    
+    line(xScala -5, ty, xScala + 5, ty);
+    
+  }
+
+  for (let d of data) {
+
+    let total = d.Total;
+    let h = map(total, 0, 100, 0, totalHeight);
+
+    let status = d.Status;
+    let colori = coloriStatus[status] || ["#888", "#888", "#888"];
+
+    drawingContext.fillStyle = creaGradiente(
+      xStart,
+      yBase - h,
+      yBase,
+      barW,
+      colori
+    );
+
+    noStroke();
+    rect(xStart, yBase - h, barW, h);
+
+    // pallino in cima
+    fill(240);
+    noStroke();
+    circle(xStart + barW/2, yBase - h + dotSize/2, barW*1.8);
+
+    // etichetta anno ruotata
+    push();
+    translate(xStart + barW/2, yBase + 40);
+    rotate(-HALF_PI);
+    textAlign(CENTER, CENTER);
+    textSize(35*scale);
+    textFont(fontRegular);
+    fill(200);
+    text(d.year, 0, 0);
+    pop();
+
+    xStart += spacing;
+  }
+}
+
+//overview mini negativo 
+function drawOverviewChartMiniNegative(data) {
+  // layout base 
+  let baseBarW = 20;
+  let baseDotSize = 12;
+  let baseRows = 50;
+  let baseTotalHeight = (baseDotSize) * baseRows;
+  let baseSpacing = 104;
+
+  let yBase = height - bottomPadding;
+
+  // scalatura
+  let availableHeight = height - bottomPadding - topPadding;
+  let availableWidth  = width - 2 * padding;
+
+  let nYears = max(data.length, 1);
+  let scaleY = availableHeight / baseTotalHeight;
+  let scaleX = availableWidth / (baseSpacing * nYears);
+
+  let scale = min(scaleX, scaleY);
+
+  totalHeight = baseTotalHeight * scale;
+  let barW = baseBarW * scale;
+  let spacing = baseSpacing * scale;
+  dotSize = baseDotSize * scale;
+
+  // per posizionare asse dello 0 
+  let spostamentoVerticalePallini = 50 * scale;
+  let yZero = yBase - dotSize * 2 - spostamentoVerticalePallini;
+
+  let xStart = padding;
+
+  //3 tacche 
+  let xScala = xStart - 35;
+  for (let t = 0; t <= 100; t += 50) {
+    let ty = yBase - map(t, 0, 100, 0, totalHeight);
+    
+    stroke(palette.bianco);
+    strokeWeight(2);
+    
+    line(xScala -5, ty, xScala + 5, ty);
+    
+  }
+
+  
+
+
+  // linea 0 
+  let xStartLine = padding - 5;
+  let xEndLine = padding + spacing * (nYears - 1) + barW + 5;
+  stroke(lineColor); // problema con colore, o va sopra i pallini o le barre vanno sopra solo che si vede la differenza di gradiente
+  strokeWeight(2);
+  line(xStartLine, yZero, xEndLine, yZero);
+
+  // barre
+  for (let d of data) {
+
+    let total = d.Total;
+    let h = map(total, 0, 100, 0, totalHeight);
+
+    let status = d.Status;
+    let colori = coloriStatus[status] || ["#888", "#888", "#888"];
+
+    drawingContext.fillStyle = creaGradiente(
+      xStart,
+      yZero - h,
+      yZero,
+      barW,
+      colori
+    );
+
+    noStroke();
+    rect(xStart, yZero - h, barW, h);
+
+    
+
+    // pallino in cima
+    fill(240);
+    noStroke();
+    circle(xStart + barW/2, yZero - h + dotSize/2, barW*1.8);
+
+    // etichetta anno  
+    push();
+    translate(xStart + barW/2, yBase + 40);
+    rotate(-HALF_PI);
+    textAlign(CENTER, CENTER);
+    textSize(35*scale);
+    textFont(fontRegular);
+fill(palette.bianco);
+    text(d.year, 0, 0);
+    pop();
+
+    xStart += spacing;
+  }
+
+  
+
+}
+
+//versione grande
+function drawOverviewExpanded() {
+ 
+  //INVERTIRE GLI ANNI 
+  const chartData = countryData
+    .slice()
+    .sort((a, b) => int(a.year) - int(b.year));
+
+  // area dedicata al grafico 
+  const chartArea = {
+    x: overviewBox.x,
+    y: overviewBox.y,
+    w: overviewBox.w ,
+    h: overviewBox.h 
+  };
+
+  // cornice bianca del chart
+  noFill();
+  stroke(palette.bianco);
+  strokeWeight(1.5);
+  rect(chartArea.x, chartArea.y, chartArea.w, chartArea.h, 30);
+
+  // targhette status (solo in overview)
+  if (viewMode === "overview") {
+    const statuses = getStatusesInData(chartData);
+
+    let tagX = overviewBox.x + overviewBox.w - 420;
+    let tagY = overviewBox.y + overviewBox.h - 90;
+
+    const gap = 8;
+
+    for (let status of statuses) {
+      const colors = coloriStatus[status];
+      const label  = statusLabels[status];
+      if (!colors || !label) continue;
+
+      const hTag = drawStatusTag(tagX, tagY - 26, label, colors);
+      tagY -= (hTag + gap);
+    }
+  }
+
+  // grafico 
+  const offsetX = 20;   // destra
+  const offsetY = -15;  // su
+
+  const isNegative = overviewNegative();
+
+  push();
+  translate(chartArea.x + offsetX, chartArea.y + offsetY);
+
+  if (viewMode === "overview") {
+    if (isNegative) {
+      drawOverviewChartNegative(chartArea, chartData);
+    } else {
+      drawOverviewChart(chartArea, chartData);
+    }
+  } else if (viewMode === "parameters") {
+    if (isNegative) {
+      drawDotChartNegatives(chartArea, chartData, params);
+    } else {
+      drawDotChart(chartArea, chartData, params);
+    }
+  }
+
+  pop();
+
+  // testi (paragrafo ecc) come prima
+  drawOverviewText();
+
+   
+
+  
+}
+
+//icona per ingrandire
+function drawExpandIcon(x, y) {
+  push();
+  stroke(palette.bianco);
+  strokeWeight(2);
+  noFill();
+  rectMode(CENTER);
+  rect(x, y, 18, 18, 4);
+  line(x - 4, y - 4, x + 4, y + 4);
+  pop();
+}
+
+//funzione per trovare overview negativi
+function overviewNegative() {
+  for (let d of countryData) {
+    if (d.Total < 0) return true;
+  }
+  return false;
+}
+
+//paragrafi 
+function drawCountryText(countryName, x, y, w) {
+  let key = normalizeCountryName(countryName);
+
+  let testo = countryTexts[key] || "";
+  if (testo.trim() === "") return 0;
+
+  textSize(16);
+  textFont(fontRegular);
+  textAlign(LEFT, TOP);
+
+  let words = testo.split(" ");
+  let lines = [];
+  let currentLine = "";
+
+  for (let wIndex = 0; wIndex < words.length; wIndex++) {
+    let testLine = currentLine + words[wIndex] + " ";
+
+    if (textWidth(testLine) > w) {
+      lines.push(currentLine);
+      currentLine = words[wIndex] + " ";
+    } else {
+      currentLine = testLine;
+    }
+  }
+  lines.push(currentLine);
+
+  let lineHeight = textAscent() + textDescent() + 4;
+  let boxPadding = 20;
+  let boxH = lines.length * lineHeight + boxPadding * 2;
+
+  fill(palette.bianco);
+  noStroke();
+  let textY = y;
+
+  for (let line of lines) {
+    text(line, x, textY);
+    textY += lineHeight;
+  }
+
+
+  return boxH;
+}
+
+
+//funzione per disegnare il testo dei paragrafi
+function drawOverviewText() {
+  if (viewMode !== "overview") return;
+
+  const w = 300;
+
+  // posizione delle targhette
+  const tagsTopY = overviewBox.y + overviewBox.h - 110;
+
+  // altezza del paragrafo
+  const textH = measureCountryTextHeight(countryName, w);
+
+  if (textH === 0) return;
+  
+
+  const x = overviewBox.x + overviewBox.w - w -120;
+
+  // spazio per il titolo
+  const titleH = 15;
+  const gap = 10;
+
+  // y ancorato dal basso (titolo + gap + testo)
+  const y = tagsTopY - textH - titleH - gap - 40;
+
+  // TITOLO
+  push();
+  textFont(fontBold);
+  textSize(16);
+  fill(palette.bianco);
+  noStroke();
+  textAlign(LEFT, TOP);
+  text("CONTEXT INSIGHT", x, y);
+  pop();
+
+  // ===== PARAGRAFO =====
+  drawCountryText(
+    countryName,
+    x,
+    y + titleH + gap,
+    w
+  );
+}
+
+
+//toggle per switchare
+function drawToggle() {
+  if (!overviewExpanded) return;
+
+  // posizione
+  let x = overviewBox.x + overviewBox.w -325;
+  let y = overviewBox.y + overviewBox.h - 70;
+  let w = 70;
+  let h = 36;
+
+  // sfondo toggle
+  noFill();
+  stroke(palette.bianco);
+  rect(x, y, w, h, 30);
+  
+
+  // labels
+  noStroke();
+  textFont(fontRegular);
+  textSize(14);
+  textAlign(LEFT, CENTER);
+
+  if (viewMode === "parameters") {
+    fill(255);
+    text("Parameters", x - 90, y + h / 2);
+    fill(150);
+    text("Total overview", x + w + 20, y + h / 2);
+  } else {
+    fill(150);
+    text("Parameters", x - 90, y + h / 2);
+    fill(255);
+    text("Total overview", x + w + 20, y + h / 2);
+  }
+
+  // knob
+  fill(palette.bianco);
+  let cx = (viewMode === "parameters") ? x + 14 : x + w - 14;
+  circle(cx, y + h / 2, h - 6);
+
+  // HITBOX
+  toggleBox = { x, y, w, h };
+}
+
+//DOTCHART
+function drawDotChart(area, data, params) {
+
+  // layout base
+  let baseDotSize = 12;
+  let baseDotSpacing = 0;
+  let baseRows = 50;
+  let baseTotalHeight = (baseDotSize + baseDotSpacing) * baseRows;
+  let baseColumnWidth = 2 * (baseDotSize + baseDotSpacing) + 50;// spaxio tra colonne
+
+  let baseGrey = color(palette.grigio);
+
+  const localWidth  = area.w;
+  const localHeight = area.h;
+
+  // baseline locale
+  let yBase = localHeight - bottomPadding -20; // cambi a20 per alzare o abbassare il grafico 
+
+  // spazio disponibile
+  let availableHeight = localHeight - bottomPadding - topPadding;
+  let availableWidth  = localWidth  - 2 * padding;
+
+  // scala
+  let nYears = max(data.length, 1);
+  let scaleY = availableHeight / baseTotalHeight;
+  let scaleX = availableWidth  / (baseColumnWidth * nYears);
+  let scale  = min(scaleX, scaleY);
+
+  // dimensioni scalate
+  let dotSize     = baseDotSize * scale;
+  let dotSpacing  = baseDotSpacing * scale;
+  let totalHeight = baseTotalHeight * scale;
+
+  let columnSpacing = baseColumnWidth * scale;
+  let xStart = padding -30 ;
+
+  // ===== COLORI =====
+  let colors = [
+    color(coloriLegenda.electoralProcess),
+    color(coloriLegenda.politicalPluralism),
+    color(coloriLegenda.functioningGovernment),
+    color(coloriLegenda.freedomExpression),
+    color(coloriLegenda.associationalRights),
+    color(coloriLegenda.ruleOfLaw),
+    color(coloriLegenda.personalAutonomy),
+    color(coloriLegenda.addA)
+  ];
+
+  // ===== TACCHETTE ASSE Y =====
+  textFont(fontRegular);
+textSize(10);
+fill(palette.bianco);
+  noStroke();
+  textAlign(RIGHT, CENTER);
+
+  for (let t = 0; t <= 100; t += 10) {
+    let ty = map(t, 0, 100, 0, totalHeight);
+    text(t, textPadding -35, yBase - ty);
+  }
+
+  // ===== COLONNE (ANNI) =====
+  for (let i = 0; i < data.length; i++) {
+    let d = data[i];
+
+    // costruisco i pallini colorati
+    let dots = [];
+    for (let p = 0; p < params.length; p++) {
+      let count = round(d[params[p]]);
+      for (let k = 0; k < count && dots.length < 100; k++) {
+        dots.push(colors[p]);
+      }
+    }
+
+    let coloredCount = dots.length;
+
+    // riempio con grigio
+    while (dots.length < 100) dots.push(baseGrey);
+
+    // applico AddQ
+    let addq = d.AddQ || 0;
+    if (addq > 0) {
+      let toRemove = min(round(addq), coloredCount);
+      let removed = 0;
+
+      for (let idx = dots.length - 1; idx >= 0 && removed < toRemove; idx--) {
+        if (dots[idx] !== baseGrey) {
+          dots[idx] = baseGrey;
+          removed++;
+        }
+      }
+    }
+
+    // ===== DISEGNO 100 PALLINI (SERPENTINA) =====
+    for (let dIdx = 0; dIdx < 100; dIdx++) {
+      let row = floor(dIdx / 2);
+      let col = dIdx % 2;
+      if (row % 2 === 1) col = 1 - col;
+
+      let x = xStart + col * (dotSize + dotSpacing);
+      let y = yBase - row * (dotSize + dotSpacing);
+
+      fill(dots[dIdx]);
+      noStroke();
+      circle(x, y, dotSize);
+    }
+
+    // anni 
+    let colCenter = xStart + (dotSize + dotSpacing) * 0.5;
+
+    push();
+    translate(colCenter, yBase + 40);
+    rotate(-HALF_PI);
+    textAlign(CENTER, CENTER);
+    textSize(30* scale);
+    fill(palette.bianco);
+    text(d.year, 0, 0);
+    pop();
+
+    xStart += columnSpacing;
+  }
+}
+
+//dotchart nagativo 
+function drawDotChartNegatives(area, data, params) {
+
+  //layout di base 
+  let baseDotSize = 12;
+  let baseDotSpacing = 0;
+  let baseRows = 50;
+  let baseTotalHeight = (baseDotSize + baseDotSpacing) * baseRows;
+  let baseColumnGap = 50;
+  let baseColumnWidth = 2 * (baseDotSize + baseDotSpacing) + baseColumnGap;
+
+  let baseGrey = color(palette.grigio);
+
+  const localWidth  = area.w;
+  const localHeight = area.h;
+
+  //  baseline 
+  let yBase = localHeight - bottomPadding - 20;
+
+  // spazio disponibile
+  let availableHeight = localHeight - bottomPadding - topPadding;
+  let availableWidth  = localWidth  - 2 * padding;
+
+  // scala
+  let nYears = max(data.length, 1);
+  let scaleY = availableHeight / baseTotalHeight;
+  let scaleX = availableWidth  / (baseColumnWidth * nYears);
+  let scale  = min(scaleX, scaleY);
+
+  let dotSize = baseDotSize * scale;
+  let dotSpacing = baseDotSpacing * scale;
+  let stepY = dotSize + dotSpacing;
+
+  // posizione asse zero (identica alla overview negative)
+  let zeroOffset = 50 * scale;
+  let yZero = yBase - dotSize * 2 - zeroOffset;
+
+  let columnSpacing = baseColumnWidth * scale;
+  let xStart = padding - 30; //  avvicinato al bordo sinistro
+
+
+  let colors = [
+    color(coloriLegenda.electoralProcess),
+    color(coloriLegenda.politicalPluralism),
+    color(coloriLegenda.functioningGovernment),
+    color(coloriLegenda.freedomExpression),
+    color(coloriLegenda.associationalRights),
+    color(coloriLegenda.ruleOfLaw),
+    color(coloriLegenda.personalAutonomy),
+    color(coloriLegenda.addA)
+  ];
+
+  // asse y tacche
+  textFont(fontRegular);
+ fill(palette.bianco);;
+  textSize(10);
+  noStroke();
+  textAlign(RIGHT, CENTER);
+
+  for (let t = 0; t <= 80; t += 10) {
+    let ty = map(t, 0, 100, 0, 50 * stepY);
+    text(t, textPadding -35, yZero - ty);
+  }
+
+  // tacca -10
+  text("-10", textPadding -35, yZero + 5.5 * stepY);
+
+  // colonne pallini per anno 
+  for (let i = 0; i < data.length; i++) {
+
+    let d = data[i];
+    let isNegative = d.Total < 0;
+
+    let dots = [];
+    let removedColors = [];
+
+    // pallini positivi
+    for (let p = 0; p < params.length; p++) {
+      let count = round(d[params[p]]);
+      for (let k = 0; k < count && dots.length < 100; k++) {
+        dots.push(colors[p]);
+      }
+    }
+
+    let coloredCount = dots.length;
+
+    // AddQ -> rimuove pallini e salva colori
+    let addq = d.AddQ || 0;
+    if (addq > 0 && coloredCount > 0) {
+      let toRemove = min(round(addq), coloredCount);
+      let removed = 0;
+
+      for (let idx = dots.length - 1; idx >= 0 && removed < toRemove; idx--) {
+        if (dots[idx] !== baseGrey) {
+          removedColors.push(dots[idx]);
+          dots[idx] = baseGrey;
+          removed++;
+        }
+      }
+    }
+
+    while (dots.length < 100) dots.push(baseGrey);
+
+    // 80n palilini positivi 
+    for (let dIdx = 0; dIdx < 80; dIdx++) {
+      let row = floor(dIdx / 2);
+      let col = dIdx % 2;
+      if (row % 2 === 1) col = 1 - col;
+
+      let x = xStart + col * stepY;
+      let y = yZero - row * stepY;
+
+      let c = isNegative ? baseGrey : dots[dIdx];
+      fill(c);
+      noStroke();
+      circle(x, y, dotSize);
+    }
+
+    // linea zero
+    stroke(lineColor);
+    strokeWeight(2);
+    line(
+      xStart - 10,
+      yZero + dotSize * 0.5,
+      xStart + stepY * 2 + 2.5,
+      yZero + dotSize * 0.5
+    );
+
+    // pallini negativi 
+    let negCount = isNegative ? min(abs(d.Total), 10) : 0;
+
+    for (let n = 0; n < 10; n++) {
+      let row = floor(n / 2);
+      let col = n % 2;
+      if (row % 2 === 1) col = 1 - col;
+
+      let x = xStart + col * stepY;
+      let y = yZero + (row + 1.2) * stepY;
+
+      let cNeg = baseGrey;
+      if (n < negCount) {
+        cNeg = n < removedColors.length
+          ? removedColors[n]
+          : color("#C51A1A");
+      }
+
+      fill(cNeg);
+      noStroke();
+      circle(x, y, dotSize);
+    }
+
+    // anni 
+    let colCenter = xStart + stepY * 0.5;
+
+    push();
+    translate(colCenter, yBase + 40);
+    rotate(-HALF_PI);
+    textAlign(CENTER, CENTER);
+    textSize(30 * scale);
+    fill(palette.bianco);
+    text(d.year, 0, 0);
+    pop();
+
+    xStart += columnSpacing;
+  }
+}
+
+
+// X per chiudere il grafico extended 
+function drawOverviewCloseButton() {
+  const size = 28;
+  const paddingX = 30;
+  const paddingY = 30;
+
+  let x = overviewBox.x + overviewBox.w - size-30;
+  let y = overviewBox.y+30;
+
+
+  // area cliccabile
+  overviewCloseBox = {
+    x: x - 10,
+    y: y - 10,
+    w: size + 20,
+    h: size + 20
+  };
+
+  // disegno X
+  push();
+  stroke(palette.bianco);
+  strokeWeight(3);
+  noFill();
+
+  line(x, y, x + size, y + size);
+  line(x + size, y, x, y + size);
+
+  pop();
+}
+
+// per nascondere i pulsanti aboutus, home e freccia indietro
+function aggiornaVisibilitaPulsanti() {
+  // non nascondo più nulla
+  if (overviewExpanded) {
+    // quando il box overlay è aperto
+    btnBack.hide();        // NASCONDI freccia indietro
+    btnAboutFH.show();
+    btnAboutUs.show();
+  } else {
+    // stato normale
+    btnBack.show();
+    btnAboutFH.show();
+    btnAboutUs.show();
+  }
+}
+
+//funzione che capisce lo status pe rle targhette
+function getStatusesInData(data) {
+  const set = new Set();
+  for (let d of data) {
+    if (d.Status) set.add(d.Status);
+  }
+  return Array.from(set);
+}
+
+//targhette status 
+function drawStatusTag(x, y, label, colors) {
+
+  const paddingX = 14;
+  const paddingY =6;
+  const radius = 14;
+
+  textFont(fontBold);
+  textSize(15);
+  textAlign(LEFT, CENTER);
+
+  const tw = textWidth(label);
+  const w = tw + paddingX * 2;
+  const h = 26;
+
+  // background
+  noStroke();
+  fill(colors[1]); // colore centrale dello status
+  rect(x, y, w, h, radius);
+
+  // testo
+  fill(palette.nero);
+  text(label, x + paddingX, y + h / 2);
+
+  return h; // utile per posizionare la prossima
+}
+
+//funzione per misurare la grandezza del paragrafo
+function measureCountryTextHeight(countryName, w) {
+  let key = normalizeCountryName(countryName);
+  let testo = countryTexts[key] || "";
+  if (testo.trim() === "") return 0;
+
+  textFont(fontRegular);
+  textSize(16);
+
+  let words = testo.split(" ");
+  let lines = [];
+  let currentLine = "";
+
+  for (let word of words) {
+    let testLine = currentLine + word + " ";
+    if (textWidth(testLine) > w) {
+      lines.push(currentLine);
+      currentLine = word + " ";
+    } else {
+      currentLine = testLine;
+    }
+  }
+  lines.push(currentLine);
+
+  let lineHeight = textAscent() + textDescent() + 4;
+  let boxPadding = 20;
+
+  return lines.length * lineHeight + boxPadding * 2;
+}
+
+//LEGANDA 2
+function drawParamsLegendSmall() {
+  // --- POSIZIONE BOX (ancorato in alto a destra dentro overviewBox) ---
+  const boxW = 300;
+  const boxH = 260;
+
+  const marginRight = 120;
+  const marginTop   = 80;
+
+  const x0 = overviewBox.x + overviewBox.w - boxW - marginRight;
+  const y0 = overviewBox.y + marginTop;
+
+  // STILE BOX 
+  const r = 22;
+  stroke(palette.bianco);
+  strokeWeight(1.5);
+  noFill();
+  rect(x0, y0, boxW, boxH, r);
+
+  // padding interno
+  const padX = 20;
+  const padY = 20;
+
+  // TIPOGRAFIA
+  const titleSize = 18;
+  const itemSize  = 14;
+
+  const dotR = 5;              // raggio pallino
+  const rowH = 18;             // altezza riga
+  const dotX = x0 + padX + 6;  // x pallino
+  const textX = dotX + dotR*2 + 10; // x testo
+
+  // --- TESTI + COLORI (come screenshot) ---
+  const PR = [
+    { label: "Electoral Process", color: coloriLegenda.electoralProcess },
+    { label: "Political Pluralism and Participation", color: coloriLegenda.politicalPluralism },
+    { label: "Functioning of Government", color: coloriLegenda.functioningGovernment },
+    { label: "Add A", color: coloriLegenda.addA }
+  ];
+
+  const CL = [
+    { label: "Freedom of Expression and Belief", color: coloriLegenda.freedomExpression },
+    { label: "Associational and Organizational Rights", color: coloriLegenda.associationalRights },
+    { label: "Rule of Law", color: coloriLegenda.ruleOfLaw },
+    { label: "Personal Autonomy and Individual Rights", color: coloriLegenda.personalAutonomy }
+  ];
+
+  // --- DISEGNO TITOLI + LISTE ---
+  noStroke();
+  fill(palette.bianco);
+
+  // titolo PR
+  textFont(fontBold || fontRegular);
+  textSize(titleSize);
+  textAlign(LEFT, TOP);
+  text("Political Rights", x0 + padX, y0 + padY);
+
+  // lista PR
+  textFont(fontRegular);
+  textSize(itemSize);
+
+  let y = y0 + padY + 24;
+
+  for (let it of PR) {
+    // pallino
+    fill(it.color);
+    circle(dotX, y + rowH/2, dotR*2);
+
+    // testo
+    fill(palette.bianco);
+    textAlign(LEFT, CENTER);
+    text(it.label, textX, y + rowH/2);
+
+    y += rowH;
+  }
+
+  // spazio tra sezioni
+  y += 18;
+
+  // titolo CL
+  textFont(fontBold || fontRegular);
+  textSize(titleSize);
+  textAlign(LEFT, TOP);
+  text("Civil Liberties", x0 + padX, y);
+
+  // lista CL
+  y += 24;
+  textFont(fontRegular);
+  textSize(itemSize);
+
+  for (let it of CL) {
+    fill(it.color);
+    circle(dotX, y + rowH/2, dotR*2);
+
+    fill(palette.bianco);
+    textAlign(LEFT, CENTER);
+    text(it.label, textX, y + rowH/2);
+
+    y += rowH;
+  }
+}
