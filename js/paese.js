@@ -1963,6 +1963,18 @@ function drawOverviewMini() {
   
   rect(x, y, w, h, 20);
   fill(palette.bianco);
+
+  // icona fullscreen in alto a destra del mini box
+const fullSize = 18;
+const fullPad  = 12;
+imageMode(CORNER);
+image(
+  iconaFull,
+  x + w - fullPad - fullSize,
+  y + fullPad,
+  fullSize,
+  fullSize
+);
   
   
   //per scalare correttamente 
@@ -2000,21 +2012,24 @@ function drawOverviewMini() {
   const iconX = overviewBox.x + iconOffsetX;
   const iconY = overviewBox.y + overviewBox.h + iconOffsetY +5;
 
- drawExpandIcon(
-  overviewBox.expandIcon.x,
-  overviewBox.expandIcon.y
-);
 
-// testo
+
 push();
 fill(palette.bianco);
 noStroke();
 textFont(fontMedium);
 textSize(14);
 textAlign(LEFT, CENTER);
-text("context insight",
-     overviewBox.expandIcon.x + 14,
-     overviewBox.expandIcon.y);
+
+const labelX = overviewBox.expandIcon.x + 14;
+const labelY = overviewBox.expandIcon.y;
+
+const starSize = 14;
+imageMode(CENTER);
+image(iconaStar, labelX + starSize/2, labelY, starSize, starSize);
+
+text("context insight", labelX + starSize + 8, labelY);
+
 pop();
 
 
