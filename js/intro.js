@@ -89,6 +89,19 @@ function setupScrollAnimations() {
         hasScrolled = true;
         gsap.to(scrollInd, { opacity: 0, duration: 0.5 });
       } 
+      else if (self.progress <= 0.05 && hasScrolled) {
+        gsap.to(scrollInd, { opacity: 1, duration: 0.5 });
+      }
+    },
+    
+    onLeave: () => {
+      hasScrolled = true;
+      gsap.to(scrollInd, { opacity: 0, duration: 0.3 });
+    },
+    onEnterBack: () => {
+      if (!canInteract && !typewriterCompleted) {
+        gsap.to(scrollInd, { opacity: 1, duration: 0.5 });
+      }
     }
   });
 

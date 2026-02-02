@@ -9,7 +9,7 @@ Teaching Assistants Alessandra Facchin, Alessandro Nazzari
 © [CC-BY 4.0] The authors
 
 Except where otherwise noted, all content on this website is licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0). You are free to share and adapt the material, including for commercial use, provided appropriate credit is given. For questions about attribution or reuse, contact us at federica.besenzoni@mail.polimi.it; vittoria.franchi@mail.polimi.it; asia.marozzi@mail.polimi.it; aurora.preioni@mail.polimi.it;
-jasmin.sorarus@mail.polimi.it; sheetal.zanotto@mail.polimi.it
+jasmin.soraruf@mail.polimi.it; sheetal.zanotto@mail.polimi.it
 
 
 TEAM
