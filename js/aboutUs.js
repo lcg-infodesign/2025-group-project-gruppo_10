@@ -220,7 +220,7 @@ function creaTestiRettangoli() {
     '<span style="font-size: 19px;"><strong>Vittoria Franchi</strong></span><br><span style="font-size: 16px;">Coding and information researcher</span>',
     '<span style="font-size: 19px;"><strong>Asia Marozzi</strong></span><br><span style="font-size: 16px;">Coding and debugging</span>',
     '<span style="font-size: 19px;"><strong>Aurora Preioni</strong></span><br><span style="font-size: 16px;">Coding</span>',
-    '<span style="font-size: 19px;"><strong>Jasmin Soraruf</strong></span><br><span style="font-size: 16px;">Illustrator and content researcher</span>',
+    '<span style="font-size: 19px;"><strong>Jasmin Soraruf</strong></span><br><span style="font-size: 16px;">Visual designing and illustrations</span>',
     '<span style="font-size: 19px;"><strong>Sheetal Zanotto</strong></span><br><span style="font-size: 16px;">Coding</span>'
   ];
 

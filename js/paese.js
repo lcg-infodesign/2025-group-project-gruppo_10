@@ -89,6 +89,11 @@ const whiteHover = palette.bianco; //bianco solito
 let hoveredLegendCatIndex = null;
 let hoveredPalliniCatIndex = null;
 
+// Anni
+let areeAnniGlobale = null;
+let xPosAnniGlobale = 0;
+let yPosAnniGlobale = 0;
+
 //VARIABILI TITOLO (7 parametri)
 let panelTitles = [
   "Electoral process",
@@ -269,6 +274,8 @@ const countryTexts = {
     kyrgyzstan: "Kyrgyzstan’s status declined from Partly Free to Not Free because the aftermath of deeply flawed parliamentary elections featured significant political violence and intimidation that culminated in the irregular seizure of power by a nationalist leader and convicted felon who had been freed from prison by supporters.",
     nagornokarabakh: "Nagorno-Karabakh’s status declined from Partly Free to Not Free due to an Azerbaijani blockade and military offensive that culminated in the dissolution of local political, legal, and civic institutions and the departure of nearly all of the civilian population.",
   };
+
+let toggleLabelRect = null;
 
 function preload() {
   data = loadTable("../assets/FH_dataset.csv", "csv", "header"); // caricamento del dataset (con header)
@@ -466,7 +473,6 @@ function draw() {
     drawOverviewCloseButton();
   }
 
-  
   if (!overviewExpanded) {
   disegnaEtichettaAnno();
   aggiornaVisibilitaPulsanti();
@@ -484,203 +490,9 @@ function drawTitle(){
   pop();
 }
 
+// LEGENDA 
 
-// GRIGLIA
-
-function drawPalliniGrigi(){
-    //VARIABILI 
-    let pallini = 100; //definisco il numero dei pallini 
-    let colonne = 10; //numero colonne 
-    let righeQuadrato = 10; //numero righe 
-
-    let diametro = diametroPallino; //diametro di ogni pallino 
-    let spazio = 1; //spazio vuoto tra due pallini 
-
-    let grigliaLarghezza = colonne*diametro + (colonne-1)*spazio; //calcolo la larghezza che occuperanno i pallini 
-    let grigliaAltezza = righeQuadrato*diametro + (righeQuadrato-1)*spazio; //calcolo l'altezza occupata 
-
-    //se si deve cambiare la posizione del quadrato di pallini !!!
-    let startX = 60;
-    let startY = 140; 
-
-    palliniInfo = [];
-
-  coloriCategorie = [
-    color("#D9D97A"),// A
-    color("#6A8AA9"),// B
-    color( "#134a7b"),// C
-    color("#1f863fff"), // 3: Add A  
-    color("#C47929"),// D
-    color("#9C6EBF"),// E
-    color("#7fb6ce"),// F
-    color("#C0655A")   // G
-  ];
-
-    noStroke();
-
-    let indicePallino = 0; //parto dal basso a sinistra 
-
-    // se c'è una categoria selezionata uso quella, altrimenti uso l'hover
-    let activeCatIndex = (selectedCatIndex !== null) ? selectedCatIndex : hoveredCatIndex;
-    let hasActive = (activeCatIndex !== null);
-
-    //ciclo che genera i pallini 
-    for (let r=0; r<righeQuadrato; r++) { //indice di riga
-      for(let c=0; c<colonne; c++) { //indice di colonna
-        let x = startX + c*(diametro+spazio);
-        let y = startY + (righeQuadrato - 1 - r) * (diametro + spazio);
-
-        let catIndex = categoriaPerIndice(indicePallino);
-        let rCerchio = diametroPallino;  // niente hover di grandezza
-
-      if (catIndex === null) { // nessuna categoria: pallino palette.grigio
-        fill(palette.grigio);
-      } else { // c'è una categoria, quindi pallini colorati
-        let baseCol = coloriCategorie[catIndex];
-        let cCol = color(baseCol);
-
-        // se esiste una categoria "attiva" (hover o click)
-        // e questo pallino NON è di quella categoria --> lo spengo
-        if (hasActive && catIndex !== activeCatIndex) {
-          cCol.setAlpha(90);   // opaco
-        } else {
-          cCol.setAlpha(255);  // pieno
-        }
-        fill(cCol);
-      }
-
-      noStroke();
-      circle(x, y, rCerchio);
-
-      palliniInfo.push({ //salvo tutte le info legate al pallino
-        index: indicePallino,
-        x: x,
-        y: y,
-        catIndex: catIndex,
-        type: "pos" //pos per i positivi, neg negativi 
-      });
-
-      indicePallino++; // passo al pallino successivo
-    }
-  } 
-//LINEA DEI PUNTEGGI NEGATIVI inserita solo quando il punteggio totale è negativo 
-if(punteggioTotale<0) {
-    
-//inserisco la LINEA BIANCA di separazione 
-let lineY = startY + grigliaAltezza -20;
-stroke(palette.bianco);
-strokeWeight(2);
-line(30,lineY, 60+grigliaLarghezza,lineY);
-
-//scritta 0
-noStroke();
-fill(palette.bianco);
-textAlign(LEFT,CENTER);
-textSize(18);
-text("0",15,lineY-3);
-
-//10 PALLINI NEGATIVI 
-let distanzaLineaPallini = 27;  // distanza verticale tra linea e riga extra
-let yExtra = lineY + distanzaLineaPallini; // centro dei pallini della riga extra
-
-fill(palette.grigio);
-noStroke();
-
-for (let c = 0; c < colonne; c++) { //uso solo c
-  let x = startX + c * (diametro + spazio);
-  
-  circle(x, yExtra, diametroPallino);
-
-  //faccio la stessa cosa di prima, associo pallino a degli elementi fissi per riconoscerlo 
-  //gli associo le sue caratteristiche 
-  palliniInfo.push({
-    index: indicePallino,
-    x: x,
-    y: yExtra,
-    catIndex: null,  // nessuna categoria
-    type: "neg"      // pallini sotto lo zero
-  });
-indicePallino++;
-  }
-};
-}
-
-// FUNZIONE HOVER PER CATEGORIA
-  function updateHoverCategory() {
-  if (selectedCatIndex !== null) {
-    hoveredPalliniCatIndex = null; //--> in modalità selezione mi elimina l'hover
-    return;
-  }
- //se non c'è nessuna seleione attiva, per dafaul metti nessuna categoria in hover 
-  hoveredPalliniCatIndex = null;
-
-  // hover sui pallini positivi
-  for (let p of palliniInfo) {
-    if (p.type === "pos" && p.catIndex !== null) {
-      let d = dist(logicalMouseX, logicalMouseY, p.x, p.y);
-      if (d < diametroPallino / 2) {
-        hoveredPalliniCatIndex = p.catIndex;
-        break;
-      }
-    }
-  }
-
-  // se non ho hover sui positivi, controllo i negativi (AddQ = 8)
-  if (hoveredPalliniCatIndex === null) {
-    for (let p of palliniInfo) {
-      if (p.type === "neg") {
-        let d = dist(logicalMouseX, logicalMouseY, p.x, p.y);
-        if (d < diametroPallino / 2) {
-          hoveredPalliniCatIndex = 8;
-          break;
-        }
-      }
-    }
-  }
-
-  // hover “globale” = legenda ha priorità sui pallini
-  hoveredCatIndex = (hoveredLegendCatIndex !== null) ? hoveredLegendCatIndex : hoveredPalliniCatIndex;
-
-  // cursore
-  if (hoveredCatIndex !== null) cursor(HAND); //cambia il cursore a manina
-  else cursor(ARROW);
-}
-
-// Controlla hover sulla legenda
-function checkLegendHover() {
-  if (selectedCatIndex !== null) return;
-  
-  let mx = logicalMouseX;
-  let my = logicalMouseY;
-  
-  for (let area of legendHitAreas) {
-    if (mx >= area.x && mx <= area.x + area.w && my >= area.y && my <= area.y + area.h) {
-      cursor(HAND);
-      return;
-    }
-  }
-}
-
-//LEGENDA O DOMANDE --> mi gestisce quale delle due funzioni attivare  
-function drawSidePanel() {
-  if (selectedCatIndex === null) {
-
-    // stato normale → legenda
-    backDetailArea = null;
-    drawLegenda();
-
-  } else {
-
-    // stato dettaglio → cursore normale OVUNQUE
-    cursor(ARROW);              // ← QUESTA È LA CHIAVE
-    drawCategoryPanel(selectedCatIndex);
-
-  }
-}
-
-//DISEGNO LA LEGENDA 
 function drawLegenda() {
-
   //COSTANTE ANNI --> per addA che compare solo fino al 2017
   const anno = int(annoSelezionato);
   const showAddA = (anno >= 2013 && anno <= 2017);
@@ -696,9 +508,9 @@ function drawLegenda() {
   
   //definsico un bordo 
   noFill();
-  stroke(palette.bianco);   // bianco semi-trasparente
+  stroke(palette.bianco); 
   strokeWeight(1);
-  rect(x, y, w, h, 30); // 22 = raggio angoli
+  rect(x, y, w, h, 30);
   noStroke();
 
   //inserisco un padding per separare scritte e bordo bianco 
@@ -765,7 +577,6 @@ const labelPersonal = showAddA
 ? "Personal autonomy and individual rights"
 : "Personal autonomy\nand individual rights";
 
-
 const rightItems = [
   { label: labelFreedom, color: coloriLegenda.freedomExpression, catIndex: 4},
   { label: labelAss, color: coloriLegenda.associationalRights, catIndex: 5},
@@ -773,10 +584,10 @@ const rightItems = [
   { label: labelPersonal, color: coloriLegenda.personalAutonomy, catIndex: 7}
 ];
 
-//definisco un numero di righe comune 
+// definisco un numero di righe comune 
 const rows = max(leftItems.length, rightItems.length);
 
-//VARIABILI DELLE MIE PILLOLE 
+// VARIABILI DELLE MIE PILLOLE 
   // quanto spazio verticale ho per le pillole (sotto i titoli)
   const bottomPad = h * 0.06;
   const availableH = (y + h) - bottomPad - topY;
@@ -786,8 +597,8 @@ const rows = max(leftItems.length, rightItems.length);
 
   // altezza pillola calcolata per far stare "rows" righe
   const pillH = (availableH - (rows - 1) * pillGap) / rows;
-  const dotR     = pillH * 0.26;   // raggio del cerchio
-  const innerPad = pillH * 0.50;   // distanza dal bordo sinistro
+  const dotR     = pillH * 0.26;  
+  const innerPad = pillH * 0.50; 
 
 //PRIMA COLONNA 
 //CICLO ripeti il mio codice per tutti gli elementi inseriti nella mia "cartella"
@@ -815,7 +626,6 @@ if (isHover) hoveredLegendCatIndex = it.catIndex;
   let cy = pillY + pillH / 2;
 
   //hover solo se non c'è selezione 
-  
 push();
 translate(cx, cy);
 scale(scaleHover);
@@ -920,199 +730,47 @@ noStroke();
 }
 }
 
-// 
-function drawTotalScore() {
-//TOTAL SCORE 
-const x = 540;
-  const y = 120;
-  const w = 570;
-  const h = 270;
-// inserimento degli elementi legati al total score sotto la legenda 
-const scoreRightX = x + w * 0.32;  // sposta tutto il blocco a dx/sx
-const scoreBaseY  = y + h + 170;   // distanza sotto la legenda
-
-//  testo e "numero cifre"
-const scoreVal = int(punteggioTotale);
-const scoreStr = str(scoreVal);
-
-// cifre = lunghezza del numero senza il segno "-"
-const digits = str(abs(scoreVal)).length;
-
-// 2) layout che cambia per 1/2/3 cifre
-let bigSize, slashDY, slashDX, labelDY1, labelDY2;
-
-if (digits === 1) {
-  bigSize  = 140;   // dimensione numero 
-  slashDX  = 10;    // /100 distanza
-  slashDY  = 0.52;  // quanto sale /100 
-  labelDY1 = 0.2;  // TOTAL SCORE (sotto)
-  labelDY2 = 0.30;  // IN 2024 (sotto)
-} else if (digits === 2) {
-  bigSize  = 140;
-  slashDX  = 10;
-  slashDY  = 0.52;
-  labelDY1 = 0.2;
-  labelDY2 = 0.30;
-} else { // 3 cifre (es. 100)
-  bigSize  = 110;   
-  slashDX  = 6;     
-  slashDY  = 0.49; 
-  labelDY1 = 0.255;  
-  labelDY2 = 0.382;
-}
-
-// 3) disegno
-push();
-fill(palette.bianco);
-noStroke();
-
-// NUMERO GRANDE (allineato a destra)
-textFont(fontMedium);
-textSize(bigSize);
-textAlign(RIGHT, BASELINE);
-text(scoreStr, scoreRightX, scoreBaseY);
-
-// /100 (in alto a destra del numero)
-textFont(fontRegular);
-textSize(26);
-textAlign(LEFT, BASELINE);
-
-const slashX = scoreRightX + slashDX;
-const slashY = scoreBaseY - bigSize * slashDY;
-text("/100", slashX, slashY);
-
-// LABELS sotto
-textAlign(RIGHT, BASELINE);
-
-textFont(fontBold);
-textSize(16);
-text("TOTAL SCORE", scoreRightX, scoreBaseY + bigSize * labelDY1);
-
-textFont(fontRegular);
-textSize(14);
-text("IN " + annoSelezionato, scoreRightX, scoreBaseY + bigSize * labelDY2);
-
-pop();
-}
-
-// FUNZIONE PUNTEGGIO CATEGORIA (stile TOTAL SCORE)
-function drawCategoryScore(catIndex) {
-
-  // POSIZIONE (stesso riferimento di drawTotalScore) 
-  const x = 540;
-  const y = 120;
-  const w = 570;
-  const hLegend = 270;
-
-  // stessa base del total score
-  const scoreBaseY = y + hLegend + 170;
-
-  // POSIZIONE ORIZZONTALE DEL BLOCCO CATEGORIA (MANOPOLA)
-  // spostalo a destra/sinistra se vuoi
-  const catRightX = x + w * 0.78;
-
-  // --- BLOCCO 2: PRENDO VALORE + MASSIMO ---
-  let val = 0;
-  let maxVal = 0;
-
-  // categorie 0..7
-  if (catIndex >= 0 && catIndex <= 7) {
-    val = int(totaliCategorie[catIndex] || 0);
-    maxVal = int(maxCategorie[catIndex] || 0);
+function checkLegendHover() {
+  if (selectedCatIndex !== null) return;
+  let mx = logicalMouseX;
+  let my = logicalMouseY;
+  
+  for (let area of legendHitAreas) {
+    if (mx >= area.x && mx <= area.x + area.w && my >= area.y && my <= area.y + area.h) {
+      cursor(HAND);
+      return;
+    }
   }
-
-  // AddQ (indice 8) -> scala 0..4
-  if (catIndex === 8) {
-    val = int(constrain(addQVal, 0, 4));
-    maxVal = 4;
-  }
-
-  // --- BLOCCO 3: COLORE (numero grande in colore categoria) ---
-  let numCol;
-  if (catIndex === 8) {
-    numCol = color("#C51A1A");
+}
+ 
+function drawSidePanel() {
+  if (selectedCatIndex === null) {
+    // stato normale → legenda
+    backDetailArea = null;
+    drawLegenda();
   } else {
-    numCol = color(coloriCategorie[catIndex]);
+
+    // stato dettaglio → cursore normale OVUNQUE
+    cursor(ARROW);
+    drawCategoryPanel(selectedCatIndex);
   }
-
-  // --- BLOCCO 4: LAYOUT DINAMICO (come total score: 1/2 cifre vs 3 cifre) ---
-  const digits = str(abs(val)).length;
-
-  let bigSize, slashDY, slashDX, labelDY1, labelDY2;
-
-  if (digits === 1) {
-    bigSize  = 140;
-    slashDX  = 10;
-    slashDY  = 0.52;
-    labelDY1 = 0.20;
-    labelDY2 = 0.30;
-  } else if (digits === 2) {
-    bigSize  = 140;
-    slashDX  = 10;
-    slashDY  = 0.52;
-    labelDY1 = 0.20;
-    labelDY2 = 0.30;
-  } else {
-    bigSize  = 110;
-    slashDX  = 6;
-    slashDY  = 0.49;
-    labelDY1 = 0.255;
-    labelDY2 = 0.382;
-  }
-
-  // DISEGNO (stessa gerarchia del total score) 
-  push();
-  noStroke();
-
-  // NUMERO GRANDE (colorato)
-  fill(numCol);
-  textFont(fontMedium || fontBold);
-  textSize(bigSize);
-  textAlign(RIGHT, BASELINE);
-  text(str(val), catRightX, scoreBaseY);
-
-  // "/max" (bianco)
-  fill(palette.bianco);
-  textFont(fontRegular);
-  textSize(26);
-  textAlign(LEFT, BASELINE);
-
-  const slashX = catRightX + slashDX;
-  const slashY = scoreBaseY - bigSize * slashDY;
-  text("/" + str(maxVal), slashX, slashY);
-
-  // LABELS sotto (bianco, come total score)
-  textAlign(RIGHT, BASELINE);
-
-  textFont(fontBold);
-  textSize(16);
-  text("CATEGORY SCORE", catRightX, scoreBaseY + bigSize * labelDY1);
-
-  textFont(fontRegular);
-  textSize(14);
-  text("IN " + annoSelezionato, catRightX, scoreBaseY + bigSize * labelDY2);
-
-  pop();
 }
 
-//FUNZIONE DOMANDE
 function drawCategoryPanel(catIndex) {
-
 // BLOCCO CONFIGURAZIONE BASE (stile legenda)
-// box IDENTICO alla legenda (stessa X/Y e stessa larghezza)
   let x0 = 540; 
   let y0 = 120; 
   let w  = 570; 
   let r  = 30;
 
-  // padding interni uguali
+  // padding interni
   let paddingLeft   = 24;
   let paddingRight  = 24;
   let paddingBottom = 20;
 
   // layout “header” identico alla legenda
-  const padY = 270 * 0.18;  // uso la stessa proporzione della legenda
-  const headerBaselineY = y0 + padY - 10; // stessa Y dei titoli legenda
+  const padY = 270 * 0.18;  
+  const headerBaselineY = y0 + padY - 10; 
 
   // tipografia domande
   let lineHeight = 18; 
@@ -1131,27 +789,18 @@ function drawCategoryPanel(catIndex) {
   let titolo = panelTitles[catIndex] || "Category details";
   let questions = panelQuestions[catIndex] || [];
 
- 
   // BLOCCO CALCOLO ALTEZZA DINAMICA (h cambia con le domande)
-
-  // 1) calcolo quante righe totali di testo ho (considerando \n)
   let totalLines = 0;
   for (let q of questions) {
     totalLines += q.split("\n").length;
   }
 
-  // 2) altezza del blocco domande = righe * lineHeight
   let questionsTextH = totalLines * lineHeight;
   let gapsH = max(0, questions.length - 1) * gapBetweenQuestions;
 
-
-  // 3) calcolo top del contenuto 
   let contentTop = headerBaselineY + gapAfterTitle;
 
-  // 4) altezza totale = distanza dall’inizio box a contentTop + testo + paddingBottom
   let h = (contentTop - y0) + questionsTextH + gapsH + paddingBottom; 
-
-  // BLOCCO DISEGNO BOX + TITOLO
 
   // BOX
   noFill();
@@ -1168,11 +817,9 @@ function drawCategoryPanel(catIndex) {
   textAlign(LEFT, BOTTOM);
   text(titolo, x0 + paddingLeft, headerBaselineY);
 
- 
-    // BLOCCO BOTTONE CLOSE (immagine, allineata bene)
-
-  let btnSize = 46;      // <-- più grande (cambia qui la dimensione base)
-  let closePad = 18;     // <-- gap dal bordo interno del box (cambia qui il "bel gap")
+ // BLOCCO BOTTONE CLOSE (immagine, allineata bene)
+  let btnSize = 46; 
+  let closePad = 18;
 
   // posizione: ancorata all'angolo alto-destro del BOX
   let xBtn = x0 + w - closePad - btnSize+5;
@@ -1206,26 +853,19 @@ function drawCategoryPanel(catIndex) {
   imageMode(CORNER);
   image(iconaClose, xBtn - dx, yBtn - dy, drawSize, drawSize);
 
-
   // BLOCCO DISEGNO DOMANDE + PALLINI (pallini sulla prima riga)
-
   textFont(fontRegular);
   textSize(textSizeQ);
   fill(palette.bianco);
   noStroke();
-
- 
   textAlign(LEFT, TOP);
 
   let palliniStartX = x0 + paddingLeft;
   let textX = x0 + palliniOffset;
-
   let currentY = contentTop;
 
   for (let qi = 0; qi < questions.length; qi++) {
-
     let q = questions[qi];
-
     // punteggio
     let score = 0;
     if (catIndex === 8) {
@@ -1237,13 +877,11 @@ function drawCategoryPanel(catIndex) {
     // righe della domanda
     let righe = q.split("\n");
 
-    // PALLINI ALLINEATI ALLA PRIMA RIGA:
-    // currentY è il TOP della prima riga => centro pallino = currentY + lineHeight/2
-    let palliniY0 = currentY + lineHeight / 2 ; //ATTENZIONE MENO TRE ME LO ALLINEA BENE 
+    // PALLINI ALLINEATI ALLA PRIMA RIGA
+    let palliniY0 = currentY + lineHeight / 2 ;
 
     // disegno pallini
     for (let i = 0; i < 4; i++) {
-
       if (i < score) {
         if (catIndex === 8) {
           fill("#C51A1A");
@@ -1259,22 +897,172 @@ function drawCategoryPanel(catIndex) {
       let px = palliniStartX + i * palliniSpazio +6 ;
       circle(px, palliniY0 -3, palliniRaggio * 2);
     }
-
     // testo (tutte le righe)
     fill(palette.bianco);
     for (let riga of righe) {
       text(riga, textX, currentY);
       currentY += lineHeight;
     }
-
-    // gap fisso tra domande (se vuoi più aria, aumenta di poco)
     currentY += gapBetweenQuestions; 
   }
 
 drawCategoryScore(catIndex);
 }
+
+function updateHoverCategory() {
+  if (selectedCatIndex !== null) {
+    hoveredPalliniCatIndex = null;
+    return;
+  }
+ //se non c'è nessuna seleione attiva, per dafaul metti nessuna categoria in hover 
+  hoveredPalliniCatIndex = null;
+
+  // hover sui pallini positivi
+  for (let p of palliniInfo) {
+    if (p.type === "pos" && p.catIndex !== null) {
+      let d = dist(logicalMouseX, logicalMouseY, p.x, p.y);
+      if (d < diametroPallino / 2) {
+        hoveredPalliniCatIndex = p.catIndex;
+        break;
+      }
+    }
+  }
+
+  // se non ho hover sui positivi, controllo i negativi (AddQ = 8)
+  if (hoveredPalliniCatIndex === null) {
+    for (let p of palliniInfo) {
+      if (p.type === "neg") {
+        let d = dist(logicalMouseX, logicalMouseY, p.x, p.y);
+        if (d < diametroPallino / 2) {
+          hoveredPalliniCatIndex = 8;
+          break;
+        }
+      }
+    }
+  }
+
+  // hover “globale” = legenda ha priorità sui pallini
+  hoveredCatIndex = (hoveredLegendCatIndex !== null) ? hoveredLegendCatIndex : hoveredPalliniCatIndex;
+
+  // cursore
+  if (hoveredCatIndex !== null) cursor(HAND);
+  else cursor(ARROW);
+}
+
+// GRIGLIA
+
+function drawPalliniGrigi(){
+    let pallini = 100; //definisco il numero dei pallini 
+    let colonne = 10; //numero colonne 
+    let righeQuadrato = 10; //numero righe 
+
+    let diametro = diametroPallino; //diametro di ogni pallino 
+    let spazio = 1; //spazio vuoto tra due pallini 
+
+    let grigliaLarghezza = colonne*diametro + (colonne-1)*spazio; //calcolo la larghezza che occuperanno i pallini 
+    let grigliaAltezza = righeQuadrato*diametro + (righeQuadrato-1)*spazio; //calcolo l'altezza occupata 
+
+    let startX = 60;
+    let startY = 140; 
+
+    palliniInfo = [];
+
+  coloriCategorie = [
+    color("#D9D97A"),// A
+    color("#6A8AA9"),// B
+    color( "#134a7b"),// C
+    color("#1f863fff"), // 3: Add A  
+    color("#C47929"),// D
+    color("#9C6EBF"),// E
+    color("#7fb6ce"),// F
+    color("#C0655A")   // G
+  ];
+    noStroke();
+
+    let indicePallino = 0; //parto dal basso a sinistra 
+
+    // se c'è una categoria selezionata uso quella, altrimenti uso l'hover
+    let activeCatIndex = (selectedCatIndex !== null) ? selectedCatIndex : hoveredCatIndex;
+    let hasActive = (activeCatIndex !== null);
+
+    //ciclo che genera i pallini 
+    for (let r=0; r<righeQuadrato; r++) { //indice di riga
+      for(let c=0; c<colonne; c++) { //indice di colonna
+        let x = startX + c*(diametro+spazio);
+        let y = startY + (righeQuadrato - 1 - r) * (diametro + spazio);
+
+        let catIndex = categoriaPerIndice(indicePallino);
+        let rCerchio = diametroPallino;  // niente hover di grandezza
+
+      if (catIndex === null) { // nessuna categoria: pallino palette.grigio
+        fill(palette.grigio);
+      } else { // c'è una categoria, quindi pallini colorati
+        let baseCol = coloriCategorie[catIndex];
+        let cCol = color(baseCol);
+
+        // se esiste una categoria "attiva" (hover o click) e questo pallino NON è di quella categoria --> lo spengo
+        if (hasActive && catIndex !== activeCatIndex) {
+          cCol.setAlpha(90); 
+        } else {
+          cCol.setAlpha(255);
+        }
+        fill(cCol);
+      }
+      noStroke();
+      circle(x, y, rCerchio);
+
+      palliniInfo.push({ //salvo tutte le info legate al pallino
+        index: indicePallino,
+        x: x,
+        y: y,
+        catIndex: catIndex,
+        type: "pos" 
+      });
+
+      indicePallino++; 
+    }
+  } 
+//LINEA DEI PUNTEGGI NEGATIVI inserita solo quando il punteggio totale è negativo 
+if(punteggioTotale<0) {
+    
+//inserisco la LINEA BIANCA di separazione 
+let lineY = startY + grigliaAltezza -20;
+stroke(palette.bianco);
+strokeWeight(2);
+line(30,lineY, 60+grigliaLarghezza,lineY);
+
+//scritta 0
+noStroke();
+fill(palette.bianco);
+textAlign(LEFT,CENTER);
+textSize(18);
+text("0",15,lineY-3);
+
+//10 PALLINI NEGATIVI 
+let distanzaLineaPallini = 27;  
+let yExtra = lineY + distanzaLineaPallini; 
+
+fill(palette.grigio);
+noStroke();
+
+for (let c = 0; c < colonne; c++) {
+  let x = startX + c * (diametro + spazio);
   
-//FUNZIONE ADDQ (domanda negativa)
+  circle(x, yExtra, diametroPallino);
+  //faccio la stessa cosa di prima, associo pallino a degli elementi fissi per riconoscerlo 
+  //gli associo le sue caratteristiche 
+  palliniInfo.push({
+    index: indicePallino,
+    x: x,
+    y: yExtra,
+    catIndex: null,
+    type: "neg"   
+  });
+indicePallino++;
+  }
+};
+}
+
 function drawAddQOverlay() {
   let n = int(addQVal);   //valore addQ convertito con int in intero per sicurezza
   if (n <= 0) return;  // se è zero o negativo, non faccio nulla
@@ -1284,28 +1072,18 @@ function drawAddQOverlay() {
 
   //ANIMAZIONE 
   let alphaInner = map(cos(animT), -1, 1, 0, 255);
-  //variabile globale che incremento ad ogni frame nel draw 
-  //cos oscilla sempre tra -1 e 1
-  //oscillazione che viene mappata in un opacità 
-
   let colpiti = 0; //quanti pallini fanno questa cosa?
-
   let targets = [];
 
   // prendo gli ULTIMI pallini colorati
-
-  // 1) raccolgo tutti i pallini positivi con categoria (quindi solo quelli colorati)
   let colored = [];
   for (let p of palliniInfo) {
     if (p.type === "pos" && p.catIndex !== null) {
       colored.push(p);
     }
   }
-
-  // 2) li ordino per indice crescente (0,1,2,...)
   colored.sort((a, b) => a.index - b.index);
 
-  // 3) prendo gli ultimi n (partendo dalla fine dell’array)
   for (let i = colored.length - 1; i >= 0 && targets.length < n; i--) {
     targets.push(colored[i]);
   }
@@ -1317,35 +1095,27 @@ function drawAddQOverlay() {
     }
   }
 
-  //applico l'effetto con l'ordine delle regole di sopra 
   for (let p of targets) {
     if (colpiti >= n) break; 
-  //se ho già cerchiato il numero di pallini giusto, ok 
-  //se no procedo a fare anche quetso pallino 
-
    let rCerchio = diametroPallino;
     
     noStroke();
     fill(palette.grigio);
     circle(p.x, p.y, rCerchio);
 
-
     //INTERNO di un pallino con bordo rosso 
    if (p.type === "pos" && p.catIndex !== null) {
     // pallino positivo: recupero il colore della categoria
     let baseCol = coloriCategorie[p.catIndex];
-    let c = color(baseCol);   // 
-    c.setAlpha(alphaInner);   // ok, non tocca l’originale
+    let c = color(baseCol);   
+    c.setAlpha(alphaInner);  
     fill(c);
     c.setAlpha(alphaInner);
 
     noStroke();
     fill(c);
     circle(p.x, p.y, rCerchio);
-
-    //pallino negativo sotto la linea 
   } else if (p.type === "neg") {
-    // pallino negativo
     let c = color("#C51A1A");
     noStroke();
     fill(c);
@@ -1354,23 +1124,177 @@ function drawAddQOverlay() {
 
   //BORDO ROSSO FISSO
   noFill(); //vuoto
-  stroke(197, 26, 26);   // rosso pieno
+  stroke(197, 26, 26);
   strokeWeight(5);
-  circle(p.x, p.y, rCerchio );  // anello più grande
-
-
+  circle(p.x, p.y, rCerchio );
   colpiti++;
 }
-
-// ripristino stato
 noStroke();
+}
+
+// FUNZIONI GRAFICHE
+
+function drawTotalScore() {
+const x = 540;
+  const y = 120;
+  const w = 570;
+  const h = 270;
+const scoreRightX = x + w * 0.32;  
+const scoreBaseY  = y + h + 170;  
+
+//  testo e "numero cifre"
+const scoreVal = int(punteggioTotale);
+const scoreStr = str(scoreVal);
+const digits = str(abs(scoreVal)).length;
+
+let bigSize, slashDY, slashDX, labelDY1, labelDY2;
+
+if (digits === 1) {
+  bigSize  = 140;   
+  slashDX  = 10;   
+  slashDY  = 0.52; 
+  labelDY1 = 0.2; 
+  labelDY2 = 0.30;  
+} else if (digits === 2) {
+  bigSize  = 140;
+  slashDX  = 10;
+  slashDY  = 0.52;
+  labelDY1 = 0.2;
+  labelDY2 = 0.30;
+} else { 
+  bigSize  = 110;   
+  slashDX  = 6;     
+  slashDY  = 0.49; 
+  labelDY1 = 0.255;  
+  labelDY2 = 0.382;
+}
+
+push();
+fill(palette.bianco);
+noStroke();
+
+// NUMERO GRANDE (allineato a destra)
+textFont(fontMedium);
+textSize(bigSize);
+textAlign(RIGHT, BASELINE);
+text(scoreStr, scoreRightX, scoreBaseY);
+
+// /100 (in alto a destra del numero)
+textFont(fontRegular);
+textSize(26);
+textAlign(LEFT, BASELINE);
+
+const slashX = scoreRightX + slashDX;
+const slashY = scoreBaseY - bigSize * slashDY;
+text("/100", slashX, slashY);
+
+// LABELS sotto
+textAlign(RIGHT, BASELINE);
+textFont(fontBold);
+textSize(16);
+text("TOTAL SCORE", scoreRightX, scoreBaseY + bigSize * labelDY1);
+textFont(fontRegular);
+textSize(14);
+text("IN " + annoSelezionato, scoreRightX, scoreBaseY + bigSize * labelDY2);
+pop();
+}
+
+function drawCategoryScore(catIndex) {
+  // POSIZIONE (stesso riferimento di drawTotalScore) 
+  const x = 540;
+  const y = 120;
+  const w = 570;
+  const hLegend = 270;
+
+  // stessa base del total score
+  const scoreBaseY = y + hLegend + 170;
+
+  // POSIZIONE ORIZZONTALE DEL BLOCCO CATEGORIA (MANOPOLA)
+  const catRightX = x + w * 0.78;
+
+  // PRENDO VALORE + MASSIMO 
+  let val = 0;
+  let maxVal = 0;
+
+  // categorie 0..7
+  if (catIndex >= 0 && catIndex <= 7) {
+    val = int(totaliCategorie[catIndex] || 0);
+    maxVal = int(maxCategorie[catIndex] || 0);
   }
 
-//FUNZIONE PUNTEGGIO TOTALE + ARRAY CON I VALORI DELLE CATEGORIE 
-function aggiornaPunteggioTotale(){ //e anche categorie 
-  punteggioTotale = 0; //azzero la mia variabile per sicurezza 
+  // AddQ (indice 8) -> scala 0..4
+  if (catIndex === 8) {
+    val = int(constrain(addQVal, 0, 4));
+    maxVal = 4;
+  }
 
-  //ciclo 
+  // COLORE (numero grande in colore categoria) 
+  let numCol;
+  if (catIndex === 8) {
+    numCol = color("#C51A1A");
+  } else {
+    numCol = color(coloriCategorie[catIndex]);
+  }
+
+  // LAYOUT DINAMICO
+  const digits = str(abs(val)).length;
+  let bigSize, slashDY, slashDX, labelDY1, labelDY2;
+
+  if (digits === 1) {
+    bigSize  = 140;
+    slashDX  = 10;
+    slashDY  = 0.52;
+    labelDY1 = 0.20;
+    labelDY2 = 0.30;
+  } else if (digits === 2) {
+    bigSize  = 140;
+    slashDX  = 10;
+    slashDY  = 0.52;
+    labelDY1 = 0.20;
+    labelDY2 = 0.30;
+  } else {
+    bigSize  = 110;
+    slashDX  = 6;
+    slashDY  = 0.49;
+    labelDY1 = 0.255;
+    labelDY2 = 0.382;
+  }
+
+  // DISEGNO
+  push();
+  noStroke();
+
+  // NUMERO GRANDE (colorato)
+  fill(numCol);
+  textFont(fontMedium || fontBold);
+  textSize(bigSize);
+  textAlign(RIGHT, BASELINE);
+  text(str(val), catRightX, scoreBaseY);
+
+  // "/max" (bianco)
+  fill(palette.bianco);
+  textFont(fontRegular);
+  textSize(26);
+  textAlign(LEFT, BASELINE);
+
+  const slashX = catRightX + slashDX;
+  const slashY = scoreBaseY - bigSize * slashDY;
+  text("/" + str(maxVal), slashX, slashY);
+
+  // LABELS sotto (bianco, come total score)
+  textAlign(RIGHT, BASELINE);
+  textFont(fontBold);
+  textSize(16);
+  text("CATEGORY SCORE", catRightX, scoreBaseY + bigSize * labelDY1);
+  textFont(fontRegular);
+  textSize(14);
+  text("IN " + annoSelezionato, catRightX, scoreBaseY + bigSize * labelDY2);
+  pop();
+}
+
+function aggiornaPunteggioTotale(){ //e anche categorie 
+  punteggioTotale = 0; 
+
   for (let i=0; i<data.getRowCount(); i++){
     let countryCSV = data.getString(i,"Country/Territory").trim();
     let csvSlug = normalizeCountryName(countryCSV);
@@ -1378,7 +1302,7 @@ function aggiornaPunteggioTotale(){ //e anche categorie
 
     // stesso paese + stesso anno
     if (csvSlug === countrySlug && edition === annoSelezionato) {
-      punteggioTotale = data.getNum(i, "TOTAL"); //ATTENZIONE ALLO SPAZIO ALLA FINE 
+      punteggioTotale = data.getNum(i, "TOTAL");  
       
       totaliCategorie[0] = data.getNum(i, "Total A");
       totaliCategorie[1] = data.getNum(i, "Total B");
@@ -1458,7 +1382,6 @@ function categoriaPerIndice(indicePallino) {
 return null;
 };
 
-// NUOVE FUNZIONI PER OVERVIEWCHART
 function creaGradiente(x, yInizio, yFine, larghezza, colori) {
   let gradient = drawingContext.createLinearGradient(x, yInizio, x, yFine);
   
@@ -1474,7 +1397,6 @@ function creaGradiente(x, yInizio, yFine, larghezza, colori) {
   return gradient;
 }
 
-//controlla se esiste almeno un anno con un punteggio negativo 
 function totaleNegativo() {
   for (let d of countryData) {
     if (d.Total < 0) return true;
@@ -1482,7 +1404,6 @@ function totaleNegativo() {
   return false;
 }
 
-//grafico overview
 function drawOverviewChart(area, data) {
 
   //  PADDING INTERNI AL RIQUADRO 
@@ -1575,7 +1496,6 @@ function drawOverviewChart(area, data) {
   }
 }
 
-//grafico  overviewper negativi 
 function drawOverviewChartNegative(area, data) {
 
   //  PADDING INTERNI AL RIQUADRO 
@@ -1671,7 +1591,7 @@ function drawOverviewChartNegative(area, data) {
       circle(xStart + barW / 2, yZero - absH, dotSize * 1.6);
 
     } else {
-      // ----- NEGATIVO (sotto lo zero)
+      // -- NEGATIVO (sotto lo zero)
       drawingContext.fillStyle = creaGradiente(
         xStart,
         yZero,
@@ -1701,7 +1621,23 @@ function drawOverviewChartNegative(area, data) {
   }
 }
 
-//finestra grafico mini 
+//MOSTARE CONTEXT INS SOLO QUANDO LO STATO HA UN CONTEXT INS
+function hasContextInsight() {
+  let key = normalizeCountryName(countryName);
+  let testo = countryTexts[key] || "";
+  return testo.trim().length > 0;
+}
+
+// FUNZIONE PER NORMALIZZARE I NOMI 
+function normalizeCountryName(name) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]/g, ""); // tiene solo lettere e numeri
+}
+
+// GRAFICO PICCOLO
+
 function drawOverviewMini() {
   // Ordina i dati per anno
   let chartData = countryData.slice().sort((a,b) => int(a.year) - int(b.year));
@@ -1839,6 +1775,7 @@ function drawOverviewMini() {
 
   pop();
 }
+
 function drawOverviewChartMini(data) {
   // layout base con barre più larghe
   let baseBarW = 28;
@@ -1919,7 +1856,6 @@ function drawOverviewChartMini(data) {
   }
 }
 
-//overview mini negativo 
 function drawOverviewChartMiniNegative(data) {
   // layout base con barre più larghe
   let baseBarW = 28;
@@ -2014,7 +1950,8 @@ function drawOverviewChartMiniNegative(data) {
   }
 }
 
-//versione grande
+// GRAFICO ESPANSO
+
 function drawOverviewExpanded() {
   const chartData = countryData
     .slice()
@@ -2055,62 +1992,74 @@ function drawOverviewExpanded() {
 
   pop();
 
-  // --- DISEGNO TARGHETTE STATUS (sopra il toggle) ---
-  let statuses = getStatusesInData(chartData); 
-  
-  // Calcola larghezza totale del toggle + labels
-  const toggleW = 70;
-  const labelLeftW = textWidth("Parameters");
-  const labelRightW = textWidth("Total overview");
-  const totalToggleWidth = 90 + toggleW + 20 + max(labelLeftW, labelRightW);
-  
-  // Centro dello spazio rimanente a destra
-  const rightSpaceStart = overviewBox.x + overviewBox.w - totalToggleWidth - 120;
-  const rightSpaceWidth = totalToggleWidth + 120;
-  const centerX = rightSpaceStart + rightSpaceWidth / 2;
-  
-  // Posiziona le targhette centrate sopra il toggle
-  const tagBottomY = overviewBox.y + overviewBox.h - 120; // sopra il toggle
-  const interlinea = 32;
-  const totalTagsHeight = statuses.length * interlinea;
-  let tagY = tagBottomY - totalTagsHeight;
-  
-  for (let s of statuses) {
-    let label = statusLabels[s];
-    let colors = coloriStatus[s];
-    
-    // Calcola larghezza della targhetta per centrarla
+  // targhette status (solo in overview)
+if (viewMode === "overview") {
+  const statuses = getStatusesInData(chartData);
+
+  // IMPORTANTE: drawToggle() deve essere già stato chiamato in questo frame
+  // (nel tuo draw() lo chiami prima di drawOverviewExpanded(), quindi ok)
+
+  const gap = 8;
+
+  // se vuoi l'ancoraggio alla scritta "Parameters"
+  if (toggleLabelRect) {
+    // allineo a DESTRA sulla scritta "Parameters"
+    const anchorLeftX = toggleLabelRect.x;
+
+    // parto appena sopra la scritta (stack verso l’alto)
+    let tagBottomY = toggleLabelRect.y - 30;
+
     push();
     textFont(fontBold);
     textSize(15);
-    const tagWidth = textWidth(label) + 28; // 28 = paddingX * 2
+
+    // (opzionale) ordine stabile: NF, PF, F (se esistono)
+    const order = ["NF", "PF", "F"];
+    const sorted = statuses.slice().sort((a, b) => order.indexOf(a) - order.indexOf(b));
+
+    // disegno dal basso verso l’alto
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      const status = sorted[i];
+      const colors = coloriStatus[status];
+      const label  = statusLabels[status];
+      if (!colors || !label) continue;
+
+      const tw = textWidth(label);
+      const paddingX = 14;
+      const wTag = tw + paddingX * 2;
+      const hTag = 26;
+
+      const xTag = anchorLeftX ;
+      const yTag = tagBottomY - hTag;
+
+      drawStatusTag(xTag, yTag, label, colors);
+
+      tagBottomY = yTag - gap;
+    }
     pop();
-    
-    const tagX = centerX - tagWidth / 2;
-    
-    // Disegna la targhetta centrata
-    drawStatusTag(tagX, tagY, label, colors);
-    
-    tagY += interlinea; 
+
+  } else {
+    // fallback: se per qualche motivo toggleLabelRect non è pronto,
+    // usa la tua vecchia posizione fissa
+    let tagX = overviewBox.x + overviewBox.w - 420;
+    let tagY = overviewBox.y + overviewBox.h - 90;
+
+    for (let status of statuses) {
+      const colors = coloriStatus[status];
+      const label  = statusLabels[status];
+      if (!colors || !label) continue;
+
+      const hTag = drawStatusTag(tagX, tagY - 26, label, colors);
+      tagY -= (hTag + gap);
+    }
   }
+}
 
   // 4. Testo di approfondimento (Context Insight)
   drawOverviewText();
 }
 
-//icona per ingrandire
-function drawExpandIcon(x, y) {
-  push();
-  stroke(palette.bianco);
-  strokeWeight(2);
-  noFill();
-  rectMode(CENTER);
-  rect(x, y, 18, 18, 4);
-  line(x - 4, y - 4, x + 4, y + 4);
-  pop();
-}
-
-//funzione per trovare overview negativi
+// funzione per trovare overview negativi
 function overviewNegative() {
   for (let d of countryData) {
     if (d.Total < 0) return true;
@@ -2118,172 +2067,8 @@ function overviewNegative() {
   return false;
 }
 
-//paragrafi 
-function drawCountryText(countryName, x, y, w) {
-  let key = normalizeCountryName(countryName);
+// GRAFICO ESPANSO DOT
 
-  let testo = countryTexts[key] || "";
-  if (testo.trim() === "") return 0;
-
-  textSize(16);
-  textFont(fontRegular);
-  textAlign(LEFT, TOP);
-
-  let words = testo.split(" ");
-  let lines = [];
-  let currentLine = "";
-
-  for (let wIndex = 0; wIndex < words.length; wIndex++) {
-    let testLine = currentLine + words[wIndex] + " ";
-
-    if (textWidth(testLine) > w) {
-      lines.push(currentLine);
-      currentLine = words[wIndex] + " ";
-    } else {
-      currentLine = testLine;
-    }
-  }
-  lines.push(currentLine);
-
-  let lineHeight = textAscent() + textDescent() + 4;
-  let boxPadding = 20;
-  let boxH = lines.length * lineHeight + boxPadding * 2;
-
-  fill(palette.bianco);
-  noStroke();
-  let textY = y;
-
-  for (let line of lines) {
-    text(line, x, textY);
-    textY += lineHeight;
-  }
-  return boxH;
-}
-
-//funzione per disegnare il testo dei paragrafi
-function drawOverviewText() {
-  if (viewMode !== "overview") return;
-
-  const w = 300;
-
-  // posizione delle targhette
-  const tagsTopY = overviewBox.y + overviewBox.h - 110;
-
-  // altezza del paragrafo
-  const textH = measureCountryTextHeight(countryName, w);
-
-  if (textH === 0) return;
-  
-
-  const x = overviewBox.x + overviewBox.w - w -120;
-
-  // spazio per il titolo
-  const titleH = 15;
-  const gap = 10;
-
-  // y ancorato dal basso (titolo + gap + testo)
-  const y = tagsTopY - textH - titleH - gap - 10;
-
-  // TITOLO
-  push();
-  textFont(fontBold);
-  textSize(16);
-  fill(palette.bianco);
-  noStroke();
-  textAlign(LEFT, TOP);
-  text("CONTEXT INSIGHT", x, y);
-
-  const starSize = 30;
-const titleW = textWidth("CONTEXT INSIGHT");
-
-imageMode(CORNER);
-image(
-  iconaStar,
-  x -40, // distanza a destra del titolo
-  y -7,           // piccolo allineamento verticale
-  starSize,
-  starSize
-);
-  pop();
-
-  // PARAGRAFO
-  drawCountryText(
-    countryName,
-    x,
-    y + titleH + gap,
-    w
-  );
-}
-
-//toggle per switchare
-function drawToggle() {
-  if (!overviewExpanded) return;
-
-  const toggleW = 70;
-  const toggleH = 36;
-  const x = overviewBox.x + overviewBox.w - 325;
-  const y = overviewBox.y + overviewBox.h - 70;
-  const toggleX = x; // left del toggle
-  const toggleY_center = y + toggleH/2; // centro verticale toggle
-  const labelLeft  = "Parameters";
-  const labelRight = "Total overview";
-
-  push();
-
-  noFill();
-  stroke(palette.bianco);
-  strokeWeight(1);
-  rect(toggleX, toggleY_center - toggleH / 2, toggleW, toggleH, 30);
-
-  noStroke();
-  textFont(fontRegular);
-  textSize(14);
-  textAlign(RIGHT, CENTER);
-  textLeading(16);
-
-  if (viewMode === "parameters") fill(palette.bianco);
-  else fill(150);
-
-  text(labelLeft, toggleX - 15, toggleY_center);
-
-  textAlign(LEFT, CENTER);
-
-  if (viewMode === "overview") fill(palette.bianco);
-  else fill(150);
-
-  text(labelRight, toggleX + toggleW + 15, toggleY_center);
-
-  //pallino
-  fill(palette.bianco);
-  noStroke();
-
-  const knobX = (viewMode === "parameters")
-    ? toggleX + 18
-    : toggleX + toggleW - 18;
-
-  circle(knobX, toggleY_center, toggleH - 8);
-
-  pop();
-
-  const hitboxPadding = 120;
-  toggleBox = {
-    x: toggleX - hitboxPadding,
-    y: toggleY_center - toggleH / 2,
-    w: toggleW + hitboxPadding * 2,
-    h: toggleH
-  };
-
-  if (
-  mouseX >= toggleBox.x &&
-  mouseX <= toggleBox.x + toggleBox.w &&
-  mouseY >= toggleBox.y &&
-  mouseY <= toggleBox.y + toggleBox.h
-) {
-  cursor(HAND);
-}
-}
-
-//DOTCHART
 function drawDotChart(area, data, params) {
 
   // layout base
@@ -2426,8 +2211,7 @@ function drawDotChart(area, data, params) {
     xStart += columnSpacing;
   }
 }
-
-//dotchart nagativo 
+ 
 function drawDotChartNegatives(area, data, params) {
 
   //layout di base 
@@ -2607,7 +2391,19 @@ function drawDotChartNegatives(area, data, params) {
   }
 }
 
-// X per chiudere il grafico extended 
+// FUNZIONI PER VERSIONI ESPANSE
+
+function drawExpandIcon(x, y) {
+  push();
+  stroke(palette.bianco);
+  strokeWeight(2);
+  noFill();
+  rectMode(CENTER);
+  rect(x, y, 18, 18, 4);
+  line(x - 4, y - 4, x + 4, y + 4);
+  pop();
+}
+
 function drawOverviewCloseButton() {
   const size = 28;
 
@@ -2651,7 +2447,6 @@ function drawOverviewCloseButton() {
   pop();
 }
 
-// per nascondere i pulsanti aboutus, home e freccia indietro
 function aggiornaVisibilitaPulsanti() {
   // non nascondo più nulla
   if (overviewExpanded) {
@@ -2667,75 +2462,8 @@ function aggiornaVisibilitaPulsanti() {
   }
 }
 
-//funzione che capisce lo status pe rle targhette
-function getStatusesInData(data) {
-  const set = new Set();
-  for (let d of data) {
-    if (d.Status) set.add(d.Status);
-  }
-  return Array.from(set);
-}
-
-//targhette status 
-function drawStatusTag(x, y, label, colors) {
-
-  const paddingX = 14;
-  const paddingY =6;
-  const radius = 14;
-
-  textFont(fontBold);
-  textSize(15);
-  textAlign(LEFT, CENTER);
-
-  const tw = textWidth(label);
-  const w = tw + paddingX * 2;
-  const h = 26;
-
-  // background
-  noStroke();
-  fill(colors[1]); // colore centrale dello status
-  rect(x, y, w, h, radius);
-
-  // testo
-  fill(palette.nero);
-  text(label, x + paddingX, y + h / 2);
-
-  return h; // utile per posizionare la prossima
-}
-
-//funzione per misurare la grandezza del paragrafo
-function measureCountryTextHeight(countryName, w) {
-  let key = normalizeCountryName(countryName);
-  let testo = countryTexts[key] || "";
-  if (testo.trim() === "") return 0;
-
-  textFont(fontRegular);
-  textSize(16);
-
-  let words = testo.split(" ");
-  let lines = [];
-  let currentLine = "";
-
-  for (let word of words) {
-    let testLine = currentLine + word + " ";
-    if (textWidth(testLine) > w) {
-      lines.push(currentLine);
-      currentLine = word + " ";
-    } else {
-      currentLine = testLine;
-    }
-  }
-  lines.push(currentLine);
-
-  let lineHeight = textAscent() + textDescent() + 4;
-  let boxPadding = 20;
-
-  return lines.length * lineHeight + boxPadding * 2;
-}
-
-//LEGANDA 2
 function drawParamsLegendSmall() {
-  // --- POSIZIONE BOX (ancorato in alto a destra dentro overviewBox) ---
+  //  POSIZIONE BOX (ancorato in alto a destra dentro overviewBox) 
   const boxW = 300;
   const boxH = 260;
 
@@ -2765,7 +2493,7 @@ function drawParamsLegendSmall() {
   const dotX = x0 + padX + 6;  // x pallino
   const textX = dotX + dotR*2 + 10; // x testo
 
-  // --- TESTI + COLORI (come screenshot) ---
+  //  TESTI + COLORI (come screenshot) 
   const PR = [
     { label: "Electoral Process", color: coloriLegenda.electoralProcess },
     { label: "Political Pluralism and Participation", color: coloriLegenda.politicalPluralism },
@@ -2780,7 +2508,7 @@ function drawParamsLegendSmall() {
     { label: "Personal Autonomy and Individual Rights", color: coloriLegenda.personalAutonomy }
   ];
 
-  // --- DISEGNO TITOLI + LISTE ---
+  //  DISEGNO TITOLI + LISTE 
   noStroke();
   fill(palette.bianco);
 
@@ -2835,27 +2563,242 @@ function drawParamsLegendSmall() {
   }
 }
 
-//MOSTARE CONTEXT INS SOLO QUANDO LO STATO HA UN CONTEXT INS
-function hasContextInsight() {
+function getStatusesInData(data) {
+  const set = new Set();
+  for (let d of data) {
+    if (d.Status) set.add(d.Status);
+  }
+  return Array.from(set);
+}
+
+function drawStatusTag(x, y, label, colors) {
+
+  const paddingX = 14;
+  const paddingY =6;
+  const radius = 14;
+
+  textFont(fontBold);
+  textSize(15);
+  textAlign(LEFT, CENTER);
+
+  const tw = textWidth(label);
+  const w = tw + paddingX * 2;
+  const h = 26;
+
+  // background
+  noStroke();
+  fill(colors[1]); // colore centrale dello status
+  rect(x, y, w, h, radius);
+
+  // testo
+  fill(palette.nero);
+  text(label, x + paddingX, y + h / 2);
+
+  return h; // utile per posizionare la prossima
+}
+
+function drawToggle() {
+  if (!overviewExpanded) return;
+
+  const toggleW = 70;
+  const toggleH = 36;
+  const x = overviewBox.x + overviewBox.w - 325;
+  const y = overviewBox.y + overviewBox.h - 70;
+  const toggleX = x; // left del toggle
+  const toggleY_center = y + toggleH/2; // centro verticale toggle
+  const labelLeft  = "Parameters";
+  const labelRight = "Total overview";
+
+  push();
+
+  noFill();
+  stroke(palette.bianco);
+  strokeWeight(1);
+  rect(toggleX, toggleY_center - toggleH / 2, toggleW, toggleH, 30);
+
+  noStroke();
+  textFont(fontRegular);
+  textSize(14);
+  textAlign(RIGHT, CENTER);
+  textLeading(16);
+
+  if (viewMode === "parameters") fill(palette.bianco);
+  else fill(150);
+
+  text(labelLeft, toggleX - 15, toggleY_center);
+
+  const labelLeftW = textWidth(labelLeft);
+  const labelLeftH = textAscent() + textDescent(); // più preciso di "14"
+
+  toggleLabelRect = {
+    x: (toggleX - 15) - labelLeftW,
+    y: toggleY_center - labelLeftH / 2,
+    w: labelLeftW,
+    h: labelLeftH
+  };
+
+  textAlign(LEFT, CENTER);
+
+  if (viewMode === "overview") fill(palette.bianco);
+  else fill(150);
+
+  text(labelRight, toggleX + toggleW + 15, toggleY_center);
+
+  //pallino
+  fill(palette.bianco);
+  noStroke();
+
+  const knobX = (viewMode === "parameters")
+    ? toggleX + 18
+    : toggleX + toggleW - 18;
+
+  circle(knobX, toggleY_center, toggleH - 8);
+
+  pop();
+
+  const hitboxPadding = 120;
+  toggleBox = {
+    x: toggleX - hitboxPadding,
+    y: toggleY_center - toggleH / 2,
+    w: toggleW + hitboxPadding * 2,
+    h: toggleH
+  };
+
+  if (
+  mouseX >= toggleBox.x &&
+  mouseX <= toggleBox.x + toggleBox.w &&
+  mouseY >= toggleBox.y &&
+  mouseY <= toggleBox.y + toggleBox.h
+) {
+  cursor(HAND);
+}
+}
+
+function drawCountryText(countryName, x, y, w) {
+  let key = normalizeCountryName(countryName);
+
+  let testo = countryTexts[key] || "";
+  if (testo.trim() === "") return 0;
+
+  textSize(16);
+  textFont(fontRegular);
+  textAlign(LEFT, TOP);
+
+  let words = testo.split(" ");
+  let lines = [];
+  let currentLine = "";
+
+  for (let wIndex = 0; wIndex < words.length; wIndex++) {
+    let testLine = currentLine + words[wIndex] + " ";
+
+    if (textWidth(testLine) > w) {
+      lines.push(currentLine);
+      currentLine = words[wIndex] + " ";
+    } else {
+      currentLine = testLine;
+    }
+  }
+  lines.push(currentLine);
+
+  let lineHeight = textAscent() + textDescent() + 4;
+  let boxPadding = 20;
+  let boxH = lines.length * lineHeight + boxPadding * 2;
+
+  fill(palette.bianco);
+  noStroke();
+  let textY = y;
+
+  for (let line of lines) {
+    text(line, x, textY);
+    textY += lineHeight;
+  }
+  return boxH;
+}
+
+function drawOverviewText() {
+  if (viewMode !== "overview") return;
+
+  const w = 300;
+
+  // posizione delle targhette
+  const tagsTopY = overviewBox.y + overviewBox.h - 150;
+
+  // altezza del paragrafo
+  const textH = measureCountryTextHeight(countryName, w);
+
+  if (textH === 0) return;
+  
+const x = toggleLabelRect ? toggleLabelRect.x : (overviewBox.x + overviewBox.w - w);  
+
+  // spazio per il titolo
+  const titleH = 15;
+  const gap = 10;
+
+  // y ancorato dal basso (titolo + gap + testo)
+  const y = tagsTopY - textH - titleH - gap - 10;
+
+  // TITOLO
+  push();
+  textFont(fontBold);
+  textSize(16);
+  fill(palette.bianco);
+  noStroke();
+  textAlign(LEFT, TOP);
+  text("CONTEXT INSIGHT", x, y);
+
+  const starSize = 30;
+const titleW = textWidth("CONTEXT INSIGHT");
+
+imageMode(CORNER);
+image(
+  iconaStar,
+  x -40, // distanza a destra del titolo
+  y -7,           // piccolo allineamento verticale
+  starSize,
+  starSize
+);
+  pop();
+
+  // PARAGRAFO
+  drawCountryText(
+    countryName,
+    x,
+    y + titleH + gap,
+    w
+  );
+}
+
+function measureCountryTextHeight(countryName, w) {
   let key = normalizeCountryName(countryName);
   let testo = countryTexts[key] || "";
-  return testo.trim().length > 0;
+  if (testo.trim() === "") return 0;
+
+  textFont(fontRegular);
+  textSize(16);
+
+  let words = testo.split(" ");
+  let lines = [];
+  let currentLine = "";
+
+  for (let word of words) {
+    let testLine = currentLine + word + " ";
+    if (textWidth(testLine) > w) {
+      lines.push(currentLine);
+      currentLine = word + " ";
+    } else {
+      currentLine = testLine;
+    }
+  }
+  lines.push(currentLine);
+
+  let lineHeight = textAscent() + textDescent() + 4;
+  let boxPadding = 20;
+
+  return lines.length * lineHeight + boxPadding * 2;
 }
 
-// FUNZIONE PER NORMALIZZARE I NOMI 
-function normalizeCountryName(name) {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]/g, ""); // tiene solo lettere e numeri
-}
+// EVENTI MOUSE
 
-//FUNZIONE PER CAPIRE LA POSIZIONE DEL NOSTRO CURSORE 
-function pointInRect(px, py, rx, ry, rw, rh) {
-  return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
-}
-
-// SE CLICCO IL MOUSE
 function mousePressed() {
   // mouse in schermo (per overview mini/expanded)
   let sx = mouseX;
@@ -2957,35 +2900,32 @@ for (let p of palliniInfo) { //PALLINI NEGATIVI
   
 }
 
+function pointInRect(px, py, rx, ry, rw, rh) {
+  return px >= rx && px <= rx + rw && py >= ry && py <= ry + rh;
+}
+
 function mouseWheel(event) {
   if (!anniDisponibili.length) return false;
 
-  
+  // Usa la funzione della libreria
+  let risultato = gestioneMouseWheel(
+    event,
+    anniDisponibili,
+    annoSelezionato,
+    scrollAccumulato,
+    pixelPerAnno,
+    progressoScroll,
+    (nuovoIndice) => {
+      // Callback quando l'anno cambia
+      annoSelezionato = anniDisponibili[nuovoIndice];
+      yearSelect?.selected(annoSelezionato);
+      aggiornaPunteggioTotale();
+    }
+  );
 
-
-  // Accumula lo scroll
-  scrollAccumulato += event.delta;
-  
-  // Limita lo scroll ai limiti degli anni
-  let scrollMin = 0;
-  let scrollMax = (anniDisponibili.length - 1) * pixelPerAnno;
-  scrollAccumulato = constrain(scrollAccumulato, scrollMin, scrollMax);
-  
-  // Calcola l'indice dell'anno e il progresso
-  let indiceEsatto = scrollAccumulato / pixelPerAnno;
-  let nuovoYearIndex = floor(indiceEsatto);
-  progressoScroll = indiceEsatto - nuovoYearIndex; // Valore tra 0 e 1
-  
-  // Limita l'indice tra 0 e il numero massimo di anni
-  nuovoYearIndex = constrain(nuovoYearIndex, 0, anniDisponibili.length - 1);
-  
-  // Se l'anno è cambiato, aggiorna
-  if (anniDisponibili[nuovoYearIndex] !== annoSelezionato) {
-    yearIndex = nuovoYearIndex;
-    annoSelezionato = anniDisponibili[yearIndex];
-    yearSelect?.selected(annoSelezionato);
-    aggiornaPunteggioTotale();
-  }
+  // Aggiorna le variabili globali
+  scrollAccumulato = risultato.scrollAccumulato;
+  progressoScroll = risultato.progressoScroll;
 
   return false; // Blocca lo scroll della pagina
 }
