@@ -76,7 +76,7 @@ function setup() {
   datiFiltrati = filtraDatiPerAnno(data, annoCorrente);
   
   // Bottoni navigazione
-  creaBottoneStandard(margine, margine, iconaArrUp, 'html/intro.html');
+  creaBottoneStandard(margine, margine, iconaArrUp, 'index.html');
   creaBottoneStandard(width - diametro - margine, margine, iconaFh, 'html/aboutFreedomHouse.html');
   creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaUs, 'html/aboutUs.html');
   

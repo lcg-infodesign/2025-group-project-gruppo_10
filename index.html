@@ -1,22 +1,203 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Freedom in the World</title>
+  
+  <link rel="stylesheet" href="css/intro.css">
 
-    <title>Liberty Enlightening the World</title>
+  <script src="libraries/myLib.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
 
-    <link rel="stylesheet" type="text/css" href="style.css">
-
-    <script src="libraries/p5.min.js"></script>
-    <script src="libraries/p5.sound.min.js"></script>
-    <script src="libraries/myLib.js"></script>
-
-    <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="dark">
     <style>:root{color-scheme:dark;}</style>
-  </head>
+</head>
 
-  <body>
-    <script src="sketch.js"></script>
-  </body>
+<body>
+  <div id="skip-intro" class="skip-btn">Skip Intro</div>
+
+  <div id="canvasContainer"></div>
+
+  <div id="contenuto">
+    
+    <section class="sezione" id="sezione-titolo">
+      <h1 class="titolo-principale">Liberty Enlightening the World</h1>
+    </section>
+    
+    <section class="sezione" id="sezione-transizione"></section>
+    
+    <div class="spacer-finale"></div>
+
+    <section class="sezione" id="sezione-spiegazione">
+      <div class="container-spiegazione">
+        <h2 class="testo-spiegazione-main">
+          The ability to participate in political life and<br>
+          exercise civil rights without restrictions.
+        </h2>
+
+        <div class="grid-domande">
+          <div class="colonna-domanda">
+            <div class="cerchio-colorato verde"></div>
+            <p>Can you vote<br>freely?</p>
+          </div>
+          <div class="colonna-domanda">
+            <div class="cerchio-colorato giallo"></div>
+            <p>Can you speak<br>without censorship?</p>
+          </div>
+          <div class="colonna-domanda">
+            <div class="cerchio-colorato rosso"></div>
+            <p>Are your rights<br>protected by law?</p>
+          </div>
+        </div>
+
+        <p class="testo-spiegazione-footer">
+          Freedom House turns these questions into scores.
+        </p>
+      </div>
+    </section>
+
+    <section class="sezione" id="sezione-calcolo">
+      
+      <div class="linea-collegamento"></div>
+
+      <div class="container-equazione">
+        <div class="riga-pallini">
+          <div class="dot scuro1"></div> <span class="segno">+</span>
+          <div class="dot scuro2"></div> <span class="segno">+</span>
+          <div class="dot verde"></div> <span class="segno">+</span>
+          <div class="dot giallo"></div> <span class="segno">+</span>
+          <div class="dot rosso"></div> <span class="segno">+</span>
+          <div class="dot viola"></div> <span class="segno">+</span>
+          <div class="dot grigio"></div>
+        </div>
+        <div class="segno-uguale">=</div>
+        <div class="dot-risultato-wrapper">
+          <div class="dot bianco"></div>
+          <div class="linea-sotto-dot"></div>
+        </div>
+      </div>
+
+      <div class="testo-punteggio-container">
+        <p>Each country receives a score from 0 to 100.<br>
+        The scores determine a classification:</p>
+      </div>
+
+      <div class="grid-classificazione">
+        <div class="box-class">FREE</div>
+        <div class="box-class">PARTIALLY FREE</div>
+        <div class="box-class">NOT FREE</div>
+      </div>
+    </section>
+
+    <div id="statua-master-container">
+      
+      <div class="statue-sticky-wrapper">
+        <div class="statue-move-wrapper">
+          <img src="img/statua/rame.png" class="statua-img blu" alt="Statue Blue">
+          <img src="img/statua/rameossidato.png" class="statua-img rame" alt="Statue Copper">
+        </div>
+      </div>
+
+      <div class="statue-content-wrapper">
+        
+        <svg class="linea-curva-svg" viewBox="0 0 100 800" preserveAspectRatio="none">
+          <path d="M 50 0 Q 100 200 50 400 Q 0 600 50 800" fill="none" stroke="#f4ebe1" stroke-width="2" vector-effect="non-scaling-stroke"/>
+        </svg>
+
+        <section class="statua-text-section" id="statua-parte-1">
+          <div class="statua-text-box">
+            <h3>This visualization draws on Liberty Enlightening the World.</h3>
+            <p>The Statue of Liberty's original name reflects the American perspective embedded in Freedom House's methodology.</p>
+          </div>
+        </section>
+
+        <section class="statua-text-section" id="statua-parte-2">
+          <div class="statua-text-box legenda-box">
+  <div class="legenda-item">
+    <span>Bright copper for</span>
+    <div class="badge free">FREE</div>
+    <span>countries.</span>
+  </div>
+  
+  <div class="legenda-item">
+    <span>Oxidized green for</span>
+    <div class="badge not-free">NOT FREE</div>
+    <span>countries.</span>
+  </div>
+</div>
+        </section>
+
+      </div>
+    </div>
+
+    <section class="sezione" id="sezione-regioni">
+      <div class="container-regioni">
+        <div class="testo-regioni">
+          <p>Each torch represents a geopolitical region.</p>
+          <p>Each flame or column is a country.</p>
+          <p>Flame height shows the freedom score.</p>
+          <p>Color indicates the status.</p>
+          
+          <div class="cambio-status">
+            <div class="icona-stella">
+              <img src="img/icone/star.png" alt="Stella" class="img-stella-png">
+            </div>
+            <div class="testo-stella">
+              <p>Some countries changed status over the years.</p>
+              <p class="sub-stella">A star symbol marks these shifts.<br>Click to explore the context behind the change.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="visualizzazione-torcia">
+          <div class="container-fiamme">
+            <div class="fiamma f1" style="height: 180px; background: linear-gradient(to top, #e5c38f, #cad181);"></div>
+            <div class="fiamma f2" style="height: 240px; background: linear-gradient(to top, #c76351, #d58d3e);"></div>
+            <div class="fiamma f3" style="height: 100px; background: linear-gradient(to top, #75a099, #91a2a6);"></div>
+            <div class="fiamma f4" style="height: 150px; background: linear-gradient(to top, #e5c38f, #cad181);"></div>
+          </div>
+          <img src="img/torcia.png" class="img-torcia-base" alt="Torch base">
+        </div>
+      </div>
+    </section>
+
+    <section class="sezione" id="sezione-scopri">
+      <div class="container-scopri">
+        <p class="testo-interpretazione">
+          One organization. One interpretation.<br>
+          One of many ways of measuring freedom.
+        </p>
+        <a href="home.html" class="btn-scopri">DISCOVER OUR SITE</a>
+      </div>
+    </section>
+  </div>
+
+  <div id="ui-overlay">
+    <div id="typewriter-wrapper">
+      <span id="typewriter-text"></span><span class="cursor">|</span>
+    </div>
+    <div id="click-prompt">Click to start</div>
+    <div id="final-cta-container">
+      <span class="cta-text">scroll to continue</span>
+      <div class="cta-arrow">
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-indicator">
+  <span class="scroll-text">scroll to explore</span>
+  <div class="scroll-indicator-arrow">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </div>
+</div>
+
+  <script src="js/aloneAnimato.js"></script>
+  <script src="js/intro.js"></script>
+
+</body>
 </html>

@@ -79,7 +79,7 @@ function setup() {
   // Bottoni
   creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back());
   creaBottoneStandard(width - diametro - margine, margine, iconaAboutFh, '../html/aboutFreedomHouse.html'); 
-  creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaHome, '../index.html'); 
+  creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaHome, '../home.html'); 
 }
 }
 

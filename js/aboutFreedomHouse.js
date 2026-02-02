@@ -43,7 +43,7 @@ function setup() {
 
   // bottoni
   creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back());
-  creaBottoneStandard(width - diametro - margine, margine, iconaHome, '../index.html');
+  creaBottoneStandard(width - diametro - margine, margine, iconaHome, '../home.html');
   creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaAboutUs, '../html/aboutUs.html');
 
   creaTitolo();
