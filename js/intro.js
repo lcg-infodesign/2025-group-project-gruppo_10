@@ -269,7 +269,7 @@ function setupScrollAnimations() {
     }
   );
 
-  // Sezioni regioni e finale
+  // Sezioni regioni
   gsap.from(".fiamma", {
     height: 0,
     stagger: 0.15,
