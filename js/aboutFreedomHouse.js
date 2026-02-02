@@ -121,7 +121,7 @@ function creaRiquadri() {
   
   // Contenuto del riquadro
   riquadro1.html(`
-    <p style="color: #eaead8; font-family: 'NeueHaasDisplayThin', sans-serif; margin: 0; font-size: 16px; line-height: 1.6;">
+    <p style="color: #eaead8; font-family: 'NeueHaasDisplayRegular', sans-serif; margin: 0; font-size: 16px; line-height: 1.6;">
       Freedom House was founded in <strong>1941</strong> by <strong>Wendell Willkie</strong> to counter the advancement of Nazi Germany and raise awareness about the 
       threat it posed. Today, Freedom House is an <strong>international non-governmental organization</strong> based in <strong>Washington D.C.</strong>, led by 
       <strong>Gerardo Berthin</strong> and <strong>Annie Wilcox Boyajian</strong>. The organization is supported, as evidenced by its financial reports, by funding 
