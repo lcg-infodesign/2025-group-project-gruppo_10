@@ -1,4 +1,4 @@
-// variabili globali
+// --- VARIABILI GLOBALI ---
 let data;
 
 // variabili per font
@@ -10,54 +10,54 @@ let iconaArrLeft; // icone frecce
 
 let titolo; 
 
-let riquadro1;
-let riquadro2;
-let riquadro3;
-let riquadro4;
-
-let titoloRiquadro1;
-let titoloRiquadro2;
-let titoloRiquadro3;
-let titoloRiquadro4;
+let riquadro1, riquadro2, riquadro3, riquadro4;
+let titoloRiquadro1, titoloRiquadro2, titoloRiquadro3, titoloRiquadro4;
 
 let footer;
 
+// --- PRELOAD ---
 function preload() {
-  data = loadTable("../assets/FH_dataset.csv", "csv", "header"); // caricamento del dataset (con header)
+  data = loadTable("../assets/FH_dataset.csv", "csv", "header"); 
   torcia = loadImage("../img/torcia.png");
+
   // font
   fontRegular = loadFont("../font/NeueHaasDisplayRoman.ttf");
   fontMedium = loadFont("../font/NeueHaasDisplayMedium.ttf");
   fontBold = loadFont("../font/NeueHaasDisplayBold.ttf");
+
   // icone
   iconaHome = loadImage("../img/icone/home.png");
   iconaAboutUs = loadImage("../img/icone/person.png");
   iconaArrLeft = loadImage("../img/icone/frecce/arrowleft.png");
 
+  // reset margini browser
   document.documentElement.style.margin = '0';
   document.documentElement.style.padding = '0';
   document.documentElement.style.height = '100%';
-  
   document.body.style.margin = '0';
   document.body.style.padding = '0';
   document.body.style.height = '100%';
   document.body.style.overflow = 'auto';
 }
 
+// --- SETUP ---
 function setup() {
-  createCanvas(windowWidth, windowHeight); // crea il canvas con larghezza della finestra
-
-  let margine = 30;
-  let d = 60;
+  createCanvas(windowWidth, windowHeight); 
 
   // bottoni
-  creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back()); // bottone per tornare indietro
-  creaBottoneStandard(width - diametro - margine, margine, iconaHome, '../index.html'); // bottone Freedom House in alto a destra
-  creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaAboutUs, '../html/aboutUs.html'); // bottone About Us a sinistra del primo
+  const margine = 30;
+  const diametro = 60;
+  creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back()); // back
+  creaBottoneStandard(width - diametro - margine, margine, iconaHome, '../index.html'); // home
+  creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaAboutUs, '../html/aboutUs.html'); // about us
 
   creaTitolo();
   creaRiquadri();
   creaFooter();
+
+  // ridimensiona canvas per coprire tutto il contenuto
+  let altezzaTotale = footer.elt.offsetTop + footer.elt.offsetHeight;
+  resizeCanvas(windowWidth, altezzaTotale);
 }
 
 function draw() {
@@ -70,8 +70,8 @@ function creaTitolo() {
   titolo.position(110, 35);
   
   // Stile del titolo
-  titolo.style('color', '#eaead8');
-  titolo.style('font-family', 'NeueHaasDisplayBold, sans-serif');
+  titolo.style('color', palette.bianco);
+  titolo.style('font-family', 'NeueHaasDisplayMedium, sans-serif');
   titolo.style('font-size', '70px');
   titolo.style('margin', '0');
   titolo.style('padding', '0');
@@ -370,9 +370,9 @@ function creaFooter() {
   </div>
 
    <div style="display: flex; gap: 80px; align-items: flex-end; margin-top: auto;">
-      <img src="img/loghi/LogoDensityDesign.png" style="height: 90px; object-fit: contain;">
-      <img src="img/loghi/LogoNECST.png" style="height: 90px; object-fit: contain;">
-      <img src="img/loghi/LogoPolimi.png" style="height: 90px; object-fit: contain;">
+      <img src="../img/loghi/LogoDensityDesign.png" style="height: 90px; object-fit: contain;">
+      <img src="../img/loghi/LogoNECST.png" style="height: 90px; object-fit: contain;">
+      <img src="../img/loghi/LogoPolimi.png" style="height: 90px; object-fit: contain;">
     </div>
 </div>
   `);

@@ -23,7 +23,6 @@ let footer;
 
 function preload() {
   data = loadTable("../assets/FH_dataset.csv", "csv", "header"); // caricamento del dataset (con header)
-  torcia = loadImage("../img/torcia.png");
   // font
   fontRegular = loadFont("../font/NeueHaasDisplayRoman.ttf");
   fontMedium = loadFont("../font/NeueHaasDisplayMedium.ttf");
@@ -32,13 +31,13 @@ function preload() {
   iconaHome = loadImage("../img/icone/home.png");
   iconaAboutFh = loadImage("../img/icone/info.png");
   iconaArrLeft = loadImage("../img/icone/frecce/arrowleft.png");
-  // i ritratti
-  ritratti.push(loadImage("img/ritratti/ritratto1.png")); // Besenzoni
-  ritratti.push(loadImage("img/ritratti/ritratto2.png")); // Franchi
-  ritratti.push(loadImage("img/ritratti/ritratto3.png")); // Marozzi
-  ritratti.push(loadImage("img/ritratti/ritratto4.png")); // Preioni
-  ritratti.push(loadImage("img/ritratti/ritratto5.png")); // Soraruf
-  ritratti.push(loadImage("img/ritratti/ritratto6.png")); // Zanotto
+  // ritratti
+  ritratti.push(loadImage("../img/ritratti/Besenzoni.png")); // Besenzoni
+  ritratti.push(loadImage("../img/ritratti/Franchi.png")); // Franchi
+  ritratti.push(loadImage("../img/ritratti/Marozzi.png")); // Marozzi
+  ritratti.push(loadImage("../img/ritratti/Preioni.png")); // Preioni
+  ritratti.push(loadImage("../img/ritratti/Soraruf.png")); // Soraruf
+  ritratti.push(loadImage("../img/ritratti/Zanotto.png")); // Zanotto
 
   // Offset verticale (Y)
   offsetY.push(-20);
@@ -47,7 +46,6 @@ function preload() {
   offsetY.push(-30);
   offsetY.push(0);
   offsetY.push(-30);
-
   // Offset orizzontale (X)
   offsetXimg.push(10);
   offsetXimg.push(-5);
@@ -58,8 +56,6 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(windowWidth, max(windowHeight, altezzaTotale));
-
   let margine = 30;
   let d = 60;
 
@@ -70,6 +66,8 @@ function setup() {
   const numRighe = 2;
   
   const altezzaTotale = margineTop + (altezzaRett * numRighe) + (spaziaturaV * (numRighe - 1)) + margineBottom + 100;
+
+    createCanvas(windowWidth, max(windowHeight, altezzaTotale));
 
   // Inizializza array scale
   for (let i = 0; i < 6; i++) {
@@ -84,6 +82,7 @@ function setup() {
   creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back()); // bottone per tornare indietro
   creaBottoneStandard(width - diametro - margine, margine, iconaAboutFh, '../html/aboutFreedomHouse.html'); // bottone Freedom House in alto a destra
   creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaHome, '../index.html'); // bottone About Us a sinistra del primo
+}
 }
 
 function draw() {
@@ -204,7 +203,8 @@ function creaTitolo() {
   titolo = createElement('h1', 'About us');
   titolo.position(110, 35);
   titolo.style('color', '#eaead8');
-  titolo.style('font-family', 'NeueHaasDisplayBold, sans-serif');
+  titolo.style('font-family', 'NeueHaasDisplay, sans-serif');
+  titolo.style('font-weight', "500");
   titolo.style('font-size', '70px');
   titolo.style('margin', '0');
   titolo.style('padding', '0');
@@ -218,7 +218,8 @@ function creaTestoIntroduttivo() {
   testoIntro = createP('We are a group of students at the Design department of Politecnico di Milano. We have chosen to address the theme of freedom and democracy in the world, concerned about the increasing cases of violations. Through this analysis, we want to inform and raise awareness so that we can contribute to change.');
   testoIntro.position(110, 120);
   testoIntro.style('color', '#eaead8');
-  testoIntro.style('font-family', 'NeueHaasDisplayRoman, sans-serif');
+  testoIntro.style('font-family', 'NeueHaasDisplay, sans-serif');
+  testoIntro.style('font-weight', "400");
   testoIntro.style('font-size', '17px');
   testoIntro.style('margin', '0');
   testoIntro.style('padding', '0');
@@ -231,18 +232,18 @@ function creaTestoIntroduttivo() {
 // --- TESTI SOTTO RETTANGOLI ---
 function creaTestiRettangoli() {
   const testiContent = [
-    '<span style="font-size: 19px;"><strong>Federica Besenzoni</strong></span><br><span style="font-size: 15px;">Pagina di dettaglio sulla variazione di libertà per i singoli Paesi</span>',
-    '<span style="font-size: 19px;"><strong>Vittoria Franchi</strong></span><br><span style="font-size: 16px;">Stesura testi e pagine extra</span>',
-    '<span style="font-size: 19px;"><strong>Asia Marozzi</strong></span><br><span style="font-size: 16px;">Visualizzazione generale e del dettaglio delle regioni</span>',
-    '<span style="font-size: 19px;"><strong>Aurora Preioni</strong></span><br><span style="font-size: 16px;">Pagina di dettaglio dei singoli Paesi</span>',
-    '<span style="font-size: 19px;"><strong>Jasmin Soraruf</strong></span><br><span style="font-size: 16px;">Illustrazioni e analisi del dataset</span>',
-    '<span style="font-size: 19px;"><strong>Sheetal Zanotto</strong></span><br><span style="font-size: 16px;">Pagina di introduzione al progetto</span>'
+    '<span style="font-size: 19px;"><strong>Federica Besenzoni</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Pagina di dettaglio sulla variazione di libertà per i singoli Paesi</span>',
+    '<span style="font-size: 19px;"><strong>Vittoria Franchi</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Stesura testi e pagine extra</span>',
+    '<span style="font-size: 19px;"><strong>Asia Marozzi</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Visualizzazione generale e del dettaglio delle regioni</span>',
+    '<span style="font-size: 19px;"><strong>Aurora Preioni</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Pagina di dettaglio dei singoli Paesi</span>',
+    '<span style="font-size: 19px;"><strong>Jasmin Soraruf</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Illustrazioni e analisi del dataset</span>',
+    '<span style="font-size: 19px;"><strong>Sheetal Zanotto</strong></span><br><span style="font-size: 16px; font-family: NeueHaasDisplayRoman">Pagina di introduzione al progetto</span>'
   ];
 
   for (let i = 0; i < testiContent.length; i++) {
     let testo = createP(testiContent[i]);
-    testo.style('color', '#eaead8');
-    testo.style('font-family', 'NeueHaasDisplayBold, sans-serif');
+    testo.style('color', palette.bianco);
+    testo.style('font-family', 'NeueHaasDisplayMedium, sans-serif');
     testo.style('font-size', '17px');
     testo.style('margin', '0');
     testo.style('padding', '0');
@@ -266,26 +267,26 @@ function creaFooter() {
   footer.style('padding', '50px 110px');
   footer.style('box-sizing', 'border-box');
   footer.style('background-color', '#1b1914ff');
-  footer.style('color', '#eaead8');
+  footer.style('color', palette.bianco);
   footer.style('font-family', 'NeueHaasDisplayRoman, sans-serif');
   footer.style('font-size', '14px');
   footer.style('line-height', '22px');
   footer.style('z-index', '1000');
   footer.style('position', 'absolute');
-  footer.style('border-top', '0px solid #eaead8');
+  footer.style('border-top', '0px solid'+ palette.bianco);
   
   footer.html(`
     <div style="display: flex; justify-content: space-between; gap: 80px; max-width: 1400px;">
   
   <!-- COLONNA SINISTRA -->
   <div style="flex: 1;">
-    <p style="margin: 0 0 5px 0; font-family: 'NeueHaasDisplayBold', sans-serif; font-size: 16px;">
+    <p style="margin: 0 0 5px 0; font-family: 'NeueHaasDisplayMedium', sans-serif; font-size: 16px;">
       Computer Graphics Studio for Information Design
     </p>
     <p style="margin: 0 0 3px 0;">A.Y. 2025/2026</p>
     <p style="margin: 0 0 25px 0;"><strong>Bachelor's Degree in Communication Design</strong></p>
     
-    <p style="margin: 0 0 8px 0; font-family: 'NeueHaasDisplayBold', sans-serif; font-size: 15px;">Project by</p>
+    <p style="margin: 0 0 8px 0; font-family: 'NeueHaasDisplayMedium', sans-serif; font-size: 15px;">Project by</p>
     <div style="display: flex; gap: 40px;">
       <div style="flex: 1;">
         <p style="margin: 0 0 3px 0;">Federica Besenzoni</p>
@@ -299,7 +300,7 @@ function creaFooter() {
       </div>
     </div>
     
-    <p style="margin: 25px 0 8px 0; font-family: 'NeueHaasDisplayBold', sans-serif; font-size: 15px;">Contact</p>
+    <p style="margin: 25px 0 8px 0; font-family: 'NeueHaasDisplayMedium', sans-serif; font-size: 15px;">Contact</p>
     <div style="display: flex; gap: 30px;">
       <div style="flex: 1;">
         <p style="margin: 0 0 3px 0; font-size: 15px;">federica.besenzoni@mail.polimi.it</p>
@@ -316,7 +317,7 @@ function creaFooter() {
   
   <!-- COLONNA DESTRA -->
   <div style="flex: 1; display: flex; flex-direction: column;">
-    <p style="margin: 0 0 10px 0; font-family: 'NeueHaasDisplayBold', sans-serif; font-size: 15px;">
+    <p style="margin: 0 0 10px 0; font-family: 'NeueHaasDisplayMedium', sans-serif; font-size: 15px;">
       © [CC-BY 4.0] The authors
     </p>
     <p style="margin: 0 0 20px 0; line-height: 20px;">
@@ -327,7 +328,7 @@ function creaFooter() {
      <div style="display: flex; gap: 40px; margin-top: 25px;">
     
     <div style="flex: 1;">
-      <p style="margin: 0 0 8px 0; font-family: 'NeueHaasDisplayBold', sans-serif; font-size: 15px;">
+      <p style="margin: 0 0 8px 0; font-family: 'NeueHaasDisplayMedium', sans-serif; font-size: 15px;">
         Faculty
       </p>
       <p style="margin: 0 0 3px 0;">Michele Mauri</p>
@@ -335,7 +336,7 @@ function creaFooter() {
     </div>
 
     <div style="flex: 1;">
-      <p style="margin: 0 0 8px 0; font-family: 'NeueHaasDisplayBold', sans-serif; font-size: 15px;">
+      <p style="margin: 0 0 8px 0; font-family: 'NeueHaasDisplayMedium', sans-serif; font-size: 15px;">
         Teaching Assistants
       </p>
       <p style="margin: 0 0 3px 0;">Alessandra Facchin</p>
@@ -345,9 +346,9 @@ function creaFooter() {
   </div>
 
    <div style="display: flex; gap: 80px; align-items: flex-end; margin-top: auto;">
-      <img src="img/loghi/LogoDensityDesign.png" style="height: 90px; object-fit: contain;">
-      <img src="img/loghi/LogoNECST.png" style="height: 90px; object-fit: contain;">
-      <img src="img/loghi/LogoPolimi.png" style="height: 90px; object-fit: contain;">
+      <img src="../img/loghi/LogoDensityDesign.png" style="height: 90px; object-fit: contain;">
+      <img src="../img/loghi/LogoNECST.png" style="height: 90px; object-fit: contain;">
+      <img src="../img/loghi/LogoPolimi.png" style="height: 90px; object-fit: contain;">
     </div>
 </div>
   `);

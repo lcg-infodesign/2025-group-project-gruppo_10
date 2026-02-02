@@ -11,20 +11,20 @@ canvas {
 @font-face {
   font-family: 'NeueHaasDisplay';
   src: url('font/NeueHaasDisplayRoman.ttf') format('opentype');
-  font-weight: normal;
+  font-weight: 400;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'NeueHaasDisplay';
   src: url('font/NeueHaasDisplayMedium.ttf') format('opentype');
-  font-weight: medium;
+  font-weight: 500;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'NeueHaasDisplay';
   src: url('font/NeueHaasDisplayBold.ttf') format('opentype');
-  font-weight: bold;
+  font-weight: 700;
   font-style: normal;
 }
