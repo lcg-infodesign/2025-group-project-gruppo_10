@@ -1,5 +1,3 @@
-// sketch pagina home
-
 // variabili globali
 let data;
 let torcia;
@@ -44,10 +42,11 @@ let maxPaesiPerRegione = {};
 let regioneHover = null;
 let areeTorce = [];
 let areeRegioni = [];
-
+let opacitaTorce = {};
+let opacitaRegioni = {};
 
 function preload() {
-  data = loadTable("assets/FH_dataset.csv", "csv", "header");
+  data = loadTable("assets/FH_dataset.csv", "csv", "header"); // caricamento del dataset (con header)
   torcia = loadImage("img/torcia.png");
   
   fontRegular = loadFont("font/NeueHaasDisplayRoman.ttf");
@@ -76,8 +75,38 @@ function setup() {
   annoCorrente = anniUnici.length > 0 ? anniUnici[0] : null;
   datiFiltrati = filtraDatiPerAnno(data, annoCorrente);
   
-  // Crea interfaccia
-  creaInterfaccia();
+  // Bottoni navigazione
+  creaBottoneStandard(margine, margine, iconaArrUp, 'html/intro.html');
+  creaBottoneStandard(width - diametro - margine, margine, iconaFh, 'html/aboutFreedomHouse.html');
+  creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaUs, 'html/aboutUs.html');
+  
+  const margineSinistroIntro = 30;
+  const spaziaturaDopoIntro = 20;
+  const xPosInizioBarra = margineSinistroIntro + diametro + spaziaturaDopoIntro;
+  const larghezzaBarra = graficoWidth - xPosInizioBarra - 50;
+  
+  elementiRicerca = creaBarraRicerca({
+    xPos: xPosInizioBarra,
+    yPos: 30,
+    larghezza: larghezzaBarra,
+    paesiUnici: paesiUnici,
+    callbackSelezionePaese: vaiAPaginaPaese,
+    placeholder: 'Look up Country or Territory',
+    zIndex: 1000
+  });
+  
+  // Aggiungi evento al bottone cancella
+  elementiRicerca.bottoneCancella.mousePressed(() => {
+    paeseCercato = null;
+    elementiRicerca.inputRicerca.value('');
+    let container = document.getElementById('containerPaeseCercato');
+    if (container) {
+      container.style.display = 'none';
+    }
+  });
+  
+  // Bottoni filtro
+  creaBottoniFiltro();
 }
 
 function draw() {
@@ -140,41 +169,47 @@ function draw() {
   }
 }
 
-// FUNZIONI DI SETUP
+// BOTTONI FILTRO
 
-function creaInterfaccia() {
-  // Bottoni navigazione
-  creaBottoneStandard(margine, margine, iconaArrUp, 'html/intro.html');
-  creaBottoneStandard(width - diametro - margine, margine, iconaFh, 'html/aboutFreedomHouse.html');
-  creaBottoneStandard(width - (diametro * 2) - margine*3/2, margine, iconaUs, 'html/aboutUs.html');
+function creaBottoneFiltro(testo, x, y, colori, tipo, callback) {
+  let bottone = createButton(testo);
+  bottone.position(x, y);
   
-  const margineSinistroIntro = 30;
-  const spaziaturaDopoIntro = 20;
-  const xPosInizioBarra = margineSinistroIntro + diametro + spaziaturaDopoIntro;
-  const larghezzaBarra = graficoWidth - xPosInizioBarra - 50;
+  bottone.style('padding', '4px 30px 2px 30px');
+  bottone.style('font-size', '16px');
+  bottone.style('font-weight', 'bold');
+  bottone.style('border', 'none');
+  bottone.style('cursor', 'pointer');
+  bottone.style('border-radius', '25px');
+  bottone.style('z-index', '1002');
+  bottone.style('transition', 'transform 0.3s ease-in-out');
   
-  elementiRicerca = creaBarraRicerca({
-    xPos: xPosInizioBarra,
-    yPos: 30,
-    larghezza: larghezzaBarra,
-    paesiUnici: paesiUnici,
-    callbackSelezionePaese: vaiAPaginaPaese,
-    placeholder: 'Look up Country or Territory',
-    zIndex: 1000
+  let gradienteBordo;
+  if (colori.length === 2) {
+    gradienteBordo = `linear-gradient(to right, ${colori[0]})`;
+  } else if (colori.length === 3) {
+    gradienteBordo = `linear-gradient(45deg, ${colori[0]}, ${colori[1]})`;
+  }
+  
+  bottone.style('background', `${gradienteBordo}, linear-gradient(${colori[2] || palette.nero}, ${colori[2] || palette.nero})`);
+  bottone.style('border-width', '1px');
+  bottone.style('border-style', 'solid');
+  bottone.style('background-clip', 'padding-box, border-box');
+  bottone.style('background-origin', 'border-box');
+  bottone.style('color', palette.nero);
+  
+  bottone.mousePressed(() => callback(tipo));
+  
+  // HOVER: Ingrandisce e MOUSE OUT: Torna normale
+  bottone.mouseOver(() => {
+    bottone.style('transform', 'scale(1.1)');
+  });
+
+  bottone.mouseOut(() => {
+    bottone.style('transform', 'scale(1.0)');
   });
   
-  // Aggiungi evento al bottone cancella
-  elementiRicerca.bottoneCancella.mousePressed(() => {
-    paeseCercato = null;
-    elementiRicerca.inputRicerca.value('');
-    let container = document.getElementById('containerPaeseCercato');
-    if (container) {
-      container.style.display = 'none';
-    }
-  });
-  
-  // Bottoni filtro
-  creaBottoniFiltro();
+  return bottone;
 }
 
 function creaBottoniFiltro() {
@@ -205,57 +240,6 @@ function creaBottoniFiltro() {
   bottoneNF.position(xNF, yPos);
 }
 
-// BOTTONI FILTRO
-
-function creaBottoneFiltro(testo, x, y, colori, tipo, callback) {
-  let bottone = createButton(testo);
-  bottone.position(x, y);
-  
-  bottone.style('padding', '4px 30px 2px 30px');
-  bottone.style('font-size', '16px');
-  bottone.style('font-weight', 'bold');
-  bottone.style('border', 'none');
-  bottone.style('cursor', 'pointer');
-  bottone.style('border-radius', '25px');
-  bottone.style('z-index', '1002');
-  
-  let gradienteBordo;
-  if (colori.length === 2) {
-    gradienteBordo = `linear-gradient(to right, ${colori[0]})`;
-  } else if (colori.length === 3) {
-    gradienteBordo = `linear-gradient(45deg, ${colori[0]}, ${colori[1]})`;
-  }
-  
-  bottone.style('background', `${gradienteBordo}, linear-gradient(${colori[2] || palette.nero}, ${colori[2] || palette.nero})`);
-  bottone.style('border-width', '1px');
-  bottone.style('border-style', 'solid');
-  bottone.style('background-clip', 'padding-box, border-box');
-  bottone.style('background-origin', 'border-box');
-  bottone.style('color', palette.nero);
-  
-  bottone.mousePressed(() => callback(tipo));
-  
-  bottone.mouseOver(() => {
-    bottone.style('background', palette.bianco);
-    bottone.style('border', '1px solid ' + palette.nero);
-    bottone.style('color', palette.nero);
-    bottone.style('transform', 'scale(1.1)'); 
-    bottone.style('transition', 'all 0.2s');
-  });
-  
-  bottone.mouseOut(() => {
-    bottone.style('background', `${gradienteBordo}, linear-gradient(${colori[2] || palette.nero}, ${colori[2] || palette.nero})`);
-    bottone.style('border-width', '1px');
-    bottone.style('border-style', 'solid');
-    bottone.style('background-clip', 'padding-box, border-box');
-    bottone.style('background-origin', 'border-box');
-    bottone.style('color', palette.nero);
-    bottone.style('transform', 'scale(1.1)'); 
-  });
-  
-  return bottone;
-}
-
 function aggiornaStileBottoneFiltro(bottone, attivo, colori) {
   let btnElt = bottone.elt;
   
@@ -267,27 +251,48 @@ function aggiornaStileBottoneFiltro(bottone, attivo, colori) {
   }
   
   if (attivo) {
-    // ✅ STATO ATTIVO: Gradiente colorato
+    // STATO ATTIVO: Gradiente colorato
     btnElt.style.background = `${gradienteBordo}, linear-gradient(${colori[2] || palette.nero}, ${colori[2] || palette.nero})`;
     btnElt.style.backgroundClip = 'padding-box, border-box';
     btnElt.style.backgroundOrigin = 'border-box';
     btnElt.style.borderWidth = '1px';
     btnElt.style.borderStyle = 'solid';
+    btnElt.style.borderColor = '';
     btnElt.style.opacity = '1';
     btnElt.style.color = palette.nero;
     
   } else {
-    // ✅ STATO INATTIVO: Nero con bordo bianco
+    // STATO INATTIVO: Nero con bordo bianco
     btnElt.style.background = palette.nero;
     btnElt.style.border = '1px solid ' + palette.bianco;
+    btnElt.style.borderColor = palette.bianco;
     btnElt.style.opacity = '0.8';
     btnElt.style.color = palette.bianco;
     btnElt.style.backgroundClip = 'border-box';
     btnElt.style.backgroundOrigin = 'border-box';
   }
   
-  // Reset scale
-  btnElt.style.transform = 'scale(1.0)';
+  btnElt.style.transition = 'transform 0.3s ease-in-out';
+}
+
+// BARRA DI RICERCA
+
+function aggiornaPosizioneContainerPaese(paeseCercato, paesiConPosizioni) {
+  if (paeseCercato === null) return;
+  
+  let container = document.getElementById('containerPaeseCercato');
+  if (!container) return;
+  
+  let paese = paesiConPosizioni.find(p => p.nome === paeseCercato);
+  
+  if (paese) {
+    let offsetX = 10;
+    container.style.left = (paese.x + paese.raggio + offsetX) + 'px';
+    container.style.top = (paese.y - 15) + 'px';
+    container.style.display = 'flex';
+  } else {
+    container.style.display = 'none';
+  }
 }
 
 // GESTIONE DATI
@@ -478,10 +483,29 @@ function disegnaBarre(datiFiltrati, filtroF, filtroPF, filtroNF, maxPaesiPerRegi
   if (filtroF) {
     xCorrente = margineIniziale;
     for (let regione of regioni) {
-      push();
+
+      let opacitaTarget = 1.0;
       if (regioneHover !== null && regioneHover !== regione) {
-        drawingContext.globalAlpha = 0.3;
+        opacitaTarget = 0.3;
       }
+      
+      if (opacitaRegioni[regione] === undefined) {
+        opacitaRegioni[regione] = 1.0;
+      }
+      
+      let current = opacitaRegioni[regione];
+      let speed = opacitaTarget < current ? 10 : 5;
+      let smoothing = 1 - Math.exp(-speed * deltaTime / 1000);
+      let nuovoValore = lerp(current, opacitaTarget, smoothing);
+      
+      if (abs(nuovoValore - opacitaTarget) < 0.01) {
+        nuovoValore = opacitaTarget;
+      }
+      
+      opacitaRegioni[regione] = nuovoValore;
+
+      push();
+      drawingContext.globalAlpha = opacitaRegioni[regione];
       
       let paesiInRegione = datiPerRegione[regione];
       let numPaesiF = paesiInRegione.filter(r => r.getString('Status') === 'F').length;
@@ -511,9 +535,7 @@ function disegnaBarre(datiFiltrati, filtroF, filtroPF, filtroNF, maxPaesiPerRegi
     xCorrente = margineIniziale;
     for (let regione of regioni) {
       push();
-      if (regioneHover !== null && regioneHover !== regione) {
-        drawingContext.globalAlpha = 0.3;
-      }
+      drawingContext.globalAlpha = opacitaRegioni[regione] || 1.0;
       
       let paesiInRegione = datiPerRegione[regione];
       let numPaesiPF = paesiInRegione.filter(r => r.getString('Status') === 'PF').length;
@@ -543,9 +565,7 @@ function disegnaBarre(datiFiltrati, filtroF, filtroPF, filtroNF, maxPaesiPerRegi
     xCorrente = margineIniziale;
     for (let regione of regioni) {
       push();
-      if (regioneHover !== null && regioneHover !== regione) {
-        drawingContext.globalAlpha = 0.3;
-      }
+      drawingContext.globalAlpha = opacitaRegioni[regione] || 1.0;
       
       let paesiInRegione = datiPerRegione[regione];
       let numPaesiNF = paesiInRegione.filter(r => r.getString('Status') === 'NF').length;
@@ -573,67 +593,101 @@ function disegnaBarre(datiFiltrati, filtroF, filtroPF, filtroNF, maxPaesiPerRegi
   return { etichetteRegioni, paesiConPosizioni, larghezzaBarra };
 }
 
-function disegnaTorceEEtichette(etichetteRegioni, torcia, maxPaesiPerRegione, yBarra, font, larghezzaBarra, regioneHover, paeseCercato, datiFiltrati) {
+function disegnaTorceEEtichette(
+  etichetteRegioni,
+  torcia,
+  maxPaesiPerRegione,
+  yBarra,
+  font,
+  larghezzaBarra,
+  regioneHover,
+  paeseCercato,
+  datiFiltrati
+) {
   let areeTorce = [];
   let areeRegioni = [];
-  
-  // Disegna le torce
+
   push();
   imageMode(CENTER);
+
   for (let etichetta of etichetteRegioni) {
+
     let larghezzaMassima = maxPaesiPerRegione[etichetta.regione] * larghezzaBarra;
     let centroRegione = etichetta.x;
-    
     let yIniziaTorcia = yBarra;
     let altezzaTorcia = height - yIniziaTorcia;
-    
-    let opacita = 255;
+    let opacitaTarget = 255;
     let regionePaeseCercato = null;
+
     if (paeseCercato !== null) {
-      let rigaPaese = datiFiltrati.find(r => r.getString('Country/Territory') === paeseCercato);
+      let rigaPaese = datiFiltrati.find(
+        r => r.getString('Country/Territory') === paeseCercato
+      );
       if (rigaPaese) {
         regionePaeseCercato = rigaPaese.getString('Region');
       }
-      
-      if (regionePaeseCercato !== null) {
-        if (etichetta.regione !== regionePaeseCercato) {
-          opacita = 80;
-        }
+      if (regionePaeseCercato && etichetta.regione !== regionePaeseCercato) {
+        opacitaTarget = 80;
       }
     } else if (regioneHover !== null && regioneHover !== etichetta.regione) {
-      opacita = 80;
+      opacitaTarget = 80;
     }
-    
-    tint(255, opacita);
-    image(torcia, centroRegione, yIniziaTorcia + altezzaTorcia/2, larghezzaMassima*1.15, altezzaTorcia);
-    
+
+    if (opacitaTorce[etichetta.regione] === undefined) {
+      opacitaTorce[etichetta.regione] = 255;
+    }
+
+    let current = opacitaTorce[etichetta.regione];
+
+    // velocità diversa entrata / uscita
+    let speed = opacitaTarget < current ? 10 : 5;
+
+    // frame-rate independent easing
+    let smoothing = 1 - Math.exp(-speed * deltaTime / 1000);
+
+    let nuovoValore = lerp(current, opacitaTarget, smoothing);
+
+    // micro-isteresi anti-sfarfallio
+    if (abs(nuovoValore - opacitaTarget) < 0.5) {
+      nuovoValore = opacitaTarget;
+    }
+
+    opacitaTorce[etichetta.regione] = nuovoValore;
+
+    // Disegno torcia
+    tint(255, opacitaTorce[etichetta.regione]);
+    image(
+      torcia,
+      centroRegione,
+      yIniziaTorcia + altezzaTorcia / 2,
+      larghezzaMassima * 1.15,
+      altezzaTorcia
+    );
+
     areeTorce.push({
       regione: etichetta.regione,
-      x: centroRegione - (larghezzaMassima*1.1)/2,
+      x: centroRegione - (larghezzaMassima * 1.1) / 2,
       y: yIniziaTorcia,
-      w: larghezzaMassima*1.1,
+      w: larghezzaMassima * 1.1,
       h: altezzaTorcia
     });
   }
+
   noTint();
   pop();
-  
-  // Salva le aree complete delle regioni
+
+  // Aree regioni
   for (let etichetta of etichetteRegioni) {
-    let areaTorcia = areeTorce.find(a => a.regione === etichetta.regione);
-    
-    if (areaTorcia) {
-      areeRegioni.push({
-        regione: etichetta.regione,
-        x: etichetta.xInizio,
-        y: 150,
-        w: etichetta.larghezza,
-        h: height
-      });
-    }
+    areeRegioni.push({
+      regione: etichetta.regione,
+      x: etichetta.xInizio,
+      y: 150,
+      w: etichetta.larghezza,
+      h: height
+    });
   }
-  
-  // Disegna le etichette delle regioni
+
+  // Etichette
   push();
   fill(palette.nero);
   noStroke();
@@ -641,115 +695,201 @@ function disegnaTorceEEtichette(etichetteRegioni, torcia, maxPaesiPerRegione, yB
   textFont(font);
   textSize(20);
   textLeading(20);
+
   const altezzaEtichetta = 50;
-  const yEtichetta = yBarra + 55;
-  
+
   for (let etichetta of etichetteRegioni) {
-    const larghezzaCasella = etichetta.larghezza * 1.2;
-    const xInizioCasella = etichetta.x - (larghezzaCasella / 2);
-    
+    let yIniziaTorcia = yBarra;
+    let altezzaTorcia = height - yIniziaTorcia;
+    let yEtichetta = yIniziaTorcia + altezzaTorcia * 0.25;
+
+    let larghezzaCasella = etichetta.larghezza * 1.2;
+    let xInizioCasella = etichetta.x - larghezzaCasella / 2;
+
     text(
       etichetta.regione,
       xInizioCasella,
-      yEtichetta - (altezzaEtichetta / 2),
+      yEtichetta - altezzaEtichetta / 2,
       larghezzaCasella,
       altezzaEtichetta
     );
   }
+
   pop();
-  
+
   return { areeTorce, areeRegioni };
 }
 
-// BARRA DI RICERCA
+// CALLBACKS
 
-function aggiornaPosizioneContainerPaese(paeseCercato, paesiConPosizioni) {
-  if (paeseCercato === null) return;
-  
-  let container = document.getElementById('containerPaeseCercato');
-  if (!container) return;
-  
-  let paese = paesiConPosizioni.find(p => p.nome === paeseCercato);
-  
-  if (paese) {
-    let offsetX = 10;
-    container.style.left = (paese.x + paese.raggio + offsetX) + 'px';
-    container.style.top = (paese.y - 15) + 'px';
-    container.style.display = 'flex';
-  } else {
-    container.style.display = 'none';
+function toggleFiltro(tipo) {
+  if (tipo === 'F') {
+    filtroF = !filtroF;
+    aggiornaStileBottoneFiltro(bottoneF, filtroF, palette.coloriStatus['F']);
+  } else if (tipo === 'PF') {
+    filtroPF = !filtroPF;
+    aggiornaStileBottoneFiltro(bottonePF, filtroPF, palette.coloriStatus['PF']);
+  } else if (tipo === 'NF') {
+    filtroNF = !filtroNF;
+    aggiornaStileBottoneFiltro(bottoneNF, filtroNF, palette.coloriStatus['NF']);
   }
 }
 
-// GESTIONE INTERAZIONI MOUSE
+function vaiAPaginaPaese(paese, inputRicerca, suggerimentiDiv) {
+  paeseCercato = paese;
+  suggerimentiDiv.style('display', 'none');
+  inputRicerca.value('');
+  
+  let container = document.getElementById('containerPaeseCercato');
+  if (container) {
+    container.style.display = 'flex';
+    let nomeDiv = document.getElementById('nomePaeseCercato');
+    if (nomeDiv) {
+      nomeDiv.innerHTML = paese;
+    }
+  }
+}
+
+function cambiaAnno(nuovoIndice) {
+  if (nuovoIndice >= 0 && nuovoIndice < anniUnici.length) {
+    annoCorrente = anniUnici[nuovoIndice];
+    datiFiltrati = filtraDatiPerAnno(data, annoCorrente);
+  }
+}
+
+function clickPaese(paese, anno) {
+  const countryNameEncoded = encodeURIComponent(paese);
+  window.location.href = `../html/paese.html?country=${countryNameEncoded}&year=${anno}`;
+}
+
+function clickRegione(regione, anno) {
+  const regioneEncoded = encodeURIComponent(regione);
+  window.location.href = `../html/regioni.html?region=${regioneEncoded}&year=${anno}`;
+}
+
+// EVENTI MOUSE
+
+function mouseMoved() {  
+  // Controlla hover sugli anni
+  let indiceAnnoHover = verificaClickAnno(
+    areeAnni, 
+    xPosAnni, 
+    yPosAnni,
+    mouseX,
+    mouseY
+  );
+  
+  if (indiceAnnoHover !== null) {
+    cursor(HAND);
+    return;
+  }
+  
+  // Controlla se siamo nella barra di ricerca
+  if (elementiRicerca.isMouseInRicerca()) {
+    cursor(ARROW);
+    return;
+  }
+  
+  // Gestisci hover su regioni e paese cercato
+  let risultato = gestioneMouseMoved(
+    paeseCercato,
+    paesiConPosizioni,
+    datiFiltrati,
+    areeRegioni,
+    areeTorce,
+    yBarra,
+    altezzaMassimaBarra,
+    incremento,
+    minTotalScore,
+    maxTotalScore
+  );
+  
+  regioneHover = risultato.regioneHover;
+  cursor(risultato.cursore);
+}
 
 function gestioneMouseMoved(paeseCercato, paesiConPosizioni, datiFiltrati, areeRegioni, areeTorce, yBarra, altezzaMassimaBarra, incremento, minTotalScore, maxTotalScore) {
   let nuovaRegioneHover = null;
   let cursoreDaMostrare = ARROW;
   
-  let regionePaeseCercato = null;
-  if (paeseCercato !== null) {
-    let rigaPaese = datiFiltrati.find(r => r.getString('Country/Territory') === paeseCercato);
-    if (rigaPaese) {
-      regionePaeseCercato = rigaPaese.getString('Region');
-    }
-  }
-  
-  if (regionePaeseCercato !== null) {
-    return { regioneHover: null, cursore: ARROW };
-  }
-  
+  // CASO 1: C'è un paese cercato - controlla se il mouse è sulla sua colonna
   if (paeseCercato !== null) {
     let paese = paesiConPosizioni.find(p => p.nome === paeseCercato);
     
     if (paese) {
-      for (let i = 0; i < datiFiltrati.length; i++) {
-        let riga = datiFiltrati[i];
-        if (riga.getString('Country/Territory') === paeseCercato) {
-          let total = riga.getNum('TOTAL');
-          let altezzaBarra = map(total, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
-          let yCimaBarra = yBarra - altezzaBarra - incremento;
-          
-          if (mouseX >= paese.x - paese.raggio &&
-              mouseX <= paese.x + paese.raggio &&
-              mouseY >= yCimaBarra &&
-              mouseY <= yBarra) {
-            return { regioneHover: null, cursore: HAND };
-          }
-          
-          let distanza = dist(mouseX, mouseY, paese.x, paese.y);
-          if (distanza <= paese.raggio) {
-            return { regioneHover: null, cursore: HAND };
-          }
-          
-          break;
+      // Trova i dati del paese
+      let rigaPaese = datiFiltrati.find(r => r.getString('Country/Territory') === paeseCercato);
+      
+      if (rigaPaese) {
+        let total = rigaPaese.getNum('TOTAL');
+        let altezzaBarra = map(total, minTotalScore, maxTotalScore, 0, altezzaMassimaBarra);
+        let yCimaBarra = yBarra - altezzaBarra - incremento;
+        
+        // Controlla se il mouse è dentro la colonna del paese cercato
+        let dentroColonnaX = mouseX >= paese.x - paese.raggio && mouseX <= paese.x + paese.raggio;
+        let dentroColonnaY = mouseY >= yCimaBarra && mouseY <= yBarra;
+        
+        if (dentroColonnaX && dentroColonnaY) {
+          // Mouse SOPRA la colonna del paese cercato
+          return { regioneHover: null, cursore: HAND };
         }
       }
     }
-  }
-  
-  if (regionePaeseCercato !== null) {
+    
     return { regioneHover: null, cursore: ARROW };
   }
   
+  // CASO 2: NON c'è paese cercato - gestione hover normale delle regioni
   for (let area of areeRegioni) {
     if (mouseX >= area.x && mouseX <= area.x + area.w &&
         mouseY >= area.y && mouseY <= area.y + area.h) {
       nuovaRegioneHover = area.regione;
-      
-      let areaTorcia = areeTorce.find(a => a.regione === area.regione);
-      if (areaTorcia &&
-          mouseY >= areaTorcia.y &&
-          mouseY <= areaTorcia.y + areaTorcia.h) {
-        cursoreDaMostrare = HAND;
-      } else {
-        cursoreDaMostrare = HAND;
-      }
+      cursoreDaMostrare = HAND;
       break;
     }
   }
   
   return { regioneHover: nuovaRegioneHover, cursore: cursoreDaMostrare };
+}
+
+function mousePressed() {
+  let container = document.getElementById('containerPaeseCercato');
+  if (container && container.style.display !== 'none') {
+    let rect = container.getBoundingClientRect();
+    if (mouseX >= rect.left && mouseX <= rect.right &&
+        mouseY >= rect.top && mouseY <= rect.bottom) {
+      return;
+    }
+  }
+  
+  if (elementiRicerca.isMouseInRicerca()) {
+    return;
+  }
+  
+  let indiceAnnoCliccato = verificaClickAnno(areeAnni, xPosAnni, yPosAnni, mouseX, mouseY);
+  
+  if (indiceAnnoCliccato !== null) {
+    cambiaAnno(indiceAnnoCliccato);
+    scrollAccumulato = indiceAnnoCliccato * pixelPerAnno;
+    progressoScroll = 0;
+    return;
+  }
+  
+  gestioneMousePressed(
+    paeseCercato,
+    paesiConPosizioni,
+    datiFiltrati,
+    areeRegioni,
+    areeTorce,
+    yBarra,
+    altezzaMassimaBarra,
+    incremento,
+    minTotalScore,
+    maxTotalScore,
+    annoCorrente,
+    clickPaese,
+    clickRegione
+  );
 }
 
 function gestioneMousePressed(paeseCercato, paesiConPosizioni, datiFiltrati, areeRegioni, areeTorce, yBarra, altezzaMassimaBarra, incremento, minTotalScore, maxTotalScore, annoCorrente, callbackPaese, callbackRegione) {
@@ -806,136 +946,21 @@ function gestioneMousePressed(paeseCercato, paesiConPosizioni, datiFiltrati, are
   return false;
 }
 
-// CALLBACKS
-
-function toggleFiltro(tipo) {
-  if (tipo === 'F') {
-    filtroF = !filtroF;
-    aggiornaStileBottoneFiltro(bottoneF, filtroF, palette.coloriStatus['F']);
-  } else if (tipo === 'PF') {
-    filtroPF = !filtroPF;
-    aggiornaStileBottoneFiltro(bottonePF, filtroPF, palette.coloriStatus['PF']);
-  } else if (tipo === 'NF') {
-    filtroNF = !filtroNF;
-    aggiornaStileBottoneFiltro(bottoneNF, filtroNF, palette.coloriStatus['NF']);
-  }
-}
-
-function vaiAPaginaPaese(paese, inputRicerca, suggerimentiDiv) {
-  paeseCercato = paese;
-  suggerimentiDiv.style('display', 'none');
-  inputRicerca.value('');
-  
-  let container = document.getElementById('containerPaeseCercato');
-  if (container) {
-    container.style.display = 'flex';
-    let nomeDiv = document.getElementById('nomePaeseCercato');
-    if (nomeDiv) {
-      nomeDiv.innerHTML = paese;
-    }
-  }
-}
-
-function cambiaAnno(nuovoIndice) {
-  if (nuovoIndice >= 0 && nuovoIndice < anniUnici.length) {
-    annoCorrente = anniUnici[nuovoIndice];
-    datiFiltrati = filtraDatiPerAnno(data, annoCorrente);
-  }
-}
-
-function clickPaese(paese, anno) {
-  const countryNameEncoded = encodeURIComponent(paese);
-  window.location.href = `../html/paese.html?country=${countryNameEncoded}&year=${anno}`;
-}
-
-function clickRegione(regione, anno) {
-  const regioneEncoded = encodeURIComponent(regione);
-  window.location.href = `../html/regioni.html?region=${regioneEncoded}&year=${anno}`;
-}
-
-// EVENTI MOUSE
-
-function mouseMoved() {
-  if (elementiRicerca.isMouseInRicerca()) {
-    cursor(ARROW);
-    return;
-  }
-  
-  let risultato = gestioneMouseMoved(
-    paeseCercato,
-    paesiConPosizioni,
-    datiFiltrati,
-    areeRegioni,
-    areeTorce,
-    yBarra,
-    altezzaMassimaBarra,
-    incremento,
-    minTotalScore,
-    maxTotalScore
-  );
-  
-  regioneHover = risultato.regioneHover;
-  
-  // ✅ AGGIUNGI mouseX e mouseY
-  let indiceAnnoHover = verificaClickAnno(
-    areeAnni, 
-    xPosAnni, 
-    yPosAnni,
-    mouseX,    // ← AGGIUNGI
-    mouseY     // ← AGGIUNGI
-  );
-  
-  if (indiceAnnoHover !== null) {
-    cursor(HAND);
-  } else {
-    cursor(risultato.cursore);
-  }
-}
-
-function mousePressed() {
-  // Se il click è sul container del paese cercato, non fare nulla
-  let container = document.getElementById('containerPaeseCercato');
-  if (container && container.style.display !== 'none') {
-    let rect = container.getBoundingClientRect();
-    if (mouseX >= rect.left && mouseX <= rect.right &&
-        mouseY >= rect.top && mouseY <= rect.bottom) {
-      return;
-    }
-  }
-  
-  if (elementiRicerca.isMouseInRicerca()) {
-    return;
-  }
-  
-  let indiceAnnoCliccato = verificaClickAnno(areeAnni, xPosAnni, yPosAnni, mouseX, mouseY);
-  
-  if (indiceAnnoCliccato !== null) {
-    cambiaAnno(indiceAnnoCliccato);
-    scrollAccumulato = indiceAnnoCliccato * pixelPerAnno;
-    progressoScroll = 0;
-    return;
-  }
-  
-  gestioneMousePressed(
-    paeseCercato,
-    paesiConPosizioni,
-    datiFiltrati,
-    areeRegioni,
-    areeTorce,
-    yBarra,
-    altezzaMassimaBarra,
-    incremento,
-    minTotalScore,
-    maxTotalScore,
-    annoCorrente,
-    clickPaese,
-    clickRegione
-  );
-}
-
 function keyPressed() {
   let indiceCorrente = anniUnici.indexOf(annoCorrente);
   
+  if (keyCode === ESCAPE) {
+    if (paeseCercato !== null) {
+      paeseCercato = null;
+      elementiRicerca.inputRicerca.value('');
+      let container = document.getElementById('containerPaeseCercato');
+      if (container) {
+        container.style.display = 'none';
+      }
+      return false;
+    }
+  }
+
   if (keyCode === DOWN_ARROW) {
     if (indiceCorrente < anniUnici.length - 1) {
       let nuovoIndice = indiceCorrente + 1;
@@ -961,7 +986,6 @@ function mouseWheel(event) {
     return true;
   }
   
-  // ✅ Chiamata alla funzione della LIBRERIA
   let risultato = gestioneMouseWheel(
     event,
     anniUnici,

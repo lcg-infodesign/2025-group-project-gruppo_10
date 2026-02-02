@@ -10,6 +10,13 @@ canvas {
 /* font */
 @font-face {
   font-family: 'NeueHaasDisplay';
+  src: url('font/NeueHaasDisplayThin.ttf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'NeueHaasDisplay';
   src: url('font/NeueHaasDisplayRoman.ttf') format('opentype');
   font-weight: 400;
   font-style: normal;
