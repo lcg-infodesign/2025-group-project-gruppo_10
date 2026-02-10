@@ -760,12 +760,12 @@ function cambiaAnno(nuovoIndice) {
 
 function clickPaese(paese, anno) {
   const countryNameEncoded = encodeURIComponent(paese);
-  window.location.href = `../html/paese.html?country=${countryNameEncoded}&year=${anno}`;
+  window.location.href = `html/paese.html?country=${countryNameEncoded}&year=${anno}`;
 }
 
 function clickRegione(regione, anno) {
   const regioneEncoded = encodeURIComponent(regione);
-  window.location.href = `../html/regioni.html?region=${regioneEncoded}&year=${anno}`;
+  window.location.href = `html/regioni.html?region=${regioneEncoded}&year=${anno}`;
 }
 
 // EVENTI MOUSE

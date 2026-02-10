@@ -402,7 +402,7 @@ function setup() {
   // Bottoni
   btnBack = creaBottoneStandard(margine, margine, iconaArrLeft, () => window.history.back());
   btnAboutFH = creaBottoneStandard(width - diametro - margine, margine, iconaAboutFh, '../html/aboutFreedomHouse.html');
-  btnAboutUs = creaBottoneStandard(width - (diametro * 2) - margine * 1.5, margine, iconaAboutUs, '../html/AboutUs.html');
+  btnAboutUs = creaBottoneStandard(width - (diametro * 2) - margine * 1.5, margine, iconaAboutUs, '../html/aboutUs.html');
 }
 
 function draw() {
